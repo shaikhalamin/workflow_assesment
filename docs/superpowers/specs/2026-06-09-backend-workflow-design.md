@@ -145,6 +145,10 @@ POST   /workflow-templates/:id/deactivate
 POST   /workflow-templates/:id/duplicate
 
 GET    /workflow-event-schemas
+POST   /workflow-event-schemas
+GET    /workflow-event-schemas/:id
+PATCH  /workflow-event-schemas/:id
+POST   /workflow-event-schemas/:id/deactivate
 
 POST   /workflow-templates/:id/rules
 PATCH  /workflow-rules/:id
@@ -161,10 +165,15 @@ The builder supports both:
 
 - A full wizard payload that creates or updates template, trigger condition, approval rules, steps, and outcomes together.
 - Granular rule and step endpoints for frontend editing flows.
+- Admin-managed event schema endpoints so admins can add or adjust field schemas for supported modules and future modules such as Attendance, Purchase, Payroll, Procurement, and Invoice.
 
 Validation:
 
 - Workflow name, module, event, entity type, status, and priority are required.
+- Event schema module name, event name, entity type, and field schema are required.
+- Event schema field keys must be unique inside a schema.
+- Event schema field operators must be valid for the declared field type.
+- Event schema deactivate is soft-state only through `isActive = false`, not physical deletion, so existing workflow templates keep their validation history.
 - Published workflows require at least one active approval rule.
 - Each non-fallback rule requires a condition.
 - Only one fallback rule is allowed per template.
