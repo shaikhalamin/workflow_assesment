@@ -36,7 +36,7 @@ export class PaymentRequest {
   })
   status!: PaymentRequestStatus;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   paymentReference!: string | null;
 
   @Column({ type: 'uuid', nullable: true })

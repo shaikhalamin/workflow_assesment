@@ -81,7 +81,9 @@ export class OutcomeHandlerService {
   }
 
   private async approveLeave(instance: WorkflowInstance): Promise<void> {
-    const leave = await this.leavesRepository.findOneBy({ id: instance.entityId });
+    const leave = await this.leavesRepository.findOneBy({
+      id: instance.entityId,
+    });
     if (!leave) return;
     leave.status = LeaveRequestStatus.APPROVED;
     leave.approvedAt = new Date();
@@ -97,7 +99,9 @@ export class OutcomeHandlerService {
     instance: WorkflowInstance,
     reason: string,
   ): Promise<void> {
-    const leave = await this.leavesRepository.findOneBy({ id: instance.entityId });
+    const leave = await this.leavesRepository.findOneBy({
+      id: instance.entityId,
+    });
     if (!leave) return;
     leave.status = LeaveRequestStatus.REJECTED;
     leave.rejectionReason = reason;

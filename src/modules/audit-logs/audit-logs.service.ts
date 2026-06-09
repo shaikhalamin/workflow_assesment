@@ -45,7 +45,8 @@ export class AuditLogsService {
   }
 
   list(query: PaginationQueryDto, actor: Express.User) {
-    const isAdmin = actor.permissions.includes('audit.read') && actor.roles.includes('admin');
+    const isAdmin =
+      actor.permissions.includes('audit.read') && actor.roles.includes('admin');
     return paginateRepo(this.auditLogsRepository, {
       page: query.page ?? 1,
       limit: query.limit ?? 25,
@@ -54,7 +55,11 @@ export class AuditLogsService {
     });
   }
 
-  listForEntity(entityType: string, entityId: string, query: PaginationQueryDto) {
+  listForEntity(
+    entityType: string,
+    entityId: string,
+    query: PaginationQueryDto,
+  ) {
     return paginateRepo(this.auditLogsRepository, {
       page: query.page ?? 1,
       limit: query.limit ?? 25,

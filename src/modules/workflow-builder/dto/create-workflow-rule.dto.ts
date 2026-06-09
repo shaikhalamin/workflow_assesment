@@ -17,12 +17,17 @@ export class CreateWorkflowRuleDto {
   @IsString()
   name!: string;
 
-  @ApiProperty({ minimum: 0 })
+  @ApiProperty({ minimum: 0, example: 10 })
   @IsInt()
   @Min(0)
   priority!: number;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: {
+      mode: 'all',
+      conditions: [{ field: 'amount', operator: 'gte', value: 50000 }],
+    },
+  })
   @IsOptional()
   @IsObject()
   conditionJson?: ConditionGroup | null;
@@ -37,7 +42,18 @@ export class CreateWorkflowRuleDto {
   @IsBoolean()
   isActive?: boolean;
 
-  @ApiPropertyOptional({ type: [CreateWorkflowStepConfigDto] })
+  @ApiPropertyOptional({
+    type: [CreateWorkflowStepConfigDto],
+    example: [
+      {
+        stepOrder: 1,
+        stepName: 'Finance review',
+        stepType: 'FINANCE_CHECK',
+        assigneeType: 'ROLE',
+        assigneeRoleSlug: 'accounts',
+      },
+    ],
+  })
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => CreateWorkflowStepConfigDto)

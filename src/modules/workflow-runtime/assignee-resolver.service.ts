@@ -3,9 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Department } from '../departments/entities/department.entity';
 import { User } from '../users/entities/user.entity';
-import {
-  WorkflowApprovalStepConfig,
-} from '../workflow-builder/entities/workflow-approval-step-config.entity';
+import { WorkflowApprovalStepConfig } from '../workflow-builder/entities/workflow-approval-step-config.entity';
 import { WorkflowAssigneeType } from '../workflow-builder/enums/workflow-builder.enums';
 
 export type ResolvedAssignee = {
@@ -31,7 +29,10 @@ export class AssigneeResolverService {
   async resolve(
     step: Pick<
       WorkflowApprovalStepConfig,
-      'assigneeType' | 'assigneeUserId' | 'assigneeRoleSlug' | 'assigneeFieldPath'
+      | 'assigneeType'
+      | 'assigneeUserId'
+      | 'assigneeRoleSlug'
+      | 'assigneeFieldPath'
     >,
     context: AssigneeContext,
   ): Promise<ResolvedAssignee> {
@@ -41,13 +42,19 @@ export class AssigneeResolverService {
         return { assignedUserId: step.assigneeUserId, assignedRoleSlug: null };
       case WorkflowAssigneeType.ROLE:
         if (!step.assigneeRoleSlug) break;
-        return { assignedUserId: null, assignedRoleSlug: step.assigneeRoleSlug };
+        return {
+          assignedUserId: null,
+          assignedRoleSlug: step.assigneeRoleSlug,
+        };
       case WorkflowAssigneeType.REQUESTER_MANAGER: {
         const requester = await this.usersRepository.findOneBy({
           id: context.requesterId,
         });
         if (requester?.managerId) {
-          return { assignedUserId: requester.managerId, assignedRoleSlug: null };
+          return {
+            assignedUserId: requester.managerId,
+            assignedRoleSlug: null,
+          };
         }
         break;
       }
@@ -57,7 +64,10 @@ export class AssigneeResolverService {
           id: context.departmentId,
         });
         if (department?.headUserId) {
-          return { assignedUserId: department.headUserId, assignedRoleSlug: null };
+          return {
+            assignedUserId: department.headUserId,
+            assignedRoleSlug: null,
+          };
         }
         break;
       }

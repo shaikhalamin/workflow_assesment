@@ -12,6 +12,13 @@ export type AccessPayload = {
   permissions: string[];
 };
 
+function accessTokenFromRequest(request: Request): string | null {
+  const cookies = request.cookies as unknown;
+  if (!cookies || typeof cookies !== 'object') return null;
+  const accessToken = (cookies as Record<string, unknown>).access_token;
+  return typeof accessToken === 'string' ? accessToken : null;
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -19,9 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     config: ConfigType<typeof jwtConfig>,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: Request) => request.cookies?.access_token ?? null,
-      ]),
+      jwtFromRequest: ExtractJwt.fromExtractors([accessTokenFromRequest]),
       ignoreExpiration: false,
       secretOrKey: config.secret,
     });

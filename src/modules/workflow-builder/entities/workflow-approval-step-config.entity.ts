@@ -41,13 +41,13 @@ export class WorkflowApprovalStepConfig {
   @Column({ type: 'enum', enum: WorkflowAssigneeType })
   assigneeType!: WorkflowAssigneeType;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   assigneeRoleSlug!: string | null;
 
   @Column({ type: 'uuid', nullable: true })
   assigneeUserId!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   assigneeFieldPath!: string | null;
 
   @Column({ default: true })
@@ -65,13 +65,13 @@ export class WorkflowApprovalStepConfig {
   @Column({ default: false })
   canReassign!: boolean;
 
-  @Column({ nullable: true })
+  @Column({ type: 'int', nullable: true })
   slaHours!: number | null;
 
   @Column({ type: 'enum', enum: WorkflowAssigneeType, nullable: true })
   escalationAssigneeType!: WorkflowAssigneeType | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   escalationAssigneeRoleSlug!: string | null;
 
   @Column({ type: 'uuid', nullable: true })

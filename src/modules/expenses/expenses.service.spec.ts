@@ -21,7 +21,11 @@ describe('ExpensesService', () => {
     const runtime = {
       trigger: jest.fn().mockResolvedValue({ workflowInstanceId: 'wi-1' }),
     };
-    const service = new ExpensesService(repo as never, runtime as never, {} as never);
+    const service = new ExpensesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
 
     await service.submit('expense-1', { userId: 'user-1' } as never);
 
@@ -35,7 +39,9 @@ describe('ExpensesService', () => {
 
   it('rejects submit by a non-owner', async () => {
     const service = new ExpensesService(
-      { findOneBy: jest.fn().mockResolvedValue({ requesterId: 'owner-1' }) } as never,
+      {
+        findOneBy: jest.fn().mockResolvedValue({ requesterId: 'owner-1' }),
+      } as never,
       {} as never,
       {} as never,
     );

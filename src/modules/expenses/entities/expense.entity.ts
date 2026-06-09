@@ -43,7 +43,7 @@ export class Expense {
   @Column()
   category!: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   vendor!: string | null;
 
   @Column({ type: 'numeric', precision: 14, scale: 2, nullable: true })

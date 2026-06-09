@@ -12,7 +12,10 @@ import { CreateLeaveDto } from './dto/create-leave.dto';
 import { LeaveQueryDto } from './dto/leave-query.dto';
 import { ResubmitLeaveDto } from './dto/resubmit-leave.dto';
 import { UpdateLeaveDto } from './dto/update-leave.dto';
-import { LeaveRequest, LeaveRequestStatus } from './entities/leave-request.entity';
+import {
+  LeaveRequest,
+  LeaveRequestStatus,
+} from './entities/leave-request.entity';
 
 @Injectable()
 export class LeavesService {
@@ -23,7 +26,10 @@ export class LeavesService {
     private readonly auditLogsService: AuditLogsService,
   ) {}
 
-  async create(dto: CreateLeaveDto, actor: Express.User): Promise<LeaveRequest> {
+  async create(
+    dto: CreateLeaveDto,
+    actor: Express.User,
+  ): Promise<LeaveRequest> {
     const leave = await this.leavesRepository.save(
       this.leavesRepository.create({
         requesterId: actor.userId,
@@ -56,8 +62,10 @@ export class LeavesService {
     const qb = this.leavesRepository
       .createQueryBuilder('leave')
       .orderBy('leave.createdAt', 'DESC');
-    if (query.status) qb.andWhere('leave.status = :status', { status: query.status });
-    if (!adminLike) qb.andWhere('leave.requesterId = :userId', { userId: actor.userId });
+    if (query.status)
+      qb.andWhere('leave.status = :status', { status: query.status });
+    if (!adminLike)
+      qb.andWhere('leave.requesterId = :userId', { userId: actor.userId });
     return paginateQb(qb, { page, limit, idColumn: 'leave.id' });
   }
 
@@ -68,7 +76,9 @@ export class LeavesService {
       ['admin', 'hr-officer', 'hr-manager', 'manager'].includes(role),
     );
     if (!adminLike && leave.requesterId !== actor.userId) {
-      throw new BadRequestException('Leave request is not visible to this user');
+      throw new BadRequestException(
+        'Leave request is not visible to this user',
+      );
     }
     return leave;
   }
@@ -82,8 +92,14 @@ export class LeavesService {
     if (leave.requesterId !== actor.userId) {
       throw new BadRequestException('Only requester can update leave');
     }
-    if (![LeaveRequestStatus.DRAFT, LeaveRequestStatus.REJECTED].includes(leave.status)) {
-      throw new BadRequestException('Only draft or rejected leave can be updated');
+    if (
+      ![LeaveRequestStatus.DRAFT, LeaveRequestStatus.REJECTED].includes(
+        leave.status,
+      )
+    ) {
+      throw new BadRequestException(
+        'Only draft or rejected leave can be updated',
+      );
     }
     Object.assign(leave, dto);
     await this.auditLogsService.record?.({

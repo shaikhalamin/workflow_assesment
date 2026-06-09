@@ -63,11 +63,15 @@ export class ConditionValidatorService {
       throw new BadRequestException('Condition clauses are required');
     }
 
-    const fieldsByKey = new Map(schema.fields.map((field) => [field.key, field]));
+    const fieldsByKey = new Map(
+      schema.fields.map((field) => [field.key, field]),
+    );
     for (const clause of condition.conditions) {
       const field = fieldsByKey.get(clause.field);
       if (!field) {
-        throw new BadRequestException(`Unknown condition field: ${clause.field}`);
+        throw new BadRequestException(
+          `Unknown condition field: ${clause.field}`,
+        );
       }
       if (!field.operators.includes(clause.operator)) {
         throw new BadRequestException(

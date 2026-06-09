@@ -43,7 +43,10 @@ export class WorkflowApprovalRule {
   @Column({ default: true })
   isActive!: boolean;
 
-  @OneToMany(() => WorkflowApprovalStepConfig, (step) => step.workflowApprovalRule)
+  @OneToMany(
+    () => WorkflowApprovalStepConfig,
+    (step) => step.workflowApprovalRule,
+  )
   steps!: WorkflowApprovalStepConfig[];
 
   @CreateDateColumn()

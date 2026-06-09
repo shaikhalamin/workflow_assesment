@@ -48,7 +48,7 @@ export class RefreshTokenSession {
   @Column({ type: 'text', nullable: true })
   userAgent!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   ipAddress!: string | null;
 
   @CreateDateColumn()

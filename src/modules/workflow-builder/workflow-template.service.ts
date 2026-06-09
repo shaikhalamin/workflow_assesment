@@ -194,7 +194,11 @@ export class WorkflowTemplateService {
     workflowTemplateId: string,
     dto: CreateWorkflowRuleDto,
   ): Promise<WorkflowApprovalRule> {
-    await this.validateRuleUniqueness(workflowTemplateId, dto.priority, dto.isFallback);
+    await this.validateRuleUniqueness(
+      workflowTemplateId,
+      dto.priority,
+      dto.isFallback,
+    );
     for (const step of dto.steps ?? []) this.validateStepAssignee(step);
 
     const rule = await this.rulesRepository.save(
@@ -274,7 +278,9 @@ export class WorkflowTemplateService {
       priority,
     });
     if (priorityRule && priorityRule.id !== ignoreRuleId) {
-      throw new BadRequestException('Rule priority must be unique per template');
+      throw new BadRequestException(
+        'Rule priority must be unique per template',
+      );
     }
     if (isFallback) {
       const fallbackRule = await this.rulesRepository.findOneBy({
@@ -293,17 +299,25 @@ export class WorkflowTemplateService {
     assigneeUserId?: string | null;
     assigneeFieldPath?: string | null;
   }): void {
-    if (step.assigneeType === WorkflowAssigneeType.ROLE && !step.assigneeRoleSlug) {
+    if (
+      step.assigneeType === WorkflowAssigneeType.ROLE &&
+      !step.assigneeRoleSlug
+    ) {
       throw new BadRequestException('ROLE steps require assigneeRoleSlug');
     }
-    if (step.assigneeType === WorkflowAssigneeType.USER && !step.assigneeUserId) {
+    if (
+      step.assigneeType === WorkflowAssigneeType.USER &&
+      !step.assigneeUserId
+    ) {
       throw new BadRequestException('USER steps require assigneeUserId');
     }
     if (
       step.assigneeType === WorkflowAssigneeType.CUSTOM_FIELD_USER &&
       !step.assigneeFieldPath
     ) {
-      throw new BadRequestException('CUSTOM_FIELD_USER steps require assigneeFieldPath');
+      throw new BadRequestException(
+        'CUSTOM_FIELD_USER steps require assigneeFieldPath',
+      );
     }
   }
 }

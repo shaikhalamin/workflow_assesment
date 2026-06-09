@@ -10,7 +10,7 @@ describe('AssigneeResolverService', () => {
           assigneeType: WorkflowAssigneeType.USER,
           assigneeUserId: 'user-1',
         } as never,
-        { requesterId: 'requester-1', metadata: {} } as never,
+        { requesterId: 'requester-1', metadata: {} },
       ),
     ).resolves.toEqual({ assignedUserId: 'user-1', assignedRoleSlug: null });
   });

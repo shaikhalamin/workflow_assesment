@@ -79,7 +79,11 @@ export class WorkflowRuleService {
     const next = { ...step, ...dto };
     this.validateStepAssignee(next);
     if (dto.stepOrder !== undefined) {
-      await this.assertUniqueStepOrder(step.workflowApprovalRuleId, dto.stepOrder, id);
+      await this.assertUniqueStepOrder(
+        step.workflowApprovalRuleId,
+        dto.stepOrder,
+        id,
+      );
     }
     Object.assign(step, dto);
     return this.stepConfigsRepository.save(step);
@@ -99,7 +103,9 @@ export class WorkflowRuleService {
       priority,
     });
     if (existing && existing.id !== ignoreId) {
-      throw new BadRequestException('Rule priority must be unique per template');
+      throw new BadRequestException(
+        'Rule priority must be unique per template',
+      );
     }
   }
 
@@ -123,17 +129,25 @@ export class WorkflowRuleService {
     assigneeUserId?: string | null;
     assigneeFieldPath?: string | null;
   }): void {
-    if (step.assigneeType === WorkflowAssigneeType.ROLE && !step.assigneeRoleSlug) {
+    if (
+      step.assigneeType === WorkflowAssigneeType.ROLE &&
+      !step.assigneeRoleSlug
+    ) {
       throw new BadRequestException('ROLE steps require assigneeRoleSlug');
     }
-    if (step.assigneeType === WorkflowAssigneeType.USER && !step.assigneeUserId) {
+    if (
+      step.assigneeType === WorkflowAssigneeType.USER &&
+      !step.assigneeUserId
+    ) {
       throw new BadRequestException('USER steps require assigneeUserId');
     }
     if (
       step.assigneeType === WorkflowAssigneeType.CUSTOM_FIELD_USER &&
       !step.assigneeFieldPath
     ) {
-      throw new BadRequestException('CUSTOM_FIELD_USER steps require assigneeFieldPath');
+      throw new BadRequestException(
+        'CUSTOM_FIELD_USER steps require assigneeFieldPath',
+      );
     }
   }
 }

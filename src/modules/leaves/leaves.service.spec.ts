@@ -20,7 +20,11 @@ describe('LeavesService', () => {
     const runtime = {
       trigger: jest.fn().mockResolvedValue({ workflowInstanceId: 'wi-2' }),
     };
-    const service = new LeavesService(repo as never, runtime as never, {} as never);
+    const service = new LeavesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
 
     await service.submit('leave-1', { userId: 'user-1' } as never);
 

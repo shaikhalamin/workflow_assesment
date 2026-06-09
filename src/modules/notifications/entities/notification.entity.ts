@@ -1,4 +1,9 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 export enum NotificationType {
   WORKFLOW_TASK_ASSIGNED = 'WORKFLOW_TASK_ASSIGNED',
@@ -17,7 +22,7 @@ export class Notification {
   @Column({ type: 'uuid', nullable: true })
   recipientUserId!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   recipientRoleSlug!: string | null;
 
   @Column()

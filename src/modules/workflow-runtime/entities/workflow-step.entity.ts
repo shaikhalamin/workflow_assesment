@@ -42,7 +42,7 @@ export class WorkflowStep {
   @Column({ type: 'uuid', nullable: true })
   assignedUserId!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   assignedRoleSlug!: string | null;
 
   @Column({ type: 'enum', enum: WorkflowAssigneeType })

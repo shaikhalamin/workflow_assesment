@@ -247,7 +247,8 @@ export class WorkflowRuntimeService {
     actor: Express.User,
     dto: WorkflowActionDto,
   ): Promise<WorkflowStep> {
-    if (!dto.reason) throw new BadRequestException('Rejection reason is required');
+    if (!dto.reason)
+      throw new BadRequestException('Rejection reason is required');
     const step = await this.getActiveStepForAction(stepId, actor);
     step.status = WorkflowStepStatus.REJECTED;
     step.actedAt = new Date();
@@ -415,7 +416,10 @@ export class WorkflowRuntimeService {
     if (
       step.assignedRoleSlug &&
       (actor.roles.includes(step.assignedRoleSlug) ||
-        (await this.rbacService.userHasRole(actor.userId, step.assignedRoleSlug)))
+        (await this.rbacService.userHasRole(
+          actor.userId,
+          step.assignedRoleSlug,
+        )))
     ) {
       return;
     }

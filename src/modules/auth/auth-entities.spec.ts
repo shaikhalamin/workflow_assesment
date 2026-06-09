@@ -65,7 +65,7 @@ describe('auth and rbac entities', () => {
       target: relation.target,
       propertyName: relation.propertyName,
       relationType: relation.relationType,
-      type: relation.type(),
+      type: relation.type() as unknown,
       onDelete: relation.options.onDelete,
     }));
     const joinColumns = getMetadataArgsStorage().joinColumns.map(

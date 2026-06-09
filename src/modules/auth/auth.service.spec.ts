@@ -19,7 +19,7 @@ describe('AuthService', () => {
       { findByEmailWithAccess: jest.fn().mockResolvedValue(user) } as never,
       { revokeActiveSessionsForUser: jest.fn() } as never,
       new JwtService({ secret: 'a'.repeat(32) }),
-      { domain: 'localhost' } as never,
+      { domain: 'localhost' },
     );
 
     await expect(

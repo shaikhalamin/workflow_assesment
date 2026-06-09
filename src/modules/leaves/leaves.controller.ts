@@ -1,8 +1,18 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
+import { ApiOkData, ApiOkPaginated } from '../../common/http/swagger';
 import { CreateLeaveDto } from './dto/create-leave.dto';
+import { LeaveResponseDto } from './dto/leave-response.dto';
 import { LeaveQueryDto } from './dto/leave-query.dto';
 import { ResubmitLeaveDto } from './dto/resubmit-leave.dto';
 import { UpdateLeaveDto } from './dto/update-leave.dto';
@@ -16,24 +26,28 @@ export class LeavesController {
 
   @Post()
   @Permissions('leaves.write')
+  @ApiOkData(LeaveResponseDto, { status: 201 })
   create(@Body() dto: CreateLeaveDto, @CurrentUser() actor: Express.User) {
     return this.leavesService.create(dto, actor);
   }
 
   @Get()
   @Permissions('leaves.read')
+  @ApiOkPaginated(LeaveResponseDto)
   list(@Query() query: LeaveQueryDto, @CurrentUser() actor: Express.User) {
     return this.leavesService.list(query, actor);
   }
 
   @Get(':id')
   @Permissions('leaves.read')
+  @ApiOkData(LeaveResponseDto)
   findOne(@Param('id') id: string, @CurrentUser() actor: Express.User) {
     return this.leavesService.findOne(id, actor);
   }
 
   @Patch(':id')
   @Permissions('leaves.write')
+  @ApiOkData(LeaveResponseDto)
   update(
     @Param('id') id: string,
     @Body() dto: UpdateLeaveDto,
@@ -44,12 +58,14 @@ export class LeavesController {
 
   @Post(':id/submit')
   @Permissions('leaves.write')
+  @ApiOkData(LeaveResponseDto, { status: 201 })
   submit(@Param('id') id: string, @CurrentUser() actor: Express.User) {
     return this.leavesService.submit(id, actor);
   }
 
   @Post(':id/resubmit')
   @Permissions('leaves.write')
+  @ApiOkData(LeaveResponseDto, { status: 201 })
   resubmit(
     @Param('id') id: string,
     @Body() dto: ResubmitLeaveDto,

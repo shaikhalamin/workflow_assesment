@@ -88,7 +88,10 @@ export class DashboardService {
       .where('step.status = :status', { status: WorkflowStepStatus.ACTIVE })
       .andWhere(
         '(step.assignedUserId = :userId OR step.assignedRoleSlug IN (:...roles))',
-        { userId: actor.userId, roles: actor.roles.length ? actor.roles : ['__none__'] },
+        {
+          userId: actor.userId,
+          roles: actor.roles.length ? actor.roles : ['__none__'],
+        },
       )
       .getCount();
     const actedTasks = await this.workflowStepsRepository.countBy({
@@ -118,7 +121,9 @@ export class DashboardService {
     const [approved, rejected, underReview] = await Promise.all([
       this.leavesRepository.countBy({ status: LeaveRequestStatus.APPROVED }),
       this.leavesRepository.countBy({ status: LeaveRequestStatus.REJECTED }),
-      this.leavesRepository.countBy({ status: LeaveRequestStatus.UNDER_REVIEW }),
+      this.leavesRepository.countBy({
+        status: LeaveRequestStatus.UNDER_REVIEW,
+      }),
     ]);
     return {
       leaveTasks: underReview,

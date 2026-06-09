@@ -1,4 +1,9 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'audit_logs' })
 export class AuditLog {
@@ -23,10 +28,10 @@ export class AuditLog {
   @Column({ type: 'uuid', nullable: true })
   workflowStepId!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   oldStatus!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   newStatus!: string | null;
 
   @Column({ type: 'text', nullable: true })

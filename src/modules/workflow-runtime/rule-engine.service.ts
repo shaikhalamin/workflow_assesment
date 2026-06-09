@@ -6,7 +6,10 @@ import type {
 
 @Injectable()
 export class RuleEngineService {
-  matches(data: Record<string, unknown>, conditionGroup?: ConditionGroup | null): boolean {
+  matches(
+    data: Record<string, unknown>,
+    conditionGroup?: ConditionGroup | null,
+  ): boolean {
     if (!conditionGroup?.conditions?.length) return true;
     const checks = conditionGroup.conditions.map((condition) =>
       this.matchesClause(data, condition),
@@ -60,7 +63,9 @@ export class RuleEngineService {
       case 'not_in':
         return Array.isArray(expected) && !expected.includes(actual);
       case 'contains':
-        return String(actual ?? '').includes(String(expected ?? ''));
+        return this.toComparableText(actual).includes(
+          this.toComparableText(expected),
+        );
       case 'is_empty':
         return actual === undefined || actual === null || actual === '';
       case 'is_not_empty':
@@ -81,5 +86,19 @@ export class RuleEngineService {
       return false;
     }
     return compare(actualNumber, expectedNumber);
+  }
+
+  private toComparableText(value: unknown): string {
+    if (value === undefined || value === null) return '';
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean' ||
+      typeof value === 'bigint'
+    ) {
+      return String(value);
+    }
+    const json = JSON.stringify(value);
+    return json ?? '';
   }
 }

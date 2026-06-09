@@ -15,11 +15,11 @@ import type { ConditionGroup } from '../condition.types';
 import { WorkflowTemplateStatus } from '../enums/workflow-builder.enums';
 
 export class CreateWorkflowTemplateDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'Expense approval workflow' })
   @IsString()
   name!: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 'Routes expenses through finance approval' })
   @IsOptional()
   @IsString()
   description?: string | null;
@@ -41,19 +41,19 @@ export class CreateWorkflowTemplateDto {
   @IsEnum(WorkflowTemplateStatus)
   status?: WorkflowTemplateStatus;
 
-  @ApiPropertyOptional({ minimum: 0 })
+  @ApiPropertyOptional({ minimum: 0, example: 10 })
   @IsOptional()
   @IsInt()
   @Min(0)
   priority?: number;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: '2026-06-10T00:00:00.000Z' })
   @IsOptional()
   @Type(() => Date)
   @IsDate()
   effectiveFrom?: Date | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: '2026-12-31T23:59:59.000Z' })
   @IsOptional()
   @Type(() => Date)
   @IsDate()
@@ -64,22 +64,31 @@ export class CreateWorkflowTemplateDto {
   @IsBoolean()
   allowResubmission?: boolean;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: '71cb34da-1809-4c72-b132-2b9860be8936',
+  })
   @IsOptional()
   @IsUUID()
   createdById?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: {
+      mode: 'all',
+      conditions: [{ field: 'amount', operator: 'gte', value: 50000 }],
+    },
+  })
   @IsOptional()
   @IsObject()
   triggerConditionJson?: ConditionGroup | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: { setStatus: 'APPROVED', createPaymentRequest: true },
+  })
   @IsOptional()
   @IsObject()
   approvedActionsJson?: Record<string, unknown> | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: { setStatus: 'REJECTED' } })
   @IsOptional()
   @IsObject()
   rejectedActionsJson?: Record<string, unknown> | null;

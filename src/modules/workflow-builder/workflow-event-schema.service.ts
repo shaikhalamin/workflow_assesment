@@ -30,7 +30,9 @@ export class WorkflowEventSchemaService {
     return schema;
   }
 
-  async create(dto: CreateWorkflowEventSchemaDto): Promise<WorkflowEventSchema> {
+  async create(
+    dto: CreateWorkflowEventSchemaDto,
+  ): Promise<WorkflowEventSchema> {
     this.conditionValidator.validateEventSchema(dto.fieldSchemaJson);
     return this.schemasRepository.save(
       this.schemasRepository.create({

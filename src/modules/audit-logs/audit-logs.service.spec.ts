@@ -2,8 +2,13 @@ import { AuditLogsService } from './audit-logs.service';
 
 describe('AuditLogsService', () => {
   it('records actor, action, entity, workflow, and status transition', async () => {
-    const save = jest.fn().mockImplementation((value) => Promise.resolve(value));
-    const service = new AuditLogsService({ create: (v: unknown) => v, save } as never);
+    const save = jest
+      .fn()
+      .mockImplementation((value) => Promise.resolve(value));
+    const service = new AuditLogsService({
+      create: (v: unknown) => v,
+      save,
+    } as never);
 
     await service.record({
       actorUserId: 'user-1',

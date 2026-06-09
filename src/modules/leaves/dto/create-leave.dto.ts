@@ -1,12 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsObject, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import {
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 export class CreateLeaveDto {
   @ApiProperty({ example: 'ANNUAL' })
   @IsString()
   leaveType!: string;
 
-  @ApiProperty({ minimum: 1 })
+  @ApiProperty({ minimum: 1, example: 2 })
   @IsInt()
   @Min(1)
   leaveDays!: number;
@@ -19,22 +26,24 @@ export class CreateLeaveDto {
   @IsString()
   endDate!: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 'Family event' })
   @IsOptional()
   @IsString()
   reason?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 'M2' })
   @IsOptional()
   @IsString()
   employeeGrade?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: '61f1d2de-5733-4830-a97c-cb1899482850',
+  })
   @IsOptional()
   @IsUUID()
   departmentId?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: { handoverTo: 'team-lead' } })
   @IsOptional()
   @IsObject()
   customFieldsJson?: Record<string, unknown> | null;

@@ -41,7 +41,7 @@ export class LeaveRequest {
   @Column({ type: 'text', nullable: true })
   reason!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   employeeGrade!: string | null;
 
   @Column({

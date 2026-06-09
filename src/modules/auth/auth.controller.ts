@@ -2,6 +2,8 @@ import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { SuccessResponseDto } from '../../common/http/success-response.dto';
+import { ApiOkData } from '../../common/http/swagger';
 import { AuthService, AuthResult } from './auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
@@ -12,6 +14,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @ApiOkData(AuthResponseDto, { status: 201 })
   async login(
     @Body() dto: LoginDto,
     @Req() request: Request,
@@ -24,12 +27,13 @@ export class AuthController {
 
   @Public()
   @Post('refresh')
+  @ApiOkData(AuthResponseDto, { status: 201 })
   async refresh(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<AuthResponseDto> {
     const result = await this.authService.refresh(
-      request.cookies?.refresh_token,
+      this.getRefreshToken(request),
       request,
     );
     this.setAuthCookies(response, result);
@@ -37,11 +41,12 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiOkData(SuccessResponseDto, { status: 201 })
   async logout(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ success: true }> {
-    await this.authService.logout(request.cookies?.refresh_token);
+    await this.authService.logout(this.getRefreshToken(request));
     response.clearCookie(
       'access_token',
       this.authService.buildCookieOptions(0),
@@ -54,6 +59,7 @@ export class AuthController {
   }
 
   @Get('me')
+  @ApiOkData(AuthResponseDto)
   me(@CurrentUser() user: Express.User): Promise<AuthResponseDto> {
     return this.authService.me(user.userId);
   }
@@ -69,5 +75,12 @@ export class AuthController {
       result.cookies.refreshToken.value,
       result.cookies.refreshToken.options,
     );
+  }
+
+  private getRefreshToken(request: Request): string | undefined {
+    const cookies = request.cookies as unknown;
+    if (!cookies || typeof cookies !== 'object') return undefined;
+    const refreshToken = (cookies as Record<string, unknown>).refresh_token;
+    return typeof refreshToken === 'string' ? refreshToken : undefined;
   }
 }

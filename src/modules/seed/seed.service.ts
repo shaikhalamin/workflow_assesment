@@ -51,6 +51,7 @@ type PermissionSeed = {
   resource: string;
   action: string;
 };
+type RolePermissionSeed = { roleSlug: string; permissionSlugs: string[] };
 type UserSeed = {
   name: string;
   email: string;
@@ -167,6 +168,103 @@ export class SeedService implements OnApplicationBootstrap {
       slug: 'audit.read',
       resource: 'audit',
       action: 'read',
+    },
+  ];
+
+  static readonly rolePermissionSeeds: RolePermissionSeed[] = [
+    {
+      roleSlug: 'employee',
+      permissionSlugs: [
+        'auth.profile.read',
+        'expenses.read',
+        'expenses.write',
+        'leaves.read',
+        'leaves.write',
+        'dashboard.read',
+        'workflow.runtime.act',
+      ],
+    },
+    {
+      roleSlug: 'manager',
+      permissionSlugs: [
+        'auth.profile.read',
+        'users.read',
+        'expenses.read',
+        'leaves.read',
+        'dashboard.read',
+        'workflow.runtime.act',
+      ],
+    },
+    {
+      roleSlug: 'department-reviewer',
+      permissionSlugs: [
+        'auth.profile.read',
+        'expenses.read',
+        'leaves.read',
+        'dashboard.read',
+        'workflow.runtime.act',
+      ],
+    },
+    {
+      roleSlug: 'accounts-officer',
+      permissionSlugs: [
+        'auth.profile.read',
+        'expenses.read',
+        'payments.read',
+        'payments.write',
+        'dashboard.read',
+        'workflow.runtime.act',
+      ],
+    },
+    {
+      roleSlug: 'finance-admin',
+      permissionSlugs: [
+        'auth.profile.read',
+        'users.read',
+        'expenses.read',
+        'payments.read',
+        'dashboard.read',
+        'workflow.runtime.act',
+      ],
+    },
+    {
+      roleSlug: 'hr-officer',
+      permissionSlugs: [
+        'auth.profile.read',
+        'leaves.read',
+        'dashboard.read',
+        'workflow.runtime.act',
+      ],
+    },
+    {
+      roleSlug: 'hr-manager',
+      permissionSlugs: [
+        'auth.profile.read',
+        'users.read',
+        'leaves.read',
+        'dashboard.read',
+        'workflow.runtime.act',
+      ],
+    },
+    {
+      roleSlug: 'cfo',
+      permissionSlugs: [
+        'auth.profile.read',
+        'expenses.read',
+        'payments.read',
+        'dashboard.read',
+        'workflow.runtime.act',
+      ],
+    },
+    {
+      roleSlug: 'payroll-officer',
+      permissionSlugs: [
+        'auth.profile.read',
+        'payments.read',
+        'payments.write',
+        'dashboard.read',
+        'workflow.runtime.act',
+      ],
     },
   ];
 
@@ -345,154 +443,49 @@ export class SeedService implements OnApplicationBootstrap {
   }
 
   private async seedRolesAndPermissions(): Promise<void> {
-    const roles = new Map<string, Role>();
-    const permissions = new Map<string, Permission>();
+    const roleEntries = await Promise.all(
+      SeedService.roleSeeds.map(async (seed) => {
+        let role = await this.rolesRepository.findOneBy({ slug: seed.slug });
+        if (!role) {
+          role = await this.rolesRepository.save(
+            this.rolesRepository.create({
+              ...seed,
+              description: seed.description ?? null,
+              isSystem: true,
+            }),
+          );
+        }
+        return [seed.slug, role] as const;
+      }),
+    );
+    const roles = new Map<string, Role>(roleEntries);
 
-    for (const seed of SeedService.roleSeeds) {
-      let role = await this.rolesRepository.findOneBy({ slug: seed.slug });
-      if (!role) {
-        role = await this.rolesRepository.save(
-          this.rolesRepository.create({
-            ...seed,
-            description: seed.description ?? null,
-            isSystem: true,
-          }),
-        );
-      }
-      roles.set(seed.slug, role);
-    }
-
-    for (const seed of SeedService.permissionSeeds) {
-      let permission = await this.permissionsRepository.findOneBy({
-        slug: seed.slug,
-      });
-      if (!permission) {
-        permission = await this.permissionsRepository.save(
-          this.permissionsRepository.create({ ...seed, description: null }),
-        );
-      }
-      permissions.set(seed.slug, permission);
-    }
+    const permissionEntries = await Promise.all(
+      SeedService.permissionSeeds.map(async (seed) => {
+        let permission = await this.permissionsRepository.findOneBy({
+          slug: seed.slug,
+        });
+        if (!permission) {
+          permission = await this.permissionsRepository.save(
+            this.permissionsRepository.create({ ...seed, description: null }),
+          );
+        }
+        return [seed.slug, permission] as const;
+      }),
+    );
+    const permissions = new Map<string, Permission>(permissionEntries);
 
     const admin = roles.get('admin');
-    if (admin) {
-      for (const permission of permissions.values()) {
-        await this.ensureRolePermission(admin.id, permission.id);
-      }
-    }
-
-    await this.assignPermissions(
-      'employee',
-      [
-        'auth.profile.read',
-        'expenses.read',
-        'expenses.write',
-        'leaves.read',
-        'leaves.write',
-        'dashboard.read',
-        'workflow.runtime.act',
-      ],
-      roles,
-      permissions,
-    );
-    await this.assignPermissions(
-      'manager',
-      [
-        'auth.profile.read',
-        'users.read',
-        'expenses.read',
-        'leaves.read',
-        'dashboard.read',
-        'workflow.runtime.act',
-      ],
-      roles,
-      permissions,
-    );
-    await this.assignPermissions(
-      'department-reviewer',
-      [
-        'auth.profile.read',
-        'expenses.read',
-        'leaves.read',
-        'dashboard.read',
-        'workflow.runtime.act',
-      ],
-      roles,
-      permissions,
-    );
-    await this.assignPermissions(
-      'accounts-officer',
-      [
-        'auth.profile.read',
-        'expenses.read',
-        'payments.read',
-        'payments.write',
-        'dashboard.read',
-        'workflow.runtime.act',
-      ],
-      roles,
-      permissions,
-    );
-    await this.assignPermissions(
-      'finance-admin',
-      [
-        'auth.profile.read',
-        'users.read',
-        'expenses.read',
-        'payments.read',
-        'dashboard.read',
-        'workflow.runtime.act',
-      ],
-      roles,
-      permissions,
-    );
-    await this.assignPermissions(
-      'hr-officer',
-      [
-        'auth.profile.read',
-        'leaves.read',
-        'dashboard.read',
-        'workflow.runtime.act',
-      ],
-      roles,
-      permissions,
-    );
-    await this.assignPermissions(
-      'hr-manager',
-      [
-        'auth.profile.read',
-        'users.read',
-        'leaves.read',
-        'dashboard.read',
-        'workflow.runtime.act',
-      ],
-      roles,
-      permissions,
-    );
-    await this.assignPermissions(
-      'cfo',
-      [
-        'auth.profile.read',
-        'expenses.read',
-        'payments.read',
-        'dashboard.read',
-        'workflow.runtime.act',
-      ],
-      roles,
-      permissions,
-    );
-    await this.assignPermissions(
-      'payroll-officer',
-      [
-        'auth.profile.read',
-        'payments.read',
-        'payments.write',
-        'dashboard.read',
-        'workflow.runtime.act',
-      ],
-      roles,
-      permissions,
-    );
+    await Promise.all([
+      ...(admin
+        ? [...permissions.values()].map((permission) =>
+            this.ensureRolePermission(admin.id, permission.id),
+          )
+        : []),
+      ...SeedService.rolePermissionSeeds.map(({ roleSlug, permissionSlugs }) =>
+        this.assignPermissions(roleSlug, permissionSlugs, roles, permissions),
+      ),
+    ]);
   }
 
   private async seedUsers(): Promise<void> {
@@ -501,42 +494,48 @@ export class SeedService implements OnApplicationBootstrap {
     const rolesBySlug = new Map(roles.map((role) => [role.slug, role]));
     const passwordHash = await bcrypt.hash(SeedService.developmentPassword, 10);
 
-    for (const seed of SeedService.userSeeds) {
-      const department = departments.get(seed.departmentSlug) ?? null;
-      let user = await this.usersRepository.findOneBy({ email: seed.email });
-      if (!user) {
-        user = await this.usersRepository.save(
-          this.usersRepository.create({
-            name: seed.name,
-            email: seed.email,
-            passwordHash,
-            employeeCode: seed.employeeCode,
-            employeeGrade: seed.employeeGrade ?? null,
-            designation: seed.designation,
-            departmentId: department?.id ?? null,
-            managerId: null,
-            isActive: true,
+    const userEntries = await Promise.all(
+      SeedService.userSeeds.map(async (seed) => {
+        const department = departments.get(seed.departmentSlug) ?? null;
+        let user = await this.usersRepository.findOneBy({ email: seed.email });
+        if (!user) {
+          user = await this.usersRepository.save(
+            this.usersRepository.create({
+              name: seed.name,
+              email: seed.email,
+              passwordHash,
+              employeeCode: seed.employeeCode,
+              employeeGrade: seed.employeeGrade ?? null,
+              designation: seed.designation,
+              departmentId: department?.id ?? null,
+              managerId: null,
+              isActive: true,
+            }),
+          );
+        }
+
+        await Promise.all(
+          seed.roles.flatMap((roleSlug) => {
+            const role = rolesBySlug.get(roleSlug);
+            return role ? [this.ensureUserRole(user.id, role.id)] : [];
           }),
         );
-      }
 
-      for (const roleSlug of seed.roles) {
-        const role = rolesBySlug.get(roleSlug);
-        if (role) await this.ensureUserRole(user.id, role.id);
-      }
-    }
+        return [seed.email, user] as const;
+      }),
+    );
+    const usersByEmail = new Map<string, User>(userEntries);
 
-    for (const seed of SeedService.userSeeds) {
-      if (!seed.managerEmail) continue;
-      const [user, manager] = await Promise.all([
-        this.usersRepository.findOneBy({ email: seed.email }),
-        this.usersRepository.findOneBy({ email: seed.managerEmail }),
-      ]);
-      if (user && manager && user.managerId !== manager.id) {
+    await Promise.all(
+      SeedService.userSeeds.flatMap((seed) => {
+        if (!seed.managerEmail) return [];
+        const user = usersByEmail.get(seed.email);
+        const manager = usersByEmail.get(seed.managerEmail);
+        if (!user || !manager || user.managerId === manager.id) return [];
         user.managerId = manager.id;
-        await this.usersRepository.save(user);
-      }
-    }
+        return [this.usersRepository.save(user)];
+      }),
+    );
 
     const sales = departments.get('sales');
     const manager = await this.usersRepository.findOneBy({
@@ -663,9 +662,7 @@ export class SeedService implements OnApplicationBootstrap {
     }
   }
 
-  private async seedExpenseWorkflow(
-    template: WorkflowTemplate,
-  ): Promise<void> {
+  private async seedExpenseWorkflow(template: WorkflowTemplate): Promise<void> {
     await this.ensureTriggerCondition(template.id, {
       mode: 'all',
       conditions: [{ field: 'amount', operator: 'gte', value: 1 }],
@@ -861,7 +858,8 @@ export class SeedService implements OnApplicationBootstrap {
     sales: Department | null,
     expense: Expense | null,
   ): Promise<void> {
-    if (!expense || (await this.workflowInstancesRepository.count()) > 0) return;
+    if (!expense || (await this.workflowInstancesRepository.count()) > 0)
+      return;
     const template = await this.workflowTemplatesRepository.findOneBy({
       name: 'Expense Approval Workflow',
     });
@@ -1012,10 +1010,14 @@ export class SeedService implements OnApplicationBootstrap {
   ): Promise<void> {
     const role = roles.get(roleSlug);
     if (!role) return;
-    for (const permissionSlug of permissionSlugs) {
-      const permission = permissions.get(permissionSlug);
-      if (permission) await this.ensureRolePermission(role.id, permission.id);
-    }
+    await Promise.all(
+      permissionSlugs.flatMap((permissionSlug) => {
+        const permission = permissions.get(permissionSlug);
+        return permission
+          ? [this.ensureRolePermission(role.id, permission.id)]
+          : [];
+      }),
+    );
   }
 
   private async ensureRolePermission(

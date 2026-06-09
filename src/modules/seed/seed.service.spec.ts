@@ -21,7 +21,9 @@ describe('SeedService', () => {
   });
 
   it('defines seeded workflow templates for expense, leave, and attendance', () => {
-    expect(SeedService.workflowTemplateSeeds.map((workflow) => workflow.name)).toEqual([
+    expect(
+      SeedService.workflowTemplateSeeds.map((workflow) => workflow.name),
+    ).toEqual([
       'Expense Approval Workflow',
       'Leave Approval Workflow',
       'Attendance Adjustment Workflow',

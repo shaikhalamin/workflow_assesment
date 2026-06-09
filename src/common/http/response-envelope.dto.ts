@@ -47,12 +47,33 @@ export class ApiErrorDto {
 }
 
 export class ApiResponseDto<T> {
+  @ApiProperty({
+    nullable: true,
+    description: 'Endpoint response payload. Null when the request fails.',
+  })
   data!: T | null;
+
+  @ApiProperty({
+    type: ApiErrorDto,
+    nullable: true,
+    example: null,
+    description: 'Error details. Null when the request succeeds.',
+  })
   error!: ApiErrorDto | null;
 }
 
 export class PaginatedResponseDto<T> {
+  @ApiProperty({ isArray: true, description: 'Current page items.' })
   data!: T[];
+
+  @ApiProperty({ type: PaginationMetaDto })
   meta!: PaginationMetaDto;
+
+  @ApiProperty({
+    type: ApiErrorDto,
+    nullable: true,
+    example: null,
+    description: 'Error details. Null when the request succeeds.',
+  })
   error!: ApiErrorDto | null;
 }

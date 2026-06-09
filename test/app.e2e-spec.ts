@@ -4,22 +4,24 @@ import { Test, TestingModule } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { App } from 'supertest/types';
+import { AppModule } from '../src/app.module';
 import { TransformInterceptor } from '../src/common/http/response.interceptor';
 
 jest.setTimeout(30_000);
+
+interface ApiResponseBody<T> {
+  data: T;
+  error: null;
+}
+
+interface ExpenseCreatedBody {
+  id: string;
+}
 
 describe('workflow demo flow (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeAll(async () => {
-    process.env.NODE_ENV = 'development';
-    process.env.DATABASE_URL ??=
-      'postgresql://postgres:postgres@localhost:5432/workflow_be';
-    process.env.REDIS_URL ??= 'redis://localhost:6379';
-    process.env.JWT_SECRET ??= 'a'.repeat(32);
-    process.env.COOKIE_DOMAIN ??= 'localhost';
-    process.env.FRONTEND_ORIGIN ??= 'http://localhost:3000';
-    const { AppModule } = require('../src/app.module') as typeof import('../src/app.module');
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -65,9 +67,11 @@ describe('workflow demo flow (e2e)', () => {
         quantity: 1,
       })
       .expect(201);
+    const createdBody =
+      created.body as unknown as ApiResponseBody<ExpenseCreatedBody>;
 
     await agent
-      .post(`/api/expenses/${created.body.data.id}/submit`)
+      .post(`/api/expenses/${createdBody.data.id}/submit`)
       .send({})
       .expect(201);
 

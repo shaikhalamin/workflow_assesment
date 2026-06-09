@@ -11,11 +11,15 @@ describe('DashboardService', () => {
     );
 
     await expect(
-      service.employee({ userId: 'user-1', roles: ['employee'], permissions: [] } as never),
+      service.employee({
+        userId: 'user-1',
+        roles: ['employee'],
+        permissions: [],
+      } as never),
     ).resolves.toEqual({
-      expenses: expect.any(Object),
-      leaves: expect.any(Object),
-      recentItems: expect.any(Array),
+      expenses: { draft: 2, underReview: 2 },
+      leaves: { approved: 1, underReview: 1 },
+      recentItems: [],
     });
   });
 });

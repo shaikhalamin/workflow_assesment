@@ -14,7 +14,7 @@ import {
 } from '../enums/workflow-builder.enums';
 
 export class CreateWorkflowStepConfigDto {
-  @ApiProperty({ minimum: 1 })
+  @ApiProperty({ minimum: 1, example: 1 })
   @IsInt()
   @Min(1)
   stepOrder!: number;
@@ -36,7 +36,9 @@ export class CreateWorkflowStepConfigDto {
   @IsString()
   assigneeRoleSlug?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: '71cb34da-1809-4c72-b132-2b9860be8936',
+  })
   @IsOptional()
   @IsUUID()
   assigneeUserId?: string | null;
@@ -71,7 +73,7 @@ export class CreateWorkflowStepConfigDto {
   @IsBoolean()
   canReassign?: boolean;
 
-  @ApiPropertyOptional({ minimum: 1 })
+  @ApiPropertyOptional({ minimum: 1, example: 24 })
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -82,12 +84,14 @@ export class CreateWorkflowStepConfigDto {
   @IsEnum(WorkflowAssigneeType)
   escalationAssigneeType?: WorkflowAssigneeType | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: 'department-head' })
   @IsOptional()
   @IsString()
   escalationAssigneeRoleSlug?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    example: '71cb34da-1809-4c72-b132-2b9860be8936',
+  })
   @IsOptional()
   @IsUUID()
   escalationAssigneeUserId?: string | null;

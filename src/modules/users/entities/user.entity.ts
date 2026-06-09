@@ -26,13 +26,13 @@ export class User {
   @Column({ select: false })
   passwordHash!: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   employeeCode!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   employeeGrade!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   designation!: string | null;
 
   @Column({ type: 'uuid', nullable: true })

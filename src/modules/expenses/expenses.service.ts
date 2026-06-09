@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { paginateQb, paginateRepo } from '../../common/http/paginate';
+import { paginateQb } from '../../common/http/paginate';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { ExpenseQueryDto } from './dto/expense-query.dto';
 import { ResubmitExpenseDto } from './dto/resubmit-expense.dto';
@@ -90,8 +90,12 @@ export class ExpensesService {
     if (expense.requesterId !== actor.userId) {
       throw new BadRequestException('Only requester can update expense');
     }
-    if (![ExpenseStatus.DRAFT, ExpenseStatus.REJECTED].includes(expense.status)) {
-      throw new BadRequestException('Only draft or rejected expenses can be updated');
+    if (
+      ![ExpenseStatus.DRAFT, ExpenseStatus.REJECTED].includes(expense.status)
+    ) {
+      throw new BadRequestException(
+        'Only draft or rejected expenses can be updated',
+      );
     }
     Object.assign(expense, this.mapUpdate(dto));
     await this.auditLogsService.record?.({
@@ -149,7 +153,9 @@ export class ExpensesService {
   ): Promise<Expense> {
     const expense = await this.update(id, dto, actor);
     if (expense.status !== ExpenseStatus.REJECTED) {
-      throw new BadRequestException('Only rejected expenses can be resubmitted');
+      throw new BadRequestException(
+        'Only rejected expenses can be resubmitted',
+      );
     }
     expense.status = ExpenseStatus.DRAFT;
     expense.rejectionReason = null;
