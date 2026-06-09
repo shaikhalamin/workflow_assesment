@@ -19,6 +19,7 @@ This design finalizes the backend scope for the assessment. It intentionally use
 - Use normalized RBAC tables: `roles`, `permissions`, `role_permissions`, and `user_roles`.
 - Use human-readable role display names with stable machine-readable role slugs.
 - Use machine-readable permission slugs.
+- Do not create a separate `employees` table for this assessment. Store login identity and employee profile basics on `users`.
 - Seed users, departments, roles, permissions, role assignments, event schemas, workflow templates, rules, steps, and sample business records automatically on development startup when records are missing.
 - Use the shared condition format for trigger conditions and approval rules:
 
@@ -99,6 +100,8 @@ Entities:
 - `RolePermission`
 - `UserRole`
 - `RefreshTokenSession`
+
+`User` owns both authentication fields and employee profile basics required by workflow rules and assignee resolution: name, email, password hash, employee code, employee grade, designation, active status, department, and manager. A separate employee table is intentionally skipped to keep the assessment focused on workflow behavior.
 
 Auth APIs:
 
