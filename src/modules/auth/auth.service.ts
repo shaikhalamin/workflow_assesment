@@ -48,6 +48,7 @@ const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
 const REFRESH_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 const ACCESS_TOKEN_COOKIE_MAX_AGE_MS = ACCESS_TOKEN_TTL_SECONDS * 1000;
 const REFRESH_TOKEN_COOKIE_MAX_AGE_MS = REFRESH_TOKEN_TTL_SECONDS * 1000;
+const COOKIES_CONFIG_TOKEN = 'CONFIGURATION(cookies)';
 
 @Injectable()
 export class AuthService {
@@ -56,7 +57,7 @@ export class AuthService {
     @InjectRepository(RefreshTokenSession)
     private readonly refreshTokenSessionsRepository: Repository<RefreshTokenSession>,
     private readonly jwtService: JwtService,
-    @Inject('cookies')
+    @Inject(COOKIES_CONFIG_TOKEN)
     private readonly cookieConfig: { domain: string },
   ) {}
 

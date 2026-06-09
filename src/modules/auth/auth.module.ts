@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
+import { ConfigModule, ConfigType } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { cookiesConfig } from '../../config/cookies.config';
 import { jwtConfig } from '../../config/jwt.config';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
@@ -12,6 +13,8 @@ import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
+    ConfigModule.forFeature(jwtConfig),
+    ConfigModule.forFeature(cookiesConfig),
     TypeOrmModule.forFeature([RefreshTokenSession]),
     PassportModule,
     JwtModule.registerAsync({
