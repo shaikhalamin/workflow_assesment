@@ -16,7 +16,9 @@ import { DatabaseModule } from './database/database.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
+import { ExpensesModule } from './modules/expenses/expenses.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { RbacModule } from './modules/rbac/rbac.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { UsersModule } from './modules/users/users.module';
@@ -36,6 +38,8 @@ const devModules = process.env.NODE_ENV === 'production' ? [] : [SeedModule];
     AuditLogsModule,
     NotificationsModule,
     DepartmentsModule,
+    ExpensesModule,
+    PaymentsModule,
     UsersModule,
     RbacModule,
     AuthModule,
