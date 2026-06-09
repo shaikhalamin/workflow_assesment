@@ -7,6 +7,13 @@ import { WorkflowEventSchema } from './entities/workflow-event-schema.entity';
 import { WorkflowOutcomeConfig } from './entities/workflow-outcome-config.entity';
 import { WorkflowTemplate } from './entities/workflow-template.entity';
 import { WorkflowTriggerCondition } from './entities/workflow-trigger-condition.entity';
+import { WorkflowEventSchemaController } from './workflow-event-schema.controller';
+import { WorkflowEventSchemaService } from './workflow-event-schema.service';
+import { WorkflowRuleController } from './workflow-rule.controller';
+import { WorkflowRuleService } from './workflow-rule.service';
+import { WorkflowStepConfigController } from './workflow-step-config.controller';
+import { WorkflowTemplateController } from './workflow-template.controller';
+import { WorkflowTemplateService } from './workflow-template.service';
 
 @Module({
   imports: [
@@ -19,7 +26,24 @@ import { WorkflowTriggerCondition } from './entities/workflow-trigger-condition.
       WorkflowOutcomeConfig,
     ]),
   ],
-  providers: [ConditionValidatorService],
-  exports: [TypeOrmModule, ConditionValidatorService],
+  controllers: [
+    WorkflowTemplateController,
+    WorkflowEventSchemaController,
+    WorkflowRuleController,
+    WorkflowStepConfigController,
+  ],
+  providers: [
+    ConditionValidatorService,
+    WorkflowTemplateService,
+    WorkflowEventSchemaService,
+    WorkflowRuleService,
+  ],
+  exports: [
+    TypeOrmModule,
+    ConditionValidatorService,
+    WorkflowTemplateService,
+    WorkflowEventSchemaService,
+    WorkflowRuleService,
+  ],
 })
 export class WorkflowBuilderModule {}
