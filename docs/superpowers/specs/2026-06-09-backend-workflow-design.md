@@ -374,6 +374,20 @@ Deliver expense, leave, payment, dashboard, audit, and notification summary APIs
 
 This phase is complete when the PRD demo script can run through expense approval, payment completion, leave approval, dashboard views, and audit trail inspection.
 
+## Follow-Up Scope
+
+After the current backend and frontend specs are successfully implemented, the system can be extended with a Billing and Invoice workflow without changing the workflow engine. The follow-up scope is:
+
+```txt
+Sales submits a billing request
+  -> billing.submitted triggers a configured workflow
+  -> Accounts reviews the workflow task
+  -> approved outcome creates an invoice
+  -> invoice becomes visible in role-based dashboards
+```
+
+This requires adding Billing and Invoice business modules, event schemas, source entities, invoice entities, APIs, dashboard summaries, and an approved outcome action. It is intentionally scoped after the first successful implementation of the current assessment specs across both backend and frontend.
+
 ## Testing and Verification
 
 Each phase will include focused tests scaled to the risk:
