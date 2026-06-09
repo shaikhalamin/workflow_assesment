@@ -16,7 +16,10 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { RbacModule } from './modules/rbac/rbac.module';
+import { SeedModule } from './modules/seed/seed.module';
 import { UsersModule } from './modules/users/users.module';
+
+const devModules = process.env.NODE_ENV === 'production' ? [] : [SeedModule];
 
 @Module({
   imports: [
@@ -30,6 +33,7 @@ import { UsersModule } from './modules/users/users.module';
     UsersModule,
     RbacModule,
     AuthModule,
+    ...devModules,
   ],
   controllers: [AppController],
   providers: [

@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { paginateQb } from '../../common/http/paginate';
+import { Paginated } from '../../common/http/paginated';
 import { Permission } from '../rbac/entities/permission.entity';
 import { RolePermission } from '../rbac/entities/role-permission.entity';
 import { Role } from '../rbac/entities/role.entity';
 import { UserRole } from '../rbac/entities/user-role.entity';
+import { UserQueryDto } from './dto/user-query.dto';
 import { User } from './entities/user.entity';
 
 export interface UserWithAccess {
@@ -42,6 +45,37 @@ export class UsersService {
 
   findByIdWithAccess(id: string): Promise<UserWithAccess | null> {
     return this.findOneWithAccess('user.id = :value', id);
+  }
+
+  list(query: UserQueryDto): Promise<Paginated<User>> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 25;
+    const qb = this.usersRepository
+      .createQueryBuilder('user')
+      .select([
+        'user.id',
+        'user.name',
+        'user.email',
+        'user.employeeCode',
+        'user.designation',
+        'user.departmentId',
+        'user.isActive',
+      ])
+      .orderBy('user.name', 'ASC');
+
+    if (query.roleSlug) {
+      qb.innerJoin(
+        UserRole,
+        'filterUserRole',
+        'filterUserRole.userId = user.id',
+      )
+        .innerJoin(Role, 'filterRole', 'filterRole.id = filterUserRole.roleId')
+        .andWhere('filterRole.slug = :roleSlug', {
+          roleSlug: query.roleSlug,
+        });
+    }
+
+    return paginateQb(qb, { page, limit, idColumn: 'user.id' });
   }
 
   private async findOneWithAccess(
