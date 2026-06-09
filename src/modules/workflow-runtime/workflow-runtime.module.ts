@@ -4,6 +4,7 @@ import { Department } from '../departments/entities/department.entity';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Expense } from '../expenses/entities/expense.entity';
+import { LeaveRequest } from '../leaves/entities/leave-request.entity';
 import { PaymentRequest } from '../payments/entities/payment-request.entity';
 import { RbacModule } from '../rbac/rbac.module';
 import { User } from '../users/entities/user.entity';
@@ -30,6 +31,7 @@ import { WorkflowRuntimeService } from './workflow-runtime.service';
       User,
       Department,
       Expense,
+      LeaveRequest,
       PaymentRequest,
     ]),
     AuditLogsModule,
