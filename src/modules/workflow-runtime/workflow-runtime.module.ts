@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Department } from '../departments/entities/department.entity';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { RbacModule } from '../rbac/rbac.module';
 import { User } from '../users/entities/user.entity';
 import { WorkflowBuilderModule } from '../workflow-builder/workflow-builder.module';
@@ -26,6 +28,8 @@ import { WorkflowRuntimeService } from './workflow-runtime.service';
       User,
       Department,
     ]),
+    AuditLogsModule,
+    NotificationsModule,
     WorkflowBuilderModule,
     RbacModule,
   ],

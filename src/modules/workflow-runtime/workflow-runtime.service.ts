@@ -8,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { paginateRepo } from '../../common/http/paginate';
 import { PaginationQueryDto } from '../../common/http/pagination.query';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { RbacService } from '../rbac/rbac.service';
 import { WorkflowApprovalRule } from '../workflow-builder/entities/workflow-approval-rule.entity';
 import { WorkflowApprovalStepConfig } from '../workflow-builder/entities/workflow-approval-step-config.entity';
@@ -42,6 +44,8 @@ export class WorkflowRuntimeService {
     private readonly assigneeResolver: AssigneeResolverService,
     private readonly outcomeHandler: OutcomeHandlerService,
     private readonly rbacService: RbacService,
+    private readonly auditLogsService: AuditLogsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async trigger(dto: TriggerWorkflowDto) {
@@ -108,6 +112,23 @@ export class WorkflowRuntimeService {
       WorkflowActionType.STEP_ACTIVATED,
       { actorUserId: null },
     );
+    await this.auditLogsService.record({
+      actorUserId: dto.requesterId,
+      action: 'WORKFLOW_TRIGGERED',
+      entityType: dto.entityType,
+      entityId: dto.entityId,
+      workflowInstanceId: instance.id,
+      oldStatus: null,
+      newStatus: WorkflowInstanceStatus.ACTIVE,
+      metadataJson: metadata,
+    });
+    await this.notificationsService.createTaskAssigned({
+      assignedUserId: activeStep.assignedUserId,
+      assignedRoleSlug: activeStep.assignedRoleSlug,
+      entityType: dto.entityType,
+      entityId: dto.entityId,
+      workflowInstanceId: instance.id,
+    });
 
     return {
       status: 'triggered',
@@ -172,6 +193,21 @@ export class WorkflowRuntimeService {
         metadataJson: dto.metadata ?? null,
       },
     );
+    const instance = await this.instancesRepository.findOneByOrFail({
+      id: step.workflowInstanceId,
+    });
+    await this.auditLogsService.record({
+      actorUserId: actor.userId,
+      action: 'WORKFLOW_STEP_APPROVED',
+      entityType: instance.entityType,
+      entityId: instance.entityId,
+      workflowInstanceId: instance.id,
+      workflowStepId: step.id,
+      oldStatus: WorkflowStepStatus.ACTIVE,
+      newStatus: WorkflowStepStatus.APPROVED,
+      comment: dto.comment ?? null,
+      metadataJson: dto.metadata ?? null,
+    });
 
     const nextStep = await this.stepsRepository.findOne({
       where: {
@@ -182,15 +218,25 @@ export class WorkflowRuntimeService {
     });
 
     if (nextStep) {
-      await this.activateStep(nextStep);
-    } else {
-      const instance = await this.instancesRepository.findOneByOrFail({
-        id: step.workflowInstanceId,
+      const activated = await this.activateStep(nextStep);
+      await this.notificationsService.createTaskAssigned({
+        assignedUserId: activated.assignedUserId,
+        assignedRoleSlug: activated.assignedRoleSlug,
+        entityType: instance.entityType,
+        entityId: instance.entityId,
+        workflowInstanceId: instance.id,
       });
+    } else {
       instance.status = WorkflowInstanceStatus.APPROVED;
       instance.completedAt = new Date();
       await this.instancesRepository.save(instance);
       await this.outcomeHandler.handleApproved(instance);
+      await this.notificationsService.createWorkflowApproved({
+        recipientUserId: instance.requesterId,
+        entityType: instance.entityType,
+        entityId: instance.entityId,
+        workflowInstanceId: instance.id,
+      });
     }
 
     return step;
@@ -235,7 +281,26 @@ export class WorkflowRuntimeService {
         metadataJson: dto.metadata ?? null,
       },
     );
+    await this.auditLogsService.record({
+      actorUserId: actor.userId,
+      action: 'WORKFLOW_STEP_REJECTED',
+      entityType: instance.entityType,
+      entityId: instance.entityId,
+      workflowInstanceId: instance.id,
+      workflowStepId: step.id,
+      oldStatus: WorkflowStepStatus.ACTIVE,
+      newStatus: WorkflowStepStatus.REJECTED,
+      comment: dto.comment ?? null,
+      reason: dto.reason,
+      metadataJson: dto.metadata ?? null,
+    });
     await this.outcomeHandler.handleRejected(instance, dto.reason);
+    await this.notificationsService.createWorkflowRejected({
+      recipientUserId: instance.requesterId,
+      entityType: instance.entityType,
+      entityId: instance.entityId,
+      workflowInstanceId: instance.id,
+    });
     return step;
   }
 
@@ -247,7 +312,7 @@ export class WorkflowRuntimeService {
     const step = await this.stepsRepository.findOneBy({ id: stepId });
     if (!step) throw new NotFoundException('Workflow step not found');
     await this.assertActorCanAct(step, actor);
-    return this.recordAction(
+    const action = await this.recordAction(
       step.workflowInstanceId,
       step.id,
       WorkflowActionType.COMMENTED,
@@ -257,6 +322,22 @@ export class WorkflowRuntimeService {
         metadataJson: dto.metadata ?? null,
       },
     );
+    const instance = await this.instancesRepository.findOneByOrFail({
+      id: step.workflowInstanceId,
+    });
+    await this.auditLogsService.record({
+      actorUserId: actor.userId,
+      action: 'WORKFLOW_STEP_COMMENTED',
+      entityType: instance.entityType,
+      entityId: instance.entityId,
+      workflowInstanceId: instance.id,
+      workflowStepId: step.id,
+      oldStatus: step.status,
+      newStatus: step.status,
+      comment: dto.comment ?? null,
+      metadataJson: dto.metadata ?? null,
+    });
+    return action;
   }
 
   private selectRule(

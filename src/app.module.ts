@@ -13,8 +13,10 @@ import { databaseConfig } from './config/database.config';
 import { jwtConfig } from './config/jwt.config';
 import { redisConfig } from './config/redis.config';
 import { DatabaseModule } from './database/database.module';
+import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { RbacModule } from './modules/rbac/rbac.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { UsersModule } from './modules/users/users.module';
@@ -31,6 +33,8 @@ const devModules = process.env.NODE_ENV === 'production' ? [] : [SeedModule];
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     DatabaseModule,
+    AuditLogsModule,
+    NotificationsModule,
     DepartmentsModule,
     UsersModule,
     RbacModule,
