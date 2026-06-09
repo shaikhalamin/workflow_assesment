@@ -17,7 +17,8 @@ This design finalizes the backend scope for the assessment. It intentionally use
 - Rotate refresh tokens on every refresh.
 - Revoke a user's previous refresh sessions on new login, leaving one active refresh session per user.
 - Use normalized RBAC tables: `roles`, `permissions`, `role_permissions`, and `user_roles`.
-- Use human-readable role names and machine-readable permission slugs.
+- Use human-readable role display names with stable machine-readable role slugs.
+- Use machine-readable permission slugs.
 - Seed users, departments, roles, permissions, role assignments, event schemas, workflow templates, rules, steps, and sample business records automatically on development startup when records are missing.
 - Use the shared condition format for trigger conditions and approval rules:
 
@@ -158,7 +159,7 @@ POST   /workflow-rules/:id/steps
 PATCH  /workflow-step-configs/:id
 DELETE /workflow-step-configs/:id
 
-GET    /users?roleName=Finance Admin&limit=5
+GET    /users?roleSlug=finance-admin&limit=5
 ```
 
 The builder supports both:
@@ -333,7 +334,7 @@ Audit APIs will expose workflow and source-entity audit trails with permission-a
 Development seeding creates missing records for:
 
 - Departments: Sales, Accounts, Finance, HR, Payroll.
-- Roles: Employee, Department Reviewer, Manager, Accounts Officer, Finance Admin, HR Officer, HR Manager, CFO, Payroll Officer, Admin.
+- Roles with display names and slugs: Employee `employee`, Department Reviewer `department-reviewer`, Manager `manager`, Accounts Officer `accounts-officer`, Finance Admin `finance-admin`, HR Officer `hr-officer`, HR Manager `hr-manager`, CFO `cfo`, Payroll Officer `payroll-officer`, Admin `admin`.
 - Permissions covering auth profile, users lookup, workflow builder, runtime tasks, expenses, leaves, payments, dashboards, and audit trail.
 - Users from the PRD plus an Admin user.
 - Published Expense Approval Workflow.
