@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { Request } from 'express';
+import type { AuthenticatedRequest } from '../../modules/auth/jwt.strategy';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
@@ -20,8 +20,8 @@ export class RolesGuard implements CanActivate {
 
     if (!requiredRoles?.length) return true;
 
-    const request = context.switchToHttp().getRequest<Request>();
-    const userRoles = request.user?.roles ?? [];
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const userRoles = request.user.roles;
     const hasRole = requiredRoles.some((role) => userRoles.includes(role));
 
     if (!hasRole) throw new ForbiddenException('Insufficient role');

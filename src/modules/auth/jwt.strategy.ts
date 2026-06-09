@@ -4,13 +4,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { jwtConfig } from '../../config/jwt.config';
+import { UsersService } from '../users/users.service';
 
 export type AccessPayload = {
   sub: string;
-  email: string;
-  roles: string[];
-  permissions: string[];
 };
+
+export type AuthenticatedUser = Express.User;
+export type AuthenticatedRequest = Request & { user: AuthenticatedUser };
 
 function accessTokenFromRequest(request: Request): string | null {
   const cookies = request.cookies as unknown;
@@ -24,6 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject(jwtConfig.KEY)
     config: ConfigType<typeof jwtConfig>,
+    private readonly usersService: UsersService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([accessTokenFromRequest]),
@@ -32,21 +34,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: AccessPayload): Express.User {
-    if (
-      !payload.sub ||
-      !payload.email ||
-      !Array.isArray(payload.roles) ||
-      !Array.isArray(payload.permissions)
-    ) {
-      throw new UnauthorizedException();
-    }
+  async validate(payload: AccessPayload): Promise<AuthenticatedUser> {
+    if (!payload.sub) throw new UnauthorizedException();
+
+    const user = await this.usersService.findByIdWithAccess(payload.sub);
+    if (!user?.isActive) throw new UnauthorizedException();
 
     return {
-      userId: payload.sub,
-      email: payload.email,
-      roles: payload.roles,
-      permissions: payload.permissions,
+      userId: user.id,
+      email: user.email,
+      roles: user.roles,
+      permissions: user.permissions,
       sid: null,
     };
   }

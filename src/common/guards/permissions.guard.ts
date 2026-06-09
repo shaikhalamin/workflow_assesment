@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { Request } from 'express';
+import type { AuthenticatedRequest } from '../../modules/auth/jwt.strategy';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 
 @Injectable()
@@ -20,8 +20,8 @@ export class PermissionsGuard implements CanActivate {
 
     if (!requiredPermissions?.length) return true;
 
-    const request = context.switchToHttp().getRequest<Request>();
-    const userPermissions = request.user?.permissions ?? [];
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const userPermissions = request.user.permissions;
     const hasPermissions = requiredPermissions.every((permission) =>
       userPermissions.includes(permission),
     );

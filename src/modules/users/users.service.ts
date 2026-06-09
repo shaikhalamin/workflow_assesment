@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { paginateQb } from '../../common/http/paginate';
@@ -20,6 +24,12 @@ export interface UserWithAccess {
   permissions: string[];
 }
 
+export interface SignupUserInput {
+  name: string;
+  email: string;
+  passwordHash: string;
+}
+
 interface UserAccessRow {
   id: string;
   name: string;
@@ -37,6 +47,10 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(Role)
+    private readonly rolesRepository: Repository<Role>,
+    @InjectRepository(UserRole)
+    private readonly userRolesRepository: Repository<UserRole>,
   ) {}
 
   findByEmailWithAccess(email: string): Promise<UserWithAccess | null> {
@@ -76,6 +90,48 @@ export class UsersService {
     }
 
     return paginateQb(qb, { page, limit, idColumn: 'user.id' });
+  }
+
+  async createSignupUser(input: SignupUserInput): Promise<UserWithAccess> {
+    const existingUser = await this.usersRepository.findOne({
+      where: { email: input.email },
+      select: { id: true },
+    });
+    if (existingUser) {
+      throw new ConflictException('Email is already registered');
+    }
+
+    const employeeRole = await this.rolesRepository.findOne({
+      where: { slug: 'employee' },
+    });
+    if (!employeeRole) {
+      throw new InternalServerErrorException(
+        'Default employee role is missing',
+      );
+    }
+
+    const user = await this.usersRepository.save(
+      this.usersRepository.create({
+        name: input.name,
+        email: input.email,
+        passwordHash: input.passwordHash,
+        isActive: true,
+      }),
+    );
+
+    await this.userRolesRepository.save(
+      this.userRolesRepository.create({
+        userId: user.id,
+        roleId: employeeRole.id,
+      }),
+    );
+
+    const userWithAccess = await this.findByIdWithAccess(user.id);
+    if (!userWithAccess) {
+      throw new InternalServerErrorException('Created user is unavailable');
+    }
+
+    return userWithAccess;
   }
 
   private async findOneWithAccess(

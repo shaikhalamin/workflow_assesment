@@ -6,14 +6,12 @@ import { randomUUID } from 'crypto';
 import type { CookieOptions, Request } from 'express';
 import { Repository } from 'typeorm';
 import { LoginDto } from './dto/login.dto';
+import { SignupDto } from './dto/signup.dto';
 import { RefreshTokenSession } from './entities/refresh-token-session.entity';
 import { UsersService, UserWithAccess } from '../users/users.service';
 
 type AccessPayload = {
   sub: string;
-  email: string;
-  roles: string[];
-  permissions: string[];
 };
 
 type RefreshPayload = {
@@ -72,6 +70,16 @@ export class AuthService {
     if (!passwordMatches) throw new UnauthorizedException();
 
     await this.revokeActiveSessionsForUser(user.id);
+    return this.createAuthResult(user, request);
+  }
+
+  async signup(dto: SignupDto, request: Request): Promise<AuthResult> {
+    const user = await this.usersService.createSignupUser({
+      name: dto.name,
+      email: dto.email,
+      passwordHash: await bcrypt.hash(dto.password, 10),
+    });
+
     return this.createAuthResult(user, request);
   }
 
@@ -134,9 +142,6 @@ export class AuthService {
     const jti = randomUUID();
     const accessPayload: AccessPayload = {
       sub: user.id,
-      email: user.email,
-      roles: user.roles,
-      permissions: user.permissions,
     };
     const refreshPayload: RefreshPayload = {
       sub: user.id,

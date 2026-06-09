@@ -18,6 +18,16 @@ interface ExpenseCreatedBody {
   id: string;
 }
 
+interface AuthUserBody {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    roles: string[];
+    permissions: string[];
+  };
+}
+
 describe('workflow demo flow (e2e)', () => {
   let app: INestApplication<App>;
 
@@ -76,5 +86,28 @@ describe('workflow demo flow (e2e)', () => {
       .expect(201);
 
     await agent.get('/api/workflow-tasks/my-pending').expect(200);
+  });
+
+  it('signs up a new employee and returns auth cookies', async () => {
+    const unique = Date.now();
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/signup')
+      .send({
+        name: 'Signup Employee',
+        email: `signup-${unique}@example.com`,
+        password: 'Password123!',
+      })
+      .expect(201);
+    const body = response.body as unknown as ApiResponseBody<AuthUserBody>;
+
+    expect(body.error).toBeNull();
+    expect(body.data.user.email).toBe(`signup-${unique}@example.com`);
+    expect(body.data.user.roles).toContain('employee');
+    expect(response.headers['set-cookie']).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('access_token='),
+        expect.stringContaining('refresh_token='),
+      ]),
+    );
   });
 });
