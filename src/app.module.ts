@@ -19,6 +19,7 @@ import { RbacModule } from './modules/rbac/rbac.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { UsersModule } from './modules/users/users.module';
 import { WorkflowBuilderModule } from './modules/workflow-builder/workflow-builder.module';
+import { WorkflowRuntimeModule } from './modules/workflow-runtime/workflow-runtime.module';
 
 const devModules = process.env.NODE_ENV === 'production' ? [] : [SeedModule];
 
@@ -35,6 +36,7 @@ const devModules = process.env.NODE_ENV === 'production' ? [] : [SeedModule];
     RbacModule,
     AuthModule,
     WorkflowBuilderModule,
+    WorkflowRuntimeModule,
     ...devModules,
   ],
   controllers: [AppController],
