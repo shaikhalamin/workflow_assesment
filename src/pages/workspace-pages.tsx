@@ -48,11 +48,15 @@ import { useWorkflowTemplateControllerFindOne } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerList } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerPublish } from '@/lib/api/gen'
 import type {
+  AuthUserDto,
   CreateExpenseDto,
   CreateLeaveDto,
+  ExpenseResponseDto,
   UserResponseDto,
   WorkflowApprovalRuleResponseDto,
   WorkflowApprovalStepConfigResponseDto,
+  WorkflowActionResponseDto,
+  WorkflowInstanceResponseDto,
   WorkflowStepResponseDto,
   WorkflowTemplateResponseDto,
 } from '@/lib/api/gen'
@@ -119,6 +123,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function stringFromObjectField(value: unknown) {
   return typeof value === 'string' ? value : undefined
+}
+
+function idFromObjectField(value: unknown) {
+  if (typeof value === 'string') return value
+  if (isRecord(value) && typeof value.id === 'string') return value.id
+  return undefined
+}
+
+function userIdentityFromObjectField(value: unknown) {
+  if (
+    isRecord(value) &&
+    typeof value.name === 'string' &&
+    typeof value.email === 'string'
+  ) {
+    return `${value.name} (${value.email})`
+  }
+
+  return undefined
 }
 
 function numberFromObjectField(value: unknown) {
@@ -213,6 +235,201 @@ const stepTypeLabels: Record<string, string> = {
   HR_CHECK: 'HR check',
   MANAGEMENT_APPROVAL: 'Management approval',
   FINAL_VERIFICATION: 'Final verification',
+}
+
+type ReadableRow = {
+  label: string
+  value: React.ReactNode
+}
+
+type RuntimeStepStatus = WorkflowStepResponseDto['status']
+
+type WorkflowUserReference = {
+  id: string
+  name: string
+  email: string
+}
+
+type WorkflowStepWithUsers = WorkflowStepResponseDto & {
+  actionByUser?: WorkflowUserReference | null
+  assignedUser?: WorkflowUserReference | null
+}
+
+type WorkflowActionWithUser = WorkflowActionResponseDto & {
+  actorUser?: WorkflowUserReference | null
+}
+
+const runtimeStepStatusText: Record<RuntimeStepStatus, string> = {
+  APPROVED: 'Completed successfully',
+  REJECTED: 'Stopped at this step',
+  ACTIVE: 'Currently waiting for action',
+  WAITING: 'Upcoming step',
+  SKIPPED: 'Skipped',
+}
+
+function primitiveFromObjectField(value: unknown) {
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return value
+  }
+
+  return undefined
+}
+
+function readableValue(value: unknown) {
+  const primitive = primitiveFromObjectField(value)
+  if (primitive !== undefined) return formatValue(primitive)
+  return undefined
+}
+
+function dateFromObjectField(value: unknown) {
+  return typeof value === 'string' ? value : undefined
+}
+
+function readableRowsFromRecord(value: unknown): ReadableRow[] {
+  if (!isRecord(value)) return []
+
+  return Object.entries(value)
+    .map((entry): ReadableRow | undefined => {
+      const [key, item] = entry
+      const formatted = readableValue(item)
+      return formatted
+        ? {
+            label: humanizeKey(key),
+            value: formatted,
+          }
+        : undefined
+    })
+    .filter((row): row is ReadableRow => Boolean(row))
+}
+
+function workflowIdFromExpense(expense: ExpenseResponseDto) {
+  const workflowId = stringFromObjectField(expense.workflowInstanceId)
+  return workflowId ?? undefined
+}
+
+function formatOptionalDate(value: unknown) {
+  return formatDate(dateFromObjectField(value))
+}
+
+function findUserById(users: UserResponseDto[], userId: string | undefined) {
+  if (!userId) return undefined
+  return users.find((user) => user.id === userId)
+}
+
+function formatUserIdentity(user: Pick<UserResponseDto, 'name' | 'email'>) {
+  return `${user.name} (${user.email})`
+}
+
+function describeUserReference(
+  users: UserResponseDto[],
+  userReference: unknown,
+  currentUser?: AuthUserDto | null,
+) {
+  const embeddedUser = userIdentityFromObjectField(userReference)
+  if (embeddedUser) return embeddedUser
+
+  const userId = idFromObjectField(userReference)
+  if (!userId) return undefined
+  if (currentUser?.id === userId) return formatUserIdentity(currentUser)
+  const user = findUserById(users, userId)
+  if (!user) return `User ID: ${userId}`
+  return formatUserIdentity(user)
+}
+
+function describeRuntimeAssignee(
+  step: WorkflowStepResponseDto,
+  users: UserResponseDto[],
+  requesterId: string,
+  currentUser?: AuthUserDto | null,
+) {
+  const stepWithUsers = step as WorkflowStepWithUsers
+  const assignedUserReference = stepWithUsers.assignedUser ?? step.assignedUserId
+
+  if (step.assigneeType === 'ROLE') {
+    const role = stringFromObjectField(step.assignedRoleSlug)
+    if (!role) return 'Role assignment pending'
+
+    const assignedUser = describeUserReference(
+      users,
+      assignedUserReference,
+      currentUser,
+    )
+    if (assignedUser) return `Role: ${formatRoleLabel(role)}, ${assignedUser}`
+
+    return currentUser?.roles.includes(role)
+      ? `Role: ${formatRoleLabel(role)}, ${formatUserIdentity(currentUser)}`
+      : `Role: ${formatRoleLabel(role)}`
+  }
+
+  if (step.assigneeType === 'USER') {
+    const userReference = describeUserReference(users, assignedUserReference, currentUser)
+    return userReference ? `User: ${userReference}` : 'User assignment pending'
+  }
+
+  if (step.assigneeType === 'REQUESTER_MANAGER') {
+    const assignedUser = describeUserReference(
+      users,
+      assignedUserReference,
+      currentUser,
+    )
+    if (assignedUser) return `Requester manager: ${assignedUser}`
+
+    const assignedUserId = idFromObjectField(assignedUserReference)
+    const requester = findUserById(users, requesterId)
+    const managerId =
+      assignedUserId ?? stringFromObjectField(requester?.managerId)
+    const managerReference = describeUserReference(users, managerId, currentUser)
+    if (managerReference) return `Requester manager: ${managerReference}`
+
+    const requesterReference = describeUserReference(users, requesterId, currentUser)
+    return requesterReference
+      ? `Requester manager for ${requesterReference} is not resolved`
+      : "Requester's manager is not resolved"
+  }
+
+  if (step.assigneeType === 'DEPARTMENT_HEAD') {
+    const userReference = describeUserReference(users, assignedUserReference, currentUser)
+    return userReference
+      ? `Department head: ${userReference}`
+      : 'Department head is not resolved'
+  }
+
+  const userReference = describeUserReference(users, assignedUserReference, currentUser)
+  return userReference
+    ? `Custom field user: ${userReference}`
+    : 'User from custom field is not resolved'
+}
+
+function canActOnStep(
+  step: WorkflowStepResponseDto | undefined,
+  userRoles: string[],
+  userId?: string,
+) {
+  if (!step || step.status !== 'ACTIVE' || !userId) return false
+
+  if (step.assigneeType === 'USER') {
+    const stepWithUsers = step as WorkflowStepWithUsers
+    return idFromObjectField(stepWithUsers.assignedUser ?? step.assignedUserId) === userId
+  }
+
+  if (step.assigneeType === 'ROLE') {
+    const role = stringFromObjectField(step.assignedRoleSlug)
+    return Boolean(role && userRoles.includes(role))
+  }
+
+  const stepWithUsers = step as WorkflowStepWithUsers
+  return idFromObjectField(stepWithUsers.assignedUser ?? step.assignedUserId) === userId
+}
+
+function getSortedRuntimeSteps(instance: WorkflowInstanceResponseDto) {
+  const steps = Array.isArray(instance.steps) ? instance.steps : []
+  return [...steps].sort(
+    (first, second) => first.stepOrder - second.stepOrder,
+  )
 }
 
 function humanizeKey(value: string) {
@@ -1935,6 +2152,34 @@ function SummaryValue({
   )
 }
 
+function ReadableRowsSection({
+  title,
+  rows,
+  emptyMessage,
+}: {
+  title: string
+  rows: ReadableRow[]
+  emptyMessage: string
+}) {
+  if (rows.length === 0) return <EmptyState message={emptyMessage} />
+
+  return (
+    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      {rows.map((row) => (
+        <div
+          key={`${title}-${row.label}`}
+          className="flex items-start justify-between gap-3 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm"
+        >
+          <span className="text-[var(--muted-foreground)]">{row.label}</span>
+          <span className="text-right font-medium text-[var(--foreground)]">
+            {row.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function EmptyState({ message }: { message: string }) {
   return (
     <p className="mt-3 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--muted-foreground)]">
@@ -2176,26 +2421,493 @@ export function WorkflowInstancesPage() {
   )
 }
 
+function WorkflowProgressSection({
+  instance,
+  showActions = false,
+}: {
+  instance: WorkflowInstanceResponseDto
+  showActions?: boolean
+}) {
+  const user = useAuthStore((state) => state.user)
+  const users: UserResponseDto[] = []
+  const steps = getSortedRuntimeSteps(instance)
+  const activeStep = steps.find((step) => step.status === 'ACTIVE')
+  const nextWaitingStep = steps.find((step) => step.status === 'WAITING')
+  const canUserActOnActiveStep =
+    activeStep && showActions && canActOnStep(activeStep, user?.roles ?? [], user?.id)
+
+  return (
+    <section
+      aria-label="Workflow progress"
+      className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm"
+      role="region"
+    >
+      <SectionHeading label="Workflow status" title="Workflow progress" />
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <ResponsibilitySummary
+          title="Current responsibility"
+          instance={instance}
+          step={activeStep}
+          users={users}
+          currentUser={user}
+          fallback={
+            instance.status === 'APPROVED'
+              ? 'Workflow completed.'
+              : instance.status === 'REJECTED'
+                ? 'Workflow rejected.'
+                : 'No active step.'
+          }
+        />
+        <ResponsibilitySummary
+          title="Next responsibility"
+          instance={instance}
+          step={nextWaitingStep}
+          users={users}
+          currentUser={user}
+          fallback="No waiting steps."
+        />
+      </div>
+      <RuntimeStepTimeline
+        steps={steps}
+        users={users}
+        requesterId={instance.requesterId}
+        currentUser={user}
+        actionStepId={canUserActOnActiveStep ? activeStep.id : undefined}
+        actionPanel={
+          canUserActOnActiveStep ? (
+            <WorkflowDecisionPanel
+              step={activeStep}
+              users={users}
+              requesterId={instance.requesterId}
+              currentUser={user}
+              workflowInstanceId={instance.id}
+            />
+          ) : null
+        }
+      />
+    </section>
+  )
+}
+
+function ResponsibilitySummary({
+  title,
+  instance,
+  step,
+  users,
+  currentUser,
+  fallback,
+}: {
+  title: string
+  instance: WorkflowInstanceResponseDto
+  step: WorkflowStepResponseDto | undefined
+  users: UserResponseDto[]
+  currentUser?: AuthUserDto | null
+  fallback: string
+}) {
+  return (
+    <div className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3">
+      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+        {title}
+      </p>
+      {step ? (
+        <>
+          <p className="mt-1 text-sm font-semibold text-[var(--foreground)]">
+            {title === 'Current responsibility' ? 'Active' : 'Next'}:{' '}
+            {step.stepName || 'Unnamed step'}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
+            {describeRuntimeAssignee(step, users, instance.requesterId, currentUser)}
+          </p>
+        </>
+      ) : (
+        <p className="mt-1 text-sm font-medium text-[var(--foreground)]">
+          {instance.status === 'REJECTED'
+            ? stepsRejectedText(instance)
+            : fallback}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function stepsRejectedText(instance: WorkflowInstanceResponseDto) {
+  const rejectedStep = getSortedRuntimeSteps(instance).find(
+    (step) => step.status === 'REJECTED',
+  )
+  return rejectedStep
+    ? `Rejected at ${rejectedStep.stepName || 'unnamed step'}.`
+    : 'Workflow rejected.'
+}
+
+function RuntimeStepTimeline({
+  steps,
+  users,
+  requesterId,
+  currentUser,
+  actionStepId,
+  actionPanel,
+}: {
+  steps: WorkflowStepResponseDto[]
+  users: UserResponseDto[]
+  requesterId: string
+  currentUser?: AuthUserDto | null
+  actionStepId?: string
+  actionPanel?: React.ReactNode
+}) {
+  if (steps.length === 0) {
+    return <EmptyState message="No approval steps recorded." />
+  }
+
+  return (
+    <ol className="mt-4 space-y-0">
+      {steps.map((step, index) => {
+        const stepWithUsers = step as WorkflowStepWithUsers
+        const isLastStep = index === steps.length - 1
+        const tone =
+          step.status === 'ACTIVE'
+            ? 'border-l-blue-600 bg-blue-50'
+            : step.status === 'APPROVED'
+              ? 'border-l-emerald-600 bg-white'
+              : step.status === 'REJECTED'
+                ? 'border-l-red-600 bg-red-50'
+                : 'border-l-slate-300 bg-[var(--surface-2)]'
+
+        return (
+          <li key={step.id} className="grid grid-cols-[32px_1fr] gap-3">
+            <div className="flex flex-col items-center">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--primary)] bg-[var(--primary)] font-mono text-[10px] font-semibold text-white">
+                {step.stepOrder}
+              </span>
+              {!isLastStep ? (
+                <span className="h-full min-h-8 w-px bg-[var(--border)]" />
+              ) : null}
+            </div>
+            <div className={isLastStep ? '' : 'pb-4'}>
+              <article className={`rounded-md border border-l-4 border-[var(--border)] ${tone} p-3`}>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+                      Step {step.stepOrder}
+                    </p>
+                    <h3 className="mt-1 text-sm font-semibold text-[var(--foreground)]">
+                      {step.stepName || 'Unnamed step'}
+                    </h3>
+                    <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
+                      {stepTypeLabels[step.stepType] ?? step.stepType}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
+                      Assignee: {describeRuntimeAssignee(step, users, requesterId, currentUser)}
+                    </p>
+                  </div>
+                  <Badge>{step.status}</Badge>
+                </div>
+                <p className="mt-2 text-xs font-medium text-[var(--ink-2)]">
+                  {runtimeStepStatusText[step.status]}
+                </p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                  <SummaryValue label="Activated" value={formatOptionalDate(step.activatedAt)} />
+                  <SummaryValue label="Acted" value={formatOptionalDate(step.actedAt)} />
+                  <SummaryValue
+                    label="Actor"
+                    value={formatValue(
+                      describeUserReference(
+                        users,
+                        stepWithUsers.actionByUser ?? step.actionByUserId,
+                        currentUser,
+                      ),
+                    )}
+                  />
+                  <SummaryValue
+                    label="Resolved assignee"
+                    value={describeRuntimeAssignee(step, users, requesterId, currentUser)}
+                  />
+                  <SummaryValue label="Assignment rule" value={humanizeKey(step.assigneeType)} />
+                </div>
+                {readableValue(step.comment) ? (
+                  <p className="mt-3 text-sm text-[var(--ink-2)]">
+                    Comment: {readableValue(step.comment)}
+                  </p>
+                ) : null}
+                {readableValue(step.rejectionReason) ? (
+                  <p className="mt-3 text-sm text-red-700">
+                    Rejection reason: {readableValue(step.rejectionReason)}
+                  </p>
+                ) : null}
+                <StepActionHistory
+                  actions={Array.isArray(step.actions) ? step.actions : []}
+                  users={users}
+                  currentUser={currentUser}
+                />
+              </article>
+              {step.id === actionStepId ? actionPanel : null}
+            </div>
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
+function StepActionHistory({
+  actions,
+  users,
+  currentUser,
+}: {
+  actions: WorkflowActionResponseDto[]
+  users: UserResponseDto[]
+  currentUser?: AuthUserDto | null
+}) {
+  if (actions.length === 0) return null
+
+  return (
+    <div className="mt-3 space-y-2 border-t border-[var(--border)] pt-3">
+      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+        Step actions
+      </p>
+      {actions.map((action) => {
+        const actionWithUser = action as WorkflowActionWithUser
+
+        return (
+          <div
+            key={action.id}
+            className="grid gap-1 rounded-md bg-white px-3 py-2 text-xs text-[var(--ink-2)] sm:grid-cols-4"
+          >
+            <span className="font-semibold text-[var(--foreground)]">
+              {humanizeKey(action.action)}
+            </span>
+            <span>
+              Actor:{' '}
+              {formatValue(
+                describeUserReference(
+                  users,
+                  actionWithUser.actorUser ?? action.actorUserId,
+                  currentUser,
+                ),
+              )}
+            </span>
+            <span>{formatDate(action.createdAt)}</span>
+            <span>{readableValue(action.comment) ?? readableValue(action.reason) ?? '-'}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function WorkflowDecisionPanel({
+  step,
+  users,
+  requesterId,
+  currentUser,
+  workflowInstanceId,
+}: {
+  step: WorkflowStepResponseDto
+  users: UserResponseDto[]
+  requesterId: string
+  currentUser?: AuthUserDto | null
+  workflowInstanceId: string
+}) {
+  const queryClient = useQueryClient()
+  const [comment, setComment] = useState('')
+  const approve = useWorkflowRuntimeControllerApprove({
+    mutation: {
+      onSuccess: () => void queryClient.invalidateQueries(),
+    },
+  })
+  const reject = useWorkflowRuntimeControllerReject({
+    mutation: {
+      onSuccess: () => void queryClient.invalidateQueries(),
+    },
+  })
+
+  return (
+    <section
+      aria-label="Approval decision"
+      className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-4"
+      role="region"
+    >
+      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+        Current approver action
+      </p>
+      <h3 className="mt-1 text-base font-semibold text-[var(--foreground)]">
+        Active approval step
+      </h3>
+      <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+        Assigned to {describeRuntimeAssignee(step, users, requesterId, currentUser)}
+      </p>
+      <div className="mt-3">
+        <FormField label="Comment or rejection reason" htmlFor="workflow-decision-comment">
+          <FormTextarea
+            id="workflow-decision-comment"
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+          />
+        </FormField>
+      </div>
+      <ErrorNotice error={approve.error ?? reject.error} />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button
+          type="button"
+          disabled={approve.isPending || reject.isPending}
+          onClick={() => approve.mutate({ id: step.id, data: { comment } })}
+        >
+          <CheckCircle2 className="h-4 w-4" /> Approve
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={approve.isPending || reject.isPending}
+          onClick={() => reject.mutate({ id: step.id, data: { reason: comment } })}
+        >
+          <XCircle className="h-4 w-4" /> Reject
+        </Button>
+      </div>
+      <p className="mt-3 font-mono text-[10px] text-[var(--ink-3)]">
+        Workflow {workflowInstanceId}
+      </p>
+    </section>
+  )
+}
+
 export function WorkflowInstanceDetailPage() {
   const { instanceId } = useParams({ strict: false }) as { instanceId: string }
   const query = useWorkflowRuntimeControllerFindOne({ id: instanceId })
-  const logs = useAuditLogsControllerListForWorkflow({ workflowInstanceId: instanceId, params: { page: 1, limit: 50 } })
-  const instance = unwrapData(query.data) as Row | undefined
-  const steps = ((instance?.steps as Row[] | undefined) ?? []).sort((a, b) => Number(a.stepOrder) - Number(b.stepOrder))
+  const logs = useAuditLogsControllerListForWorkflow({
+    workflowInstanceId: instanceId,
+    params: { page: 1, limit: 50 },
+  })
+  const instance = unwrapData(query.data) as WorkflowInstanceResponseDto | undefined
+
   return (
     <>
       <PageHeader title={`Workflow ${instanceId}`} kicker="Runtime detail" />
       <ErrorNotice error={query.error} />
-      {instance ? <ObjectPanel value={instance} /> : null}
-      <section className="mt-6">
-        <PageHeader title="Approval timeline" kicker="Steps" />
-        <TaskTable rows={steps} />
-      </section>
-      <section className="mt-6">
-        <PageHeader title="Audit history" kicker="Logs" />
-        <AuditTable rows={(unwrapData(logs.data) as Row[] | undefined) ?? []} />
-      </section>
+      {instance ? (
+        <div className="space-y-5">
+          <WorkflowInstanceSummary instance={instance} />
+          <WorkflowProgressSection instance={instance} showActions />
+          <WorkflowActionHistory actions={Array.isArray(instance.actions) ? instance.actions : []} />
+          <section>
+            <PageHeader title="Audit history" kicker="Logs" />
+            <AuditTable rows={(unwrapData(logs.data) as Row[] | undefined) ?? []} />
+          </section>
+          <WorkflowTechnicalReference instance={instance} />
+        </div>
+      ) : null}
     </>
+  )
+}
+
+function WorkflowInstanceSummary({
+  instance,
+}: {
+  instance: WorkflowInstanceResponseDto
+}) {
+  const metadataRows = readableRowsFromRecord(instance.metadataJson)
+
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge>{instance.status}</Badge>
+        <Badge className="bg-[var(--surface-2)] text-[var(--ink-3)]">
+          {instance.moduleName}
+        </Badge>
+        <Badge className="bg-[var(--surface-2)] text-[var(--ink-3)]">
+          {instance.eventName}
+        </Badge>
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Entity" value={`${instance.entityType} ${instance.entityId}`} />
+        <SummaryValue label="Started" value={formatOptionalDate(instance.startedAt)} />
+        <SummaryValue label="Completed" value={formatOptionalDate(instance.completedAt)} />
+        <SummaryValue label="Rejected" value={formatOptionalDate(instance.rejectedAt)} />
+        <SummaryValue label="Requester" value={instance.requesterId} />
+        <SummaryValue label="Department" value={formatValue(readableValue(instance.departmentId))} />
+      </div>
+      <ReadableRowsSection
+        title="Metadata"
+        emptyMessage="No readable metadata recorded."
+        rows={metadataRows}
+      />
+    </section>
+  )
+}
+
+function WorkflowActionHistory({
+  actions,
+}: {
+  actions: WorkflowActionResponseDto[]
+}) {
+  const currentUser = useAuthStore((state) => state.user)
+  const users: UserResponseDto[] = []
+
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <SectionHeading label="Workflow actions" title="Action history" />
+      {actions.length > 0 ? (
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+            <thead>
+              <tr>
+                {['Action', 'Actor', 'Comment / reason', 'Created'].map((header) => (
+                  <th
+                    key={header}
+                    className="border-b border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]"
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {actions.map((action) => {
+                const actionWithUser = action as WorkflowActionWithUser
+
+                return (
+                  <tr key={action.id} className="border-b border-[var(--border)] last:border-b-0">
+                    <td className="px-4 py-3 text-[13px]">{humanizeKey(action.action)}</td>
+                    <td className="px-4 py-3 text-[13px]">
+                      {formatValue(
+                        describeUserReference(
+                          users,
+                          actionWithUser.actorUser ?? action.actorUserId,
+                          currentUser,
+                        ),
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-[13px]">
+                      {readableValue(action.comment) ?? readableValue(action.reason) ?? '-'}
+                    </td>
+                    <td className="px-4 py-3 text-[13px]">{formatDate(action.createdAt)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <EmptyState message="No workflow actions recorded." />
+      )}
+    </section>
+  )
+}
+
+function WorkflowTechnicalReference({
+  instance,
+}: {
+  instance: WorkflowInstanceResponseDto
+}) {
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <SectionHeading label="Technical metadata" title="Reference" />
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Instance ID" value={instance.id} />
+        <SummaryValue label="Template ID" value={instance.workflowTemplateId} />
+        <SummaryValue label="Rule ID" value={instance.workflowApprovalRuleId} />
+        <SummaryValue label="Created" value={formatDate(instance.createdAt)} />
+        <SummaryValue label="Updated" value={formatDate(instance.updatedAt)} />
+      </div>
+    </section>
   )
 }
 
@@ -2238,6 +2950,28 @@ function TaskTable({
     },
     { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
     { header: 'Activated', cell: ({ row }) => formatDate(row.original.activatedAt) },
+    {
+      header: 'Details',
+      cell: ({ row }) => {
+        const workflowInstanceId =
+          'workflowInstanceId' in row.original
+            ? row.original.workflowInstanceId
+            : undefined
+
+        return workflowInstanceId ? (
+          <Link
+            className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+            to="/workflow-instances/$instanceId"
+            params={{ instanceId: String(workflowInstanceId) }}
+          >
+            <Eye className="h-4 w-4" />
+            View details
+          </Link>
+        ) : (
+          '-'
+        )
+      },
+    },
   ]
   if (withActions) {
     columns.push({
@@ -2429,8 +3163,118 @@ export function ExpenseCreatePage() {
 export function ExpenseDetailPage() {
   const { expenseId } = useParams({ strict: false }) as { expenseId: string }
   const query = useExpensesControllerFindOne({ id: expenseId })
-  const expense = unwrapData(query.data) as Row | undefined
-  return <DetailPage title={`Expense ${expenseId}`} error={query.error} value={expense} workflowId={String(expense?.workflowInstanceId ?? '')} />
+  const expense = unwrapData(query.data) as ExpenseResponseDto | undefined
+  const workflowId = expense ? workflowIdFromExpense(expense) : undefined
+  const workflowQuery = useWorkflowRuntimeControllerFindOne({ id: workflowId })
+  const workflow = workflowId
+    ? (unwrapData(workflowQuery.data) as WorkflowInstanceResponseDto | undefined)
+    : undefined
+
+  return (
+    <>
+      <PageHeader
+        title={expense?.title ?? `Expense ${expenseId}`}
+        kicker="Expense detail"
+        action={
+          workflowId ? (
+            <Button type="button" variant="secondary">
+              <Link
+                to="/workflow-instances/$instanceId"
+                params={{ instanceId: workflowId }}
+              >
+                Full workflow detail
+              </Link>
+            </Button>
+          ) : null
+        }
+      />
+      <ErrorNotice error={query.error ?? workflowQuery.error} />
+      {expense ? (
+        <div className="space-y-5">
+          <ExpenseSummary expense={expense} />
+          <ExpenseCustomFields value={expense.customFieldsJson} />
+          {workflowId ? (
+            workflow ? (
+              <WorkflowProgressSection instance={workflow} showActions />
+            ) : (
+              <EmptyState message="Workflow detail is not available yet." />
+            )
+          ) : (
+            <EmptyState message="No workflow has been started for this expense." />
+          )}
+          <ExpenseTechnicalReference expense={expense} />
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+function ExpenseSummary({ expense }: { expense: ExpenseResponseDto }) {
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge>{expense.status}</Badge>
+        <Badge className="bg-[var(--surface-2)] text-[var(--ink-3)]">
+          {expense.category}
+        </Badge>
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Amount" value={`${expense.amount} ${expense.currency}`} />
+        <SummaryValue label="Vendor" value={formatValue(readableValue(expense.vendor))} />
+        <SummaryValue label="Quantity" value={formatValue(readableValue(expense.quantity))} />
+        <SummaryValue label="Item value" value={formatValue(readableValue(expense.itemValue))} />
+        <SummaryValue label="Price" value={formatValue(readableValue(expense.price))} />
+        <SummaryValue label="Submitted" value={formatOptionalDate(expense.submittedAt)} />
+        <SummaryValue label="Approved" value={formatOptionalDate(expense.approvedAt)} />
+        <SummaryValue label="Rejected" value={formatOptionalDate(expense.rejectedAt)} />
+        <SummaryValue label="Paid" value={formatOptionalDate(expense.paidAt)} />
+        <SummaryValue label="Created" value={formatDate(expense.createdAt)} />
+        <SummaryValue label="Updated" value={formatDate(expense.updatedAt)} />
+      </div>
+      {readableValue(expense.description) ? (
+        <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3 text-sm leading-6 text-[var(--ink-2)]">
+          {readableValue(expense.description)}
+        </div>
+      ) : null}
+      {readableValue(expense.rejectionReason) ? (
+        <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-800">
+          Rejection reason: {readableValue(expense.rejectionReason)}
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
+function ExpenseCustomFields({ value }: { value: unknown }) {
+  const rows = readableRowsFromRecord(value)
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <SectionHeading label="Expense fields" title="Custom fields" />
+      <ReadableRowsSection
+        title="Custom fields"
+        emptyMessage="No custom fields recorded."
+        rows={rows}
+      />
+    </section>
+  )
+}
+
+function ExpenseTechnicalReference({
+  expense,
+}: {
+  expense: ExpenseResponseDto
+}) {
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <SectionHeading label="Technical metadata" title="Reference" />
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Expense ID" value={expense.id} />
+        <SummaryValue label="Requester" value={expense.requesterId} />
+        <SummaryValue label="Department" value={formatValue(readableValue(expense.departmentId))} />
+        <SummaryValue label="Workflow ID" value={formatValue(workflowIdFromExpense(expense))} />
+      </div>
+    </section>
+  )
 }
 
 export function LeavesPage() {

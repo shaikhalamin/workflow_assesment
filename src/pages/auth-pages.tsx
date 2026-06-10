@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod/v4'
 
 import { useAuthControllerLogin } from '@/lib/api/gen'
+import { useAuthControllerLogout } from '@/lib/api/gen'
 import { useAuthControllerSignup } from '@/lib/api/gen'
 import { loginDtoSchema, signupDtoSchema } from '@/lib/api/gen'
 import { FormField, FormInput } from '@/components/form'
@@ -23,6 +24,20 @@ const signupSchema = signupDtoSchema.extend({
   password: z.string().min(8),
 })
 
+const presetPassword = 'Password123!'
+
+const presetUsers = [
+  { label: 'Admin', email: 'admin@example.com' },
+  { label: 'Employee', email: 'employee@example.com' },
+  { label: 'Manager', email: 'manager@example.com' },
+  { label: 'Accounts', email: 'accounts@example.com' },
+  { label: 'Finance', email: 'finance@example.com' },
+  { label: 'HR Officer', email: 'hr.officer@example.com' },
+  { label: 'HR Manager', email: 'hr.manager@example.com' },
+  { label: 'CFO', email: 'cfo@example.com' },
+  { label: 'Payroll', email: 'payroll@example.com' },
+] as const
+
 function fieldError(errors: unknown[]) {
   return errors
     .map((error) =>
@@ -33,11 +48,27 @@ function fieldError(errors: unknown[]) {
     .join(', ')
 }
 
+function hasStatus(error: unknown, status: number) {
+  if (!error || typeof error !== 'object' || !('response' in error)) {
+    return false
+  }
+
+  const response = error.response
+  return (
+    !!response &&
+    typeof response === 'object' &&
+    'status' in response &&
+    response.status === status
+  )
+}
+
 export function SignInPage() {
   const navigate = useNavigate()
   const search = useSearch({ strict: false }) as { redirect?: string }
   const queryClient = useQueryClient()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const setAuthenticatedUser = useAuthStore((state) => state.login)
+  const clearAuthenticatedUser = useAuthStore((state) => state.logout)
   const login = useAuthControllerLogin({
     mutation: {
       onSuccess: async (response) => {
@@ -53,6 +84,13 @@ export function SignInPage() {
       },
     },
   })
+  const logout = useAuthControllerLogout({
+    mutation: {
+      onSuccess: () => {
+        clearAuthenticatedUser()
+      },
+    },
+  })
   const form = useForm({
     defaultValues: {
       email: '',
@@ -65,6 +103,29 @@ export function SignInPage() {
       login.mutate({ data: value })
     },
   })
+  const isAuthPending = login.isPending || logout.isPending
+
+  async function handlePresetLogin(email: string) {
+    if (isAuthenticated) {
+      try {
+        await logout.mutateAsync()
+        await queryClient.invalidateQueries()
+      } catch (error) {
+        if (!hasStatus(error, 401)) {
+          return
+        }
+
+        clearAuthenticatedUser()
+      }
+    }
+
+    login.mutate({
+      data: {
+        email,
+        password: presetPassword,
+      },
+    })
+  }
 
   return (
     <AuthPanel
@@ -125,10 +186,31 @@ export function SignInPage() {
             </FormField>
           )}
         </form.Field>
-        <Button type="submit" className="w-full" disabled={login.isPending}>
+        <Button type="submit" className="w-full" disabled={isAuthPending}>
           Sign in
         </Button>
       </form>
+      <div className="mt-5 border-t border-[var(--border)] pt-4">
+        <p className="mb-2 font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-3)]">
+          Quick login
+        </p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {presetUsers.map((user) => (
+            <Button
+              key={user.email}
+              type="button"
+              variant="secondary"
+              className="justify-start"
+              disabled={isAuthPending}
+              onClick={() => {
+                void handlePresetLogin(user.email)
+              }}
+            >
+              Login as {user.label}
+            </Button>
+          ))}
+        </div>
+      </div>
     </AuthPanel>
   )
 }

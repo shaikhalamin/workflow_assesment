@@ -1,0 +1,293 @@
+import { render, screen, within } from '@testing-library/react'
+import type { ReactNode } from 'react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { ExpenseDetailPage } from './workspace-pages'
+
+let expenseResponse: unknown | undefined
+let workflowResponse: unknown | undefined
+let usersResponse: unknown[] = []
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    children,
+    className,
+    to,
+  }: {
+    children: ReactNode
+    className?: string
+    to?: string
+  }) => (
+    <a href={to ?? '#'} className={className}>
+      {children}
+    </a>
+  ),
+  useNavigate: () => vi.fn(),
+  useParams: () => ({ expenseId: 'expense-1' }),
+}))
+
+vi.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({
+    invalidateQueries: vi.fn(),
+  }),
+}))
+
+vi.mock('@/lib/api/gen', () => ({
+  useAuditLogsControllerList: () => ({ data: { data: [] }, error: null }),
+  useAuditLogsControllerListForWorkflow: () => ({
+    data: { data: [] },
+    error: null,
+  }),
+  useDashboardControllerAccounts: () => ({ data: undefined }),
+  useDashboardControllerAdmin: () => ({ data: undefined }),
+  useDashboardControllerApprover: () => ({ data: undefined }),
+  useDashboardControllerEmployee: () => ({ data: undefined }),
+  useDashboardControllerHr: () => ({ data: undefined }),
+  useExpensesControllerCreate: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+  }),
+  useExpensesControllerFindOne: () => ({
+    data: expenseResponse ? { data: expenseResponse } : undefined,
+    error: null,
+  }),
+  useExpensesControllerList: () => ({ data: { data: [] }, error: null }),
+  useExpensesControllerSubmit: () => ({ mutate: vi.fn() }),
+  useLeavesControllerCreate: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+  }),
+  useLeavesControllerFindOne: () => ({ data: undefined, error: null }),
+  useLeavesControllerList: () => ({ data: { data: [] }, error: null }),
+  useLeavesControllerSubmit: () => ({ mutate: vi.fn() }),
+  usePaymentsControllerList: () => ({ data: { data: [] }, error: null }),
+  usePaymentsControllerMarkPaid: () => ({ mutate: vi.fn() }),
+  useUsersControllerGetUsers: () => ({
+    data: { data: usersResponse },
+    isLoading: false,
+  }),
+  useWorkflowEventSchemaControllerCreate: () => ({
+    error: null,
+    mutate: vi.fn(),
+  }),
+  useWorkflowEventSchemaControllerList: () => ({
+    data: { data: [] },
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useWorkflowRuntimeControllerApprove: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+  }),
+  useWorkflowRuntimeControllerFindOne: ({ id }: { id: string }) => ({
+    data: id && workflowResponse ? { data: workflowResponse } : undefined,
+    error: null,
+  }),
+  useWorkflowRuntimeControllerList: () => ({ data: { data: [] }, error: null }),
+  useWorkflowRuntimeControllerMyPending: () => ({
+    data: { data: [] },
+    error: null,
+  }),
+  useWorkflowRuntimeControllerReject: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+  }),
+  useWorkflowTemplateControllerCreateWizard: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+  }),
+  useWorkflowTemplateControllerDeactivate: () => ({ mutate: vi.fn() }),
+  useWorkflowTemplateControllerDuplicate: () => ({ mutate: vi.fn() }),
+  useWorkflowTemplateControllerFindOne: () => ({ data: undefined }),
+  useWorkflowTemplateControllerList: () => ({ data: { data: [] }, error: null }),
+  useWorkflowTemplateControllerPublish: () => ({ mutate: vi.fn() }),
+}))
+
+const baseExpense = {
+  id: 'expense-1',
+  requesterId: 'requester-1',
+  departmentId: 'finance',
+  title: 'Laptop reimbursement',
+  description: 'Replacement laptop for field work',
+  amount: '4500',
+  currency: 'BDT',
+  category: 'Software',
+  vendor: 'Star Tech',
+  itemValue: 'Laptop',
+  price: '4500',
+  quantity: 1,
+  status: 'UNDER_REVIEW',
+  workflowInstanceId: 'wf-1',
+  rejectionReason: null,
+  customFieldsJson: {
+    budgetOwner: 'Finance',
+    projectCode: 'OPS-2026',
+    nested: { hidden: true },
+  },
+  submittedAt: '2026-06-11T08:00:00.000Z',
+  approvedAt: null,
+  rejectedAt: null,
+  paidAt: null,
+  createdAt: '2026-06-10T08:00:00.000Z',
+  updatedAt: '2026-06-11T08:00:00.000Z',
+}
+
+const baseWorkflow = {
+  id: 'wf-1',
+  workflowTemplateId: 'template-1',
+  workflowApprovalRuleId: 'rule-1',
+  moduleName: 'expenses',
+  eventName: 'expense.submitted',
+  entityType: 'Expense',
+  entityId: 'expense-1',
+  requesterId: 'requester-1',
+  departmentId: 'finance',
+  status: 'ACTIVE',
+  metadataJson: { title: 'Laptop reimbursement' },
+  startedAt: '2026-06-11T08:00:00.000Z',
+  completedAt: null,
+  rejectedAt: null,
+  steps: [
+    {
+      id: 'step-1',
+      workflowInstanceId: 'wf-1',
+      stepOrder: 1,
+      stepName: 'Manager review',
+      stepType: 'APPROVAL',
+      assignedUserId: 'manager-1',
+      assignedUser: {
+        id: 'manager-1',
+        name: 'Line Manager',
+        email: 'manager@example.com',
+      },
+      assignedRoleSlug: null,
+      assigneeType: 'USER',
+      status: 'APPROVED',
+      activatedAt: '2026-06-11T08:00:00.000Z',
+      actedAt: '2026-06-11T08:20:00.000Z',
+      actionByUserId: 'manager-1',
+      actionByUser: {
+        id: 'manager-1',
+        name: 'Line Manager',
+        email: 'manager@example.com',
+      },
+      comment: 'Approved',
+      rejectionReason: null,
+      actions: [],
+      createdAt: '2026-06-11T08:00:00.000Z',
+      updatedAt: '2026-06-11T08:20:00.000Z',
+    },
+    {
+      id: 'step-2',
+      workflowInstanceId: 'wf-1',
+      stepOrder: 2,
+      stepName: 'Finance approval',
+      stepType: 'FINANCE_CHECK',
+      assignedUserId: null,
+      assignedUser: null,
+      assignedRoleSlug: null,
+      assigneeType: 'REQUESTER_MANAGER',
+      status: 'ACTIVE',
+      activatedAt: '2026-06-11T08:21:00.000Z',
+      actedAt: null,
+      actionByUserId: null,
+      comment: null,
+      rejectionReason: null,
+      actions: [],
+      createdAt: '2026-06-11T08:00:00.000Z',
+      updatedAt: '2026-06-11T08:21:00.000Z',
+    },
+  ],
+  actions: [],
+  createdAt: '2026-06-11T08:00:00.000Z',
+  updatedAt: '2026-06-11T08:21:00.000Z',
+}
+
+describe('ExpenseDetailPage', () => {
+  beforeEach(() => {
+    expenseResponse = baseExpense
+    workflowResponse = baseWorkflow
+    usersResponse = [
+      {
+        id: 'requester-1',
+        name: 'Expense Requester',
+        email: 'requester@example.com',
+        employeeCode: null,
+        employeeGrade: null,
+        designation: 'Engineer',
+        departmentId: 'finance',
+        managerId: 'manager-1',
+        isActive: true,
+        lastLoginAt: null,
+        createdAt: '2026-06-01T08:00:00.000Z',
+        updatedAt: '2026-06-01T08:00:00.000Z',
+      },
+      {
+        id: 'manager-1',
+        name: 'Line Manager',
+        email: 'manager@example.com',
+        employeeCode: null,
+        employeeGrade: null,
+        designation: 'Manager',
+        departmentId: 'finance',
+        managerId: null,
+        isActive: true,
+        lastLoginAt: null,
+        createdAt: '2026-06-01T08:00:00.000Z',
+        updatedAt: '2026-06-01T08:00:00.000Z',
+      },
+    ]
+  })
+
+  it('renders business expense fields and custom fields without raw object JSON', () => {
+    const { container } = render(<ExpenseDetailPage />)
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Laptop reimbursement' })).toBeInTheDocument()
+    expect(screen.getByText('4500 BDT')).toBeInTheDocument()
+    expect(screen.getByText('Software')).toBeInTheDocument()
+    expect(screen.getByText('Star Tech')).toBeInTheDocument()
+    expect(screen.getByText('Replacement laptop for field work')).toBeInTheDocument()
+    expect(screen.getByText('Budget owner')).toBeInTheDocument()
+    expect(screen.getByText('Finance')).toBeInTheDocument()
+    expect(screen.getByText('Project code')).toBeInTheDocument()
+    expect(screen.getByText('OPS-2026')).toBeInTheDocument()
+    expect(container.textContent).not.toContain('customFieldsJson')
+    expect(container.textContent).not.toContain('{"budgetOwner"')
+    expect(container.textContent).not.toContain('"nested"')
+  })
+
+  it('embeds workflow progress and links to the full runtime detail', () => {
+    render(<ExpenseDetailPage />)
+
+    const workflow = screen.getByRole('region', { name: /workflow progress/i })
+    expect(within(workflow).getByText('Manager review')).toBeInTheDocument()
+    expect(within(workflow).getByText('Finance approval')).toBeInTheDocument()
+    expect(within(workflow).getByText('Current responsibility')).toBeInTheDocument()
+    expect(within(workflow).getAllByText(/Line Manager/).length).toBeGreaterThan(0)
+    expect(within(workflow).getAllByText(/manager@example.com/).length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: /full workflow detail/i })).toHaveAttribute(
+      'href',
+      '/workflow-instances/$instanceId',
+    )
+  })
+
+  it('shows an empty state when no workflow was started', () => {
+    expenseResponse = {
+      ...baseExpense,
+      workflowInstanceId: null,
+      customFieldsJson: null,
+    }
+    workflowResponse = undefined
+
+    render(<ExpenseDetailPage />)
+
+    expect(screen.getByText('No custom fields recorded.')).toBeInTheDocument()
+    expect(screen.getByText('No workflow has been started for this expense.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /full workflow detail/i })).not.toBeInTheDocument()
+  })
+})

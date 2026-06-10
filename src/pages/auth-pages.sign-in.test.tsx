@@ -1,11 +1,14 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { useAuthStore } from '@/stores/auth-store'
+
 import { SignInPage } from './auth-pages'
 
 const loginMutateMock = vi.hoisted(() => vi.fn())
+const logoutMutateAsyncMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
@@ -26,6 +29,11 @@ vi.mock('@/lib/api/gen', async () => ({
     isPending: false,
     mutate: loginMutateMock,
   }),
+  useAuthControllerLogout: () => ({
+    error: null,
+    isPending: false,
+    mutateAsync: logoutMutateAsyncMock,
+  }),
   useAuthControllerSignup: () => ({
     error: null,
     isPending: false,
@@ -36,6 +44,8 @@ vi.mock('@/lib/api/gen', async () => ({
 describe('SignInPage', () => {
   beforeEach(() => {
     loginMutateMock.mockClear()
+    logoutMutateAsyncMock.mockReset()
+    useAuthStore.getState().logout()
   })
 
   it('submits email and password to the login mutation', async () => {
@@ -52,6 +62,35 @@ describe('SignInPage', () => {
         email: 'employee@example.com',
         password: 'Password123!',
       },
+    })
+  })
+
+  it('continues preset login when active session logout returns unauthorized', async () => {
+    const pointer = userEvent.setup()
+    const logoutError = Object.assign(new Error('Unauthorized'), {
+      response: { status: 401 },
+    })
+    logoutMutateAsyncMock.mockRejectedValueOnce(logoutError)
+    useAuthStore.getState().login({
+      id: 'current-user',
+      name: 'Current User',
+      email: 'current@example.com',
+      roles: [],
+      permissions: [],
+    })
+
+    render(<SignInPage />)
+
+    await pointer.click(screen.getByRole('button', { name: /login as admin/i }))
+
+    await waitFor(() => {
+      expect(logoutMutateAsyncMock).toHaveBeenCalledOnce()
+      expect(loginMutateMock).toHaveBeenCalledWith({
+        data: {
+          email: 'admin@example.com',
+          password: 'Password123!',
+        },
+      })
     })
   })
 })

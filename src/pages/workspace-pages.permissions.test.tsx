@@ -5,7 +5,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AuthUserDto } from '@/lib/api/gen'
 import { useAuthStore } from '@/stores/auth-store'
 
-import { ExpensesPage, PaymentsPage } from './workspace-pages'
+import { ExpensesPage, PaymentsPage, TasksPage } from './workspace-pages'
+
+const pendingTasksState = vi.hoisted((): { pendingTasks: unknown[] } => ({
+  pendingTasks: [],
+}))
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -103,7 +107,7 @@ vi.mock('@/lib/api/gen', () => ({
   useWorkflowRuntimeControllerFindOne: () => ({ data: undefined }),
   useWorkflowRuntimeControllerList: () => ({ data: { data: [] }, error: null }),
   useWorkflowRuntimeControllerMyPending: () => ({
-    data: { data: [] },
+    data: { data: pendingTasksState.pendingTasks },
     error: null,
   }),
   useWorkflowRuntimeControllerReject: () => ({ mutate: vi.fn() }),
@@ -138,6 +142,7 @@ const readOnlyPaymentUser: AuthUserDto = {
 describe('workspace page permissions', () => {
   beforeEach(() => {
     localStorage.clear()
+    pendingTasksState.pendingTasks = []
   })
 
   it('hides expense write actions from users with read-only expense access', () => {
@@ -165,5 +170,28 @@ describe('workspace page permissions', () => {
     expect(
       screen.queryByRole('button', { name: /mark paid/i }),
     ).not.toBeInTheDocument()
+  })
+
+  it('shows a workflow details link for pending approvals', () => {
+    pendingTasksState.pendingTasks = [
+      {
+        id: 'step-1',
+        workflowInstanceId: 'workflow-1',
+        stepName: 'Manager approval',
+        stepType: 'APPROVAL',
+        assignedUserId: 'manager-1',
+        assignedRoleSlug: null,
+        assigneeType: 'USER',
+        status: 'ACTIVE',
+        activatedAt: '2026-06-11T08:00:00.000Z',
+      },
+    ]
+
+    render(<TasksPage />)
+
+    expect(screen.getByText('Manager approval')).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /view details/i }),
+    ).toBeInTheDocument()
   })
 })
