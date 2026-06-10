@@ -2,6 +2,8 @@ import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import {
+  ChevronDown,
+  ChevronRight,
   CheckCircle2,
   Copy,
   Eye,
@@ -9,6 +11,7 @@ import {
   PlayCircle,
   Plus,
   Send,
+  Trash2,
   XCircle,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -622,7 +625,11 @@ function TriggerConditions({ draft, setDraft }: { draft: WorkflowDraft; setDraft
                     conditions: [
                       {
                         ...condition,
-                        value: parseConditionValue(event.target.value, condition.field),
+                        value: parseConditionValue(
+                          event.target.value,
+                          condition.field,
+                          condition.operator,
+                        ),
                       },
                     ],
                   },
@@ -660,7 +667,7 @@ function ApprovalRules({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
             const fieldExample = getConditionFieldExample(condition.field)
 
             return (
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-5">
             <Field label="Rule Name">
               <FormInput value={rule.name} onChange={(event) => updateRule(index, { ...rule, name: event.target.value })} />
             </Field>
@@ -694,6 +701,36 @@ function ApprovalRules({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
                 ))}
               </FormSelect>
             </Field>
+            <Field label="Condition Operator">
+              <FormSelect
+                value={condition.operator}
+                onChange={(event) => {
+                  const operator = event.target.value as typeof condition.operator
+                  updateRule(index, {
+                    ...rule,
+                    isFallback: false,
+                    conditionJson: {
+                      mode: 'all',
+                      conditions: [
+                        {
+                          ...condition,
+                          operator,
+                          value: parseConditionValue(
+                            String(condition.value ?? ''),
+                            condition.field,
+                            operator,
+                          ),
+                        },
+                      ],
+                    },
+                  })
+                }}
+              >
+                {['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between', 'in', 'not_in', 'contains', 'is_empty', 'is_not_empty'].map((operator) => (
+                  <option key={operator} value={operator}>{operator}</option>
+                ))}
+              </FormSelect>
+            </Field>
             <Field label="Condition Value">
               <FormInput
                 placeholder={String(fieldExample.value)}
@@ -707,7 +744,11 @@ function ApprovalRules({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
                       conditions: [
                         {
                           ...condition,
-                          value: parseConditionValue(event.target.value, condition.field),
+                          value: parseConditionValue(
+                            event.target.value,
+                            condition.field,
+                            condition.operator,
+                          ),
                         },
                       ],
                     },
@@ -715,7 +756,7 @@ function ApprovalRules({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
                 }
               />
               <p className="text-xs text-[var(--muted-foreground)]">
-                {fieldExample.label}. Operator: {condition.operator}.
+                {fieldExample.label}. Use commas for between or list values.
               </p>
             </Field>
           </div>
@@ -879,49 +920,112 @@ function ApprovalSteps({
 
   return (
     <div className="space-y-5">
-      {draft.rules.map((rule, ruleIndex) => (
-        <section key={ruleIndex} className="space-y-3">
-          <div>
-            <h2 className="text-base font-semibold text-[var(--foreground)]">
-              {rule.name}
-            </h2>
-            <p className="text-sm text-[var(--muted-foreground)]">
-              This chain runs when this rule matches.
-            </p>
-            {rule.copiedFromDefaultPath ? (
-              <p className="mt-1 text-xs font-medium text-[var(--brand-emphasis)]">
-                Started from the default approval path. Customize if this rule needs different approvers.
-              </p>
-            ) : null}
-          </div>
-          <div className="space-y-4">
-            {rule.steps.map((step, stepIndex) => (
-              <div
-                key={stepIndex}
-                className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-4"
-              >
-                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
-                      Approval chain item {stepIndex + 1}
+      {draft.rules.map((rule, ruleIndex) => {
+        const conditionText = rule.isFallback
+          ? 'Fallback path when no earlier rule matches.'
+          : rule.conditionJson?.conditions.length
+            ? rule.conditionJson.conditions
+                .map(
+                  (condition) =>
+                    `${condition.field} ${condition.operator} ${formatValue(
+                      condition.value,
+                    )}`,
+                )
+                .join(', ')
+            : 'Needs rule condition.'
+
+        return (
+          <section
+            key={ruleIndex}
+            aria-label={`Rule ${ruleIndex + 1} ${rule.name || `Rule ${ruleIndex + 1}`}`}
+            className="overflow-hidden rounded-md border border-[var(--border)] bg-[var(--surface-2)]"
+            role="group"
+          >
+            <div className="border-b border-[var(--border)] bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+                    Rule {ruleIndex + 1}
+                  </p>
+                  <h2 className="mt-1 text-base font-semibold text-[var(--foreground)]">
+                    {rule.name || `Rule ${ruleIndex + 1}`}
+                  </h2>
+                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                    This chain runs when this rule matches.
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
+                    {conditionText}
+                  </p>
+                  {rule.copiedFromDefaultPath ? (
+                    <p className="mt-1 text-xs font-medium text-[var(--brand-emphasis)]">
+                      Started from the default approval path. Customize if this rule needs different approvers.
                     </p>
-                    <h3 className="text-base font-semibold text-[var(--foreground)]">
-                      {step.stepName || 'Unnamed workflow step'}
-                    </h3>
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                      {describeWorkflowAssignee(step, users)}
-                    </p>
-                  </div>
-                  <Badge
-                    className={
-                      step.canReject
-                        ? 'bg-[var(--warning-soft)] text-[var(--warning)]'
-                        : 'bg-[var(--success-soft)] text-[var(--success)]'
-                    }
-                  >
-                    {step.canReject ? 'Can reject' : 'Approve only'}
-                  </Badge>
+                  ) : null}
                 </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--ink-3)]">
+                    Priority {rule.priority}
+                  </span>
+                  <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--ink-3)]">
+                    {rule.steps.length} steps
+                  </span>
+                  {rule.isFallback ? (
+                    <span className="rounded-full border border-[var(--warning)] bg-[var(--warning-soft)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--warning)]">
+                      Fallback
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4 p-4">
+              {rule.steps.map((step, stepIndex) => (
+                <div
+                  key={stepIndex}
+                  className="rounded-md border border-[var(--border)] bg-white p-4"
+                >
+                  <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+                        Approval chain item {stepIndex + 1}
+                      </p>
+                      <h3 className="text-base font-semibold text-[var(--foreground)]">
+                        {step.stepName || 'Unnamed workflow step'}
+                      </h3>
+                      <p className="text-sm text-[var(--muted-foreground)]">
+                        {describeWorkflowAssignee(step, users)}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge
+                        className={
+                          step.canReject
+                            ? 'bg-[var(--warning-soft)] text-[var(--warning)]'
+                            : 'bg-[var(--success-soft)] text-[var(--success)]'
+                        }
+                      >
+                        {step.canReject ? 'Can reject' : 'Approve only'}
+                      </Badge>
+                      <Button
+                        aria-label={`Remove approval step ${stepIndex + 1}`}
+                        size="sm"
+                        type="button"
+                        variant="destructive"
+                        onClick={() =>
+                          updateRule(ruleIndex, {
+                            ...rule,
+                            steps: rule.steps
+                              .filter((_, index) => index !== stepIndex)
+                              .map((item, index) => ({
+                                ...item,
+                                stepOrder: index + 1,
+                              })),
+                          })
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" /> Remove
+                      </Button>
+                    </div>
+                  </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <Field label="Step name" description="Use a business name users will recognize in their task list.">
                     <FormInput
@@ -1129,40 +1233,41 @@ function ApprovalSteps({
                     }
                   />
                 </div>
-              </div>
-            ))}
-          </div>
-          <Button
-            type="button"
-            size="sm"
-            className="mt-3"
-            variant="secondary"
-            onClick={() =>
-              updateRule(ruleIndex, {
-                ...rule,
-                steps: [
-                  ...rule.steps,
-                  {
-                    stepOrder: rule.steps.length + 1,
-                    stepName: 'Approval step',
-                    stepType: 'APPROVAL',
-                    assigneeType: 'ROLE',
-                    assigneeRoleSlug: 'manager',
-                    isRequired: true,
-                    requiresComment: false,
-                    requiresAttachment: false,
-                    canReject: true,
-                    canReassign: false,
-                    slaHours: 24,
-                  },
-                ],
-              })
-            }
-          >
-            <Plus className="h-4 w-4" /> Add step
-          </Button>
-        </section>
-      ))}
+                </div>
+              ))}
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              className="mx-4 mb-4"
+              variant="secondary"
+              onClick={() =>
+                updateRule(ruleIndex, {
+                  ...rule,
+                  steps: [
+                    ...rule.steps,
+                    {
+                      stepOrder: rule.steps.length + 1,
+                      stepName: 'Approval step',
+                      stepType: 'APPROVAL',
+                      assigneeType: 'ROLE',
+                      assigneeRoleSlug: 'manager',
+                      isRequired: true,
+                      requiresComment: false,
+                      requiresAttachment: false,
+                      canReject: true,
+                      canReassign: false,
+                      slaHours: 24,
+                    },
+                  ],
+                })
+              }
+            >
+              <Plus className="h-4 w-4" /> Add approval step
+            </Button>
+          </section>
+        )
+      })}
     </div>
   )
 }
@@ -1174,6 +1279,9 @@ function WorkflowPreview({
   draft: WorkflowDraft
   users: UserResponseDto[]
 }) {
+  const [expandedRules, setExpandedRules] = useState<Record<number, boolean>>({
+    0: true,
+  })
   const triggerSummary =
     draft.triggerMode === 'always'
       ? 'Runs for every matching event.'
@@ -1213,6 +1321,8 @@ function WorkflowPreview({
             Approval paths
           </p>
           {draft.rules.map((rule, ruleIndex) => {
+            const ruleName = rule.name || `Rule ${ruleIndex + 1}`
+            const isExpanded = expandedRules[ruleIndex] ?? ruleIndex === 0
             const conditionText = rule.isFallback
               ? 'Fallback path when no earlier rule matches.'
               : rule.conditionJson?.conditions.length
@@ -1229,64 +1339,143 @@ function WorkflowPreview({
             return (
               <div
                 key={ruleIndex}
-                className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3"
+                className="overflow-hidden rounded-md border border-[var(--border)] bg-[var(--surface-2)]"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-sm font-semibold text-[var(--foreground)]">
-                      {rule.name || `Rule ${ruleIndex + 1}`}
-                    </h3>
-                    <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
+                <button
+                  aria-expanded={isExpanded}
+                  aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${ruleName} approval path preview`}
+                  className="flex w-full items-start justify-between gap-3 p-3 text-left transition hover:bg-white/70"
+                  type="button"
+                  onClick={() =>
+                    setExpandedRules((current) => ({
+                      ...current,
+                      [ruleIndex]: !isExpanded,
+                    }))
+                  }
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-semibold text-[var(--foreground)]">
+                        {ruleName}
+                      </span>
+                      <span className="rounded-full bg-white px-2 py-1 font-mono text-[10px] text-[var(--ink-3)]">
+                        Priority {rule.priority}
+                      </span>
+                      {rule.isFallback ? (
+                        <span className="rounded-full border border-[var(--warning)] bg-[var(--warning-soft)] px-2 py-1 font-mono text-[10px] text-[var(--warning)]">
+                          Fallback
+                        </span>
+                      ) : null}
+                    </div>
+                    <span className="mt-1 block text-xs leading-5 text-[var(--muted-foreground)]">
                       {conditionText}
-                    </p>
+                    </span>
                   </div>
-                  <span className="shrink-0 rounded-full bg-white px-2 py-1 font-mono text-[10px] text-[var(--ink-3)]">
-                    {rule.steps.length} steps
+                  <span className="flex shrink-0 items-center gap-2">
+                    <span className="rounded-full bg-white px-2 py-1 font-mono text-[10px] text-[var(--ink-3)]">
+                      {rule.steps.length} steps
+                    </span>
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4 text-[var(--ink-3)]" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-[var(--ink-3)]" />
+                    )}
                   </span>
-                </div>
-                <ol className="mt-3 space-y-2">
-                  {rule.steps.length > 0 ? (
-                    rule.steps.map((item, stepIndex) => {
-                      const assigneeText = describeWorkflowAssignee(item, users)
-                      const needsAssignment = assigneeText === 'Needs assignment'
-                      const stepTypeLabel =
-                        stepTypeOptions.find((option) => option.value === item.stepType)
-                          ?.label ?? item.stepType
+                </button>
+                {isExpanded ? (
+                  <div className="border-t border-[var(--border)] bg-white p-3">
+                    <ol className="space-y-0">
+                      {rule.steps.length > 0 ? (
+                        rule.steps.map((item, stepIndex) => {
+                          const assigneeText = describeWorkflowAssignee(item, users)
+                          const needsAssignment = assigneeText === 'Needs assignment'
+                          const stepTypeLabel =
+                            stepTypeOptions.find(
+                              (option) => option.value === item.stepType,
+                            )?.label ?? item.stepType
+                          const isLastStep = stepIndex === rule.steps.length - 1
 
-                      return (
-                        <li
-                          key={stepIndex}
-                          className="grid grid-cols-[24px_1fr] gap-2 text-sm"
-                        >
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white font-mono text-[10px] text-[var(--ink-3)]">
-                            {stepIndex + 1}
-                          </span>
-                          <span>
-                            <span className="block font-medium text-[var(--foreground)]">
-                              {item.stepName || 'Unnamed step'}
-                            </span>
-                            <span className="block text-xs leading-5 text-[var(--muted-foreground)]">
-                              {stepTypeLabel} -{' '}
-                              <span
-                                className={
-                                  needsAssignment
-                                    ? 'font-semibold text-[var(--destructive)]'
-                                    : ''
-                                }
-                              >
-                                {assigneeText}
-                              </span>
-                            </span>
-                          </span>
+                          return (
+                            <li
+                              key={stepIndex}
+                              className="grid grid-cols-[32px_1fr] gap-3"
+                            >
+                              <div className="flex flex-col items-center">
+                                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--primary)] bg-[var(--primary)] font-mono text-[10px] font-semibold text-white">
+                                  {stepIndex + 1}
+                                </span>
+                                {!isLastStep ? (
+                                  <span className="h-full min-h-8 w-px bg-[var(--border)]" />
+                                ) : null}
+                              </div>
+                              <div className={isLastStep ? '' : 'pb-4'}>
+                                <div className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3">
+                                  <div className="flex flex-wrap items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+                                        Step {stepIndex + 1}
+                                      </p>
+                                      <h4 className="mt-1 text-sm font-semibold text-[var(--foreground)]">
+                                        {item.stepName || 'Unnamed step'}
+                                      </h4>
+                                      <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
+                                        {stepTypeLabel} -{' '}
+                                        <span
+                                          className={
+                                            needsAssignment
+                                              ? 'font-semibold text-[var(--destructive)]'
+                                              : ''
+                                          }
+                                        >
+                                          {assigneeText}
+                                        </span>
+                                      </p>
+                                    </div>
+                                    <Badge
+                                      className={
+                                        item.canReject
+                                          ? 'bg-[var(--warning-soft)] text-[var(--warning)]'
+                                          : 'bg-[var(--success-soft)] text-[var(--success)]'
+                                      }
+                                    >
+                                      {item.canReject ? 'Can reject' : 'Approve only'}
+                                    </Badge>
+                                  </div>
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    {item.slaHours ? (
+                                      <span className="rounded-full border border-[var(--border)] bg-white px-2 py-1 font-mono text-[10px] text-[var(--ink-3)]">
+                                        SLA {item.slaHours}h
+                                      </span>
+                                    ) : null}
+                                    {item.requiresComment ? (
+                                      <span className="rounded-full border border-[var(--border)] bg-white px-2 py-1 font-mono text-[10px] text-[var(--ink-3)]">
+                                        Comment required
+                                      </span>
+                                    ) : null}
+                                    {item.requiresAttachment ? (
+                                      <span className="rounded-full border border-[var(--border)] bg-white px-2 py-1 font-mono text-[10px] text-[var(--ink-3)]">
+                                        Attachment required
+                                      </span>
+                                    ) : null}
+                                    {item.canReassign ? (
+                                      <span className="rounded-full border border-[var(--border)] bg-white px-2 py-1 font-mono text-[10px] text-[var(--ink-3)]">
+                                        Reassign allowed
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                          )
+                        })
+                      ) : (
+                        <li className="text-sm text-[var(--destructive)]">
+                          Add at least one approval-chain item for this rule.
                         </li>
-                      )
-                    })
-                  ) : (
-                    <li className="text-sm text-[var(--destructive)]">
-                      Add at least one approval-chain item for this rule.
-                    </li>
-                  )}
-                </ol>
+                      )}
+                    </ol>
+                  </div>
+                ) : null}
               </div>
             )
           })}
@@ -1296,7 +1485,15 @@ function WorkflowPreview({
   )
 }
 
-function Outcomes({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (draft: WorkflowDraft) => void }) {
+function Outcomes({
+  draft,
+  setDraft,
+}: {
+  draft: WorkflowDraft
+  setDraft: (draft: WorkflowDraft) => void
+}) {
+  const isExpenseWorkflow = draft.template.moduleName === 'expenses'
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Field label="Approved status">
@@ -1305,16 +1502,13 @@ function Outcomes({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (draft:
       <Field label="Rejected status">
         <FormInput value={String(draft.rejectedActionsJson.setStatus ?? '')} onChange={(event) => setDraft({ ...draft, rejectedActionsJson: { ...draft.rejectedActionsJson, setStatus: event.target.value } })} />
       </Field>
-      <FormCheckbox
-        label="Create payment request after expense approval"
-        checked={Boolean(draft.approvedActionsJson.createPaymentRequest)}
-        onChange={(event) => setDraft({ ...draft, approvedActionsJson: { ...draft.approvedActionsJson, createPaymentRequest: event.target.checked } })}
-      />
-      <FormCheckbox
-        label="Allow resubmission after rejection"
-        checked={Boolean(draft.rejectedActionsJson.allowResubmission)}
-        onChange={(event) => setDraft({ ...draft, rejectedActionsJson: { ...draft.rejectedActionsJson, allowResubmission: event.target.checked } })}
-      />
+      {isExpenseWorkflow ? (
+        <FormCheckbox
+          label="Create payment request after expense approval"
+          checked={Boolean(draft.approvedActionsJson.createPaymentRequest)}
+          onChange={(event) => setDraft({ ...draft, approvedActionsJson: { ...draft.approvedActionsJson, createPaymentRequest: event.target.checked } })}
+        />
+      ) : null}
     </div>
   )
 }

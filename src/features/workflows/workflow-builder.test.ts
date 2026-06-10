@@ -6,6 +6,7 @@ import {
   getConditionFieldExample,
   getWorkflowBuilderStepState,
   getWorkflowModule,
+  parseConditionValue,
   toWorkflowWizardPayload,
   workflowBuilderSteps,
 } from './workflow-builder-store'
@@ -234,5 +235,17 @@ describe('workflow builder payload', () => {
         setStatus: 'REJECTED',
       },
     })
+  })
+
+  it('parses range and list condition values for backend rule operators', () => {
+    expect(parseConditionValue('2000,5000', 'amount', 'between')).toEqual([
+      2000,
+      5000,
+    ])
+    expect(parseConditionValue('travel, meal', 'category', 'in')).toEqual([
+      'travel',
+      'meal',
+    ])
+    expect(parseConditionValue('10000', 'amount', 'lt')).toBe(10000)
   })
 })

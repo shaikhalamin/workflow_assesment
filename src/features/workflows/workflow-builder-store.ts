@@ -231,14 +231,29 @@ export function getDefaultConditionOperator(fieldKey: string): ConditionOperator
   return field?.type === 'number' ? 'gte' : 'eq'
 }
 
-export function parseConditionValue(value: string, fieldKey: string) {
+export function parseConditionValue(
+  value: string,
+  fieldKey: string,
+  operator?: ConditionOperator,
+) {
   const field = workflowModules
     .flatMap((module) => module.fields)
     .find((item) => item.key === fieldKey)
 
-  if (field?.type !== 'number') return value
-  const parsed = Number(value)
-  return Number.isNaN(parsed) ? value : parsed
+  if (operator === 'is_empty' || operator === 'is_not_empty') return undefined
+
+  const parseSingleValue = (item: string) => {
+    const trimmed = item.trim()
+    if (field?.type !== 'number') return trimmed
+    const parsed = Number(trimmed)
+    return Number.isNaN(parsed) ? trimmed : parsed
+  }
+
+  if (operator === 'between' || operator === 'in' || operator === 'not_in') {
+    return value.split(',').map(parseSingleValue)
+  }
+
+  return parseSingleValue(value)
 }
 
 export const roleOptions = [
