@@ -44,10 +44,17 @@ import { useWorkflowTemplateControllerFindOne } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerList } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerPublish } from '@/lib/api/gen'
 import { DataTable } from '@/components/data-table'
-import { FormField, FormShell } from '@/components/form'
+import {
+  FormCheckbox,
+  FormField,
+  FormInput,
+  FormSelect,
+  FormShell,
+  FormTextarea,
+} from '@/components/form'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input, Select, Textarea } from '@/components/ui/form-controls'
+import { Input, Textarea } from '@/components/ui/form-controls'
 import {
   createDefaultWorkflowDraft,
   getConditionFieldExample,
@@ -243,29 +250,49 @@ export function WorkflowBuilderPage() {
   })
 
   return (
-    <>
-      <PageHeader
-        title="Create workflow"
-        description="Seven-step workflow configuration from module event to final outcomes."
-      />
+    <FormShell
+      kicker="Workflow templates"
+      title="Create workflow"
+      description="Seven-step workflow configuration from module event to final outcomes."
+      actions={
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 font-mono text-[11px] text-[var(--ink-3)]">
+            Step {step} of 7
+          </span>
+        </div>
+      }
+      aside={
+        <SummaryCard
+          title="Template preview"
+          rows={[
+            { label: 'Name', value: draft.template.name || 'Untitled' },
+            { label: 'Module', value: draft.template.moduleName },
+            { label: 'Event', value: draft.template.eventName },
+            { label: 'Rules', value: draft.rules.length },
+            { label: 'Status', value: draft.template.status },
+          ]}
+        />
+      }
+    >
       <ErrorNotice error={createWizard.error} />
-      <div className="mb-5 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {[1, 2, 3, 4, 5, 6, 7].map((item) => (
           <button
             key={item}
             type="button"
-            className={`rounded-full px-3 py-1 text-sm ${
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium transition ${
               step === item
-                ? 'bg-[var(--primary)] text-white'
-                : 'bg-white text-[var(--muted-foreground)]'
+                ? 'border-[var(--foreground)] bg-[var(--foreground)] text-white'
+                : 'border-[var(--border)] bg-white text-[var(--ink-3)] hover:bg-[var(--surface-2)]'
             }`}
             onClick={() => setStep(item)}
           >
-            Step {item}
+            <span className="font-mono text-[10.5px]">{String(item).padStart(2, '0')}</span>
+            Step
           </button>
         ))}
       </div>
-      <div className="rounded-md border border-[var(--border)] bg-white p-5">
+      <div className="rounded-md border border-[var(--border)] bg-white p-4">
         {step === 1 ? <BasicInfo draft={draft} setDraft={setDraft} /> : null}
         {step === 2 ? <ModuleEvent draft={draft} setDraft={setDraft} /> : null}
         {step === 3 ? <TriggerConditions draft={draft} setDraft={setDraft} /> : null}
@@ -294,7 +321,7 @@ export function WorkflowBuilderPage() {
           )}
         </div>
       </div>
-    </>
+    </FormShell>
   )
 }
 
@@ -308,36 +335,33 @@ function BasicInfo({
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Field label="Workflow Name">
-        <Input value={draft.template.name} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, name: event.target.value } })} />
+        <FormInput value={draft.template.name} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, name: event.target.value } })} />
       </Field>
       <Field label="Status">
-        <Select value={draft.template.status} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, status: event.target.value as 'DRAFT' | 'PUBLISHED' } })}>
+        <FormSelect value={draft.template.status} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, status: event.target.value as 'DRAFT' | 'PUBLISHED' } })}>
           <option value="DRAFT">Draft</option>
           <option value="PUBLISHED">Published</option>
-        </Select>
+        </FormSelect>
       </Field>
       <Field label="Description">
-        <Textarea value={draft.template.description} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, description: event.target.value } })} />
+        <FormTextarea value={draft.template.description} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, description: event.target.value } })} />
       </Field>
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label="Priority">
-          <Input type="number" value={draft.template.priority} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, priority: Number(event.target.value) } })} />
+          <FormInput type="number" value={draft.template.priority} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, priority: Number(event.target.value) } })} />
         </Field>
         <Field label="Effective From">
-          <Input type="date" value={draft.template.effectiveFrom ?? ''} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, effectiveFrom: event.target.value } })} />
+          <FormInput type="date" value={draft.template.effectiveFrom ?? ''} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, effectiveFrom: event.target.value } })} />
         </Field>
         <Field label="Effective To">
-          <Input type="date" value={draft.template.effectiveTo ?? ''} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, effectiveTo: event.target.value } })} />
+          <FormInput type="date" value={draft.template.effectiveTo ?? ''} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, effectiveTo: event.target.value } })} />
         </Field>
       </div>
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={draft.template.allowResubmission}
-          onChange={(event) => setDraft({ ...draft, template: { ...draft.template, allowResubmission: event.target.checked } })}
-        />
-        Allow resubmission after rejection
-      </label>
+      <FormCheckbox
+        label="Allow resubmission after rejection"
+        checked={draft.template.allowResubmission}
+        onChange={(event) => setDraft({ ...draft, template: { ...draft.template, allowResubmission: event.target.checked } })}
+      />
     </div>
   )
 }
@@ -347,7 +371,7 @@ function ModuleEvent({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (dra
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Field label="Module">
-        <Select
+        <FormSelect
           value={selected.moduleName}
           onChange={(event) => {
             const module = getWorkflowModule(event.target.value) ?? workflowModules[0]
@@ -367,13 +391,13 @@ function ModuleEvent({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (dra
               {item.label}
             </option>
           ))}
-        </Select>
+        </FormSelect>
       </Field>
       <Field label="Module Event">
-        <Input value={selected.eventName} readOnly />
+        <FormInput value={selected.eventName} readOnly />
       </Field>
       <Field label="Entity Type">
-        <Input value={selected.entityType} readOnly />
+        <FormInput value={selected.entityType} readOnly />
       </Field>
       <div className="rounded-md bg-[var(--muted)] p-4 text-sm text-[var(--muted-foreground)]">
         {selected.description}
@@ -394,14 +418,14 @@ function TriggerConditions({ draft, setDraft }: { draft: WorkflowDraft; setDraft
   return (
     <div className="space-y-4">
       <Field label="Condition Mode">
-        <Select value={draft.triggerMode} onChange={(event) => setDraft({ ...draft, triggerMode: event.target.value as 'always' | 'conditions' })}>
+        <FormSelect value={draft.triggerMode} onChange={(event) => setDraft({ ...draft, triggerMode: event.target.value as 'always' | 'conditions' })}>
           <option value="always">Run Always</option>
           <option value="conditions">Run When Conditions Match</option>
-        </Select>
+        </FormSelect>
       </Field>
       <div className="grid gap-4 md:grid-cols-3">
         <Field label="Field">
-          <Select value={condition.field} onChange={(event) => {
+          <FormSelect value={condition.field} onChange={(event) => {
             const field = event.target.value
             setDraft({
               ...draft,
@@ -414,17 +438,17 @@ function TriggerConditions({ draft, setDraft }: { draft: WorkflowDraft; setDraft
             {fields.map((field) => (
               <option key={field.key} value={field.key}>{field.key}</option>
             ))}
-          </Select>
+          </FormSelect>
         </Field>
         <Field label="Operator">
-          <Select value={condition.operator} onChange={(event) => setDraft({ ...draft, triggerConditions: { mode: 'all', conditions: [{ ...condition, operator: event.target.value as typeof condition.operator }] } })}>
+          <FormSelect value={condition.operator} onChange={(event) => setDraft({ ...draft, triggerConditions: { mode: 'all', conditions: [{ ...condition, operator: event.target.value as typeof condition.operator }] } })}>
             {['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between', 'in', 'not_in', 'contains', 'is_empty', 'is_not_empty'].map((operator) => (
               <option key={operator} value={operator}>{operator}</option>
             ))}
-          </Select>
+          </FormSelect>
         </Field>
         <Field label="Value">
-          <Input
+          <FormInput
             placeholder={String(fieldExample.value)}
             value={String(condition.value ?? '')}
             onChange={(event) =>
@@ -473,13 +497,13 @@ function ApprovalRules({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
             return (
           <div className="grid gap-4 md:grid-cols-4">
             <Field label="Rule Name">
-              <Input value={rule.name} onChange={(event) => updateRule(index, { ...rule, name: event.target.value })} />
+              <FormInput value={rule.name} onChange={(event) => updateRule(index, { ...rule, name: event.target.value })} />
             </Field>
             <Field label="Priority">
-              <Input type="number" value={rule.priority} onChange={(event) => updateRule(index, { ...rule, priority: Number(event.target.value) })} />
+              <FormInput type="number" value={rule.priority} onChange={(event) => updateRule(index, { ...rule, priority: Number(event.target.value) })} />
             </Field>
             <Field label="Condition Field">
-              <Select
+              <FormSelect
                 value={condition.field}
                 onChange={(event) => {
                   const field = event.target.value
@@ -503,10 +527,10 @@ function ApprovalRules({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
                 {fields.map((field) => (
                   <option key={field.key} value={field.key}>{field.key}</option>
                 ))}
-              </Select>
+              </FormSelect>
             </Field>
             <Field label="Condition Value">
-              <Input
+              <FormInput
                 placeholder={String(fieldExample.value)}
                 value={String(condition.value ?? '')}
                 onChange={(event) =>
@@ -532,10 +556,13 @@ function ApprovalRules({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
           </div>
             )
           })()}
-          <label className="mt-3 flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={rule.isFallback} onChange={(event) => updateRule(index, { ...rule, isFallback: event.target.checked })} />
-            Fallback rule
-          </label>
+          <div className="mt-3">
+            <FormCheckbox
+              label="Fallback rule"
+              checked={rule.isFallback}
+              onChange={(event) => updateRule(index, { ...rule, isFallback: event.target.checked })}
+            />
+          </div>
         </div>
       ))}
       <Button
@@ -587,34 +614,34 @@ function ApprovalSteps({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
           <div className="space-y-3">
             {rule.steps.map((step, stepIndex) => (
               <div key={stepIndex} className="grid gap-3 rounded-md bg-[var(--muted)] p-3 md:grid-cols-5">
-                <Input value={step.stepName} onChange={(event) => {
+                <FormInput value={step.stepName} onChange={(event) => {
                   const steps = [...rule.steps]
                   steps[stepIndex] = { ...step, stepName: event.target.value }
                   updateRule(ruleIndex, { ...rule, steps })
                 }} />
-                <Select value={step.stepType} onChange={(event) => {
+                <FormSelect value={step.stepType} onChange={(event) => {
                   const steps = [...rule.steps]
                   steps[stepIndex] = { ...step, stepType: event.target.value as typeof step.stepType }
                   updateRule(ruleIndex, { ...rule, steps })
                 }}>
                   {['REVIEW', 'APPROVAL', 'FINANCE_CHECK', 'HR_CHECK', 'MANAGEMENT_APPROVAL', 'FINAL_VERIFICATION'].map((type) => <option key={type} value={type}>{type}</option>)}
-                </Select>
-                <Select value={step.assigneeType} onChange={(event) => {
+                </FormSelect>
+                <FormSelect value={step.assigneeType} onChange={(event) => {
                   const steps = [...rule.steps]
                   steps[stepIndex] = { ...step, assigneeType: event.target.value as typeof step.assigneeType }
                   updateRule(ruleIndex, { ...rule, steps })
                 }}>
                   {['ROLE', 'USER', 'REQUESTER_MANAGER', 'DEPARTMENT_HEAD', 'CUSTOM_FIELD_USER'].map((type) => <option key={type} value={type}>{type}</option>)}
-                </Select>
-                <Select value={step.assigneeRoleSlug ?? ''} onChange={(event) => {
+                </FormSelect>
+                <FormSelect value={step.assigneeRoleSlug ?? ''} onChange={(event) => {
                   const steps = [...rule.steps]
                   steps[stepIndex] = { ...step, assigneeRoleSlug: event.target.value }
                   updateRule(ruleIndex, { ...rule, steps })
                 }}>
                   <option value="">Resolver/default</option>
                   {roleOptions.map((role) => <option key={role} value={role}>{role}</option>)}
-                </Select>
-                <Input type="number" value={step.slaHours ?? ''} onChange={(event) => {
+                </FormSelect>
+                <FormInput type="number" value={step.slaHours ?? ''} onChange={(event) => {
                   const steps = [...rule.steps]
                   steps[stepIndex] = { ...step, slaHours: Number(event.target.value) || undefined }
                   updateRule(ruleIndex, { ...rule, steps })
@@ -661,19 +688,21 @@ function Outcomes({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (draft:
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Field label="Approved status">
-        <Input value={String(draft.approvedActionsJson.setStatus ?? '')} onChange={(event) => setDraft({ ...draft, approvedActionsJson: { ...draft.approvedActionsJson, setStatus: event.target.value } })} />
+        <FormInput value={String(draft.approvedActionsJson.setStatus ?? '')} onChange={(event) => setDraft({ ...draft, approvedActionsJson: { ...draft.approvedActionsJson, setStatus: event.target.value } })} />
       </Field>
       <Field label="Rejected status">
-        <Input value={String(draft.rejectedActionsJson.setStatus ?? '')} onChange={(event) => setDraft({ ...draft, rejectedActionsJson: { ...draft.rejectedActionsJson, setStatus: event.target.value } })} />
+        <FormInput value={String(draft.rejectedActionsJson.setStatus ?? '')} onChange={(event) => setDraft({ ...draft, rejectedActionsJson: { ...draft.rejectedActionsJson, setStatus: event.target.value } })} />
       </Field>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={Boolean(draft.approvedActionsJson.createPaymentRequest)} onChange={(event) => setDraft({ ...draft, approvedActionsJson: { ...draft.approvedActionsJson, createPaymentRequest: event.target.checked } })} />
-        Create payment request after expense approval
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" checked={Boolean(draft.rejectedActionsJson.allowResubmission)} onChange={(event) => setDraft({ ...draft, rejectedActionsJson: { ...draft.rejectedActionsJson, allowResubmission: event.target.checked } })} />
-        Allow resubmission after rejection
-      </label>
+      <FormCheckbox
+        label="Create payment request after expense approval"
+        checked={Boolean(draft.approvedActionsJson.createPaymentRequest)}
+        onChange={(event) => setDraft({ ...draft, approvedActionsJson: { ...draft.approvedActionsJson, createPaymentRequest: event.target.checked } })}
+      />
+      <FormCheckbox
+        label="Allow resubmission after rejection"
+        checked={Boolean(draft.rejectedActionsJson.allowResubmission)}
+        onChange={(event) => setDraft({ ...draft, rejectedActionsJson: { ...draft.rejectedActionsJson, allowResubmission: event.target.checked } })}
+      />
     </div>
   )
 }
