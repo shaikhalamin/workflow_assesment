@@ -6,6 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 import { WorkflowActionType } from '../enums/workflow-runtime.enums';
 import { WorkflowInstance } from './workflow-instance.entity';
 import { WorkflowStep } from './workflow-step.entity';
@@ -39,6 +40,10 @@ export class WorkflowAction {
 
   @Column({ type: 'uuid', nullable: true })
   actorUserId!: string | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'actorUserId' })
+  actorUser!: User | null;
 
   @Column({ type: 'text', nullable: true })
   comment!: string | null;

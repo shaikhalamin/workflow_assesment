@@ -9,6 +9,17 @@ import {
   WorkflowStepStatus,
 } from '../enums/workflow-runtime.enums';
 
+export class WorkflowUserResponseDto {
+  @ApiProperty({ example: '71cb34da-1809-4c72-b132-2b9860be8936' })
+  id!: string;
+
+  @ApiProperty({ example: 'Finance Approver' })
+  name!: string;
+
+  @ApiProperty({ example: 'finance@example.com' })
+  email!: string;
+}
+
 export class WorkflowActionResponseDto {
   @ApiProperty({ example: '512f52a0-08df-4ba7-b108-4e46f06a057b' })
   id!: string;
@@ -33,6 +44,9 @@ export class WorkflowActionResponseDto {
     nullable: true,
   })
   actorUserId!: string | null;
+
+  @ApiProperty({ type: WorkflowUserResponseDto, nullable: true })
+  actorUser!: WorkflowUserResponseDto | null;
 
   @ApiProperty({
     example: 'Approved after checking documents',
@@ -75,6 +89,9 @@ export class WorkflowStepResponseDto {
   })
   assignedUserId!: string | null;
 
+  @ApiProperty({ type: WorkflowUserResponseDto, nullable: true })
+  assignedUser!: WorkflowUserResponseDto | null;
+
   @ApiProperty({ example: 'accounts', nullable: true })
   assignedRoleSlug!: string | null;
 
@@ -98,6 +115,9 @@ export class WorkflowStepResponseDto {
     nullable: true,
   })
   actionByUserId!: string | null;
+
+  @ApiProperty({ type: WorkflowUserResponseDto, nullable: true })
+  actionByUser!: WorkflowUserResponseDto | null;
 
   @ApiProperty({
     example: 'Approved after checking documents',

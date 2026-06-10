@@ -80,4 +80,17 @@ describe('AuthService', () => {
     expect(payload.roles).toBeUndefined();
     expect(payload.permissions).toBeUndefined();
   });
+
+  it('does not set a cookie domain for localhost sessions', () => {
+    const service = new AuthService(
+      {
+        findByEmailWithAccess: jest.fn(),
+      } as unknown as UsersService,
+      buildRefreshSessionRepository(),
+      jwtService,
+      { domain: 'localhost' },
+    );
+
+    expect(service.buildCookieOptions(1000).domain).toBeUndefined();
+  });
 });

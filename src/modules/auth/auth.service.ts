@@ -47,6 +47,7 @@ const REFRESH_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 const ACCESS_TOKEN_COOKIE_MAX_AGE_MS = ACCESS_TOKEN_TTL_SECONDS * 1000;
 const REFRESH_TOKEN_COOKIE_MAX_AGE_MS = REFRESH_TOKEN_TTL_SECONDS * 1000;
 const COOKIES_CONFIG_TOKEN = 'CONFIGURATION(cookies)';
+const LOCAL_COOKIE_DOMAINS = new Set(['localhost', '127.0.0.1']);
 
 @Injectable()
 export class AuthService {
@@ -124,11 +125,15 @@ export class AuthService {
   }
 
   buildCookieOptions(maxAgeMs: number): CookieOptions {
+    const domain = LOCAL_COOKIE_DOMAINS.has(this.cookieConfig.domain)
+      ? undefined
+      : this.cookieConfig.domain;
+
     return {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
-      domain: this.cookieConfig.domain,
+      domain,
       path: '/',
       maxAge: maxAgeMs,
     };

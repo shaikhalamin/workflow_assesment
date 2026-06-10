@@ -18,6 +18,12 @@ import { WorkflowTemplateStatus } from '../workflow-builder/enums/workflow-build
 import { AssigneeResolverService } from './assignee-resolver.service';
 import { TriggerWorkflowDto } from './dto/trigger-workflow.dto';
 import { WorkflowActionDto } from './dto/workflow-action.dto';
+import {
+  WorkflowActionResponseDto,
+  WorkflowInstanceResponseDto,
+  WorkflowStepResponseDto,
+  WorkflowUserResponseDto,
+} from './dto/workflow-runtime-response.dto';
 import { WorkflowAction } from './entities/workflow-action.entity';
 import { WorkflowInstance } from './entities/workflow-instance.entity';
 import { WorkflowStep } from './entities/workflow-step.entity';
@@ -146,13 +152,20 @@ export class WorkflowRuntimeService {
     });
   }
 
-  async findOne(id: string): Promise<WorkflowInstance> {
+  async findOne(id: string): Promise<WorkflowInstanceResponseDto> {
     const instance = await this.instancesRepository.findOne({
       where: { id },
-      relations: { steps: true, actions: true },
+      relations: {
+        actions: { actorUser: true },
+        steps: {
+          actionByUser: true,
+          actions: { actorUser: true },
+          assignedUser: true,
+        },
+      },
     });
     if (!instance) throw new NotFoundException('Workflow instance not found');
-    return instance;
+    return this.toInstanceResponse(instance);
   }
 
   async myPending(actor: Express.User) {
@@ -459,5 +472,89 @@ export class WorkflowRuntimeService {
       assignedRoleSlug: step.assignedRoleSlug,
       status: step.status,
     };
+  }
+
+  private toInstanceResponse(
+    instance: WorkflowInstance,
+  ): WorkflowInstanceResponseDto {
+    return {
+      id: instance.id,
+      workflowTemplateId: instance.workflowTemplateId,
+      workflowApprovalRuleId: instance.workflowApprovalRuleId,
+      moduleName: instance.moduleName,
+      eventName: instance.eventName,
+      entityType: instance.entityType,
+      entityId: instance.entityId,
+      requesterId: instance.requesterId,
+      departmentId: instance.departmentId,
+      status: instance.status,
+      metadataJson: instance.metadataJson,
+      startedAt: this.toIsoStringOrNull(instance.startedAt),
+      completedAt: this.toIsoStringOrNull(instance.completedAt),
+      rejectedAt: this.toIsoStringOrNull(instance.rejectedAt),
+      steps: (instance.steps ?? []).map((step) => this.toStepResponse(step)),
+      actions: (instance.actions ?? []).map((action) =>
+        this.toActionResponse(action),
+      ),
+      createdAt: instance.createdAt.toISOString(),
+      updatedAt: instance.updatedAt.toISOString(),
+    };
+  }
+
+  private toStepResponse(step: WorkflowStep): WorkflowStepResponseDto {
+    return {
+      id: step.id,
+      workflowInstanceId: step.workflowInstanceId,
+      stepOrder: step.stepOrder,
+      stepName: step.stepName,
+      stepType: step.stepType,
+      assignedUserId: step.assignedUserId,
+      assignedUser: this.toWorkflowUserResponse(step.assignedUser),
+      assignedRoleSlug: step.assignedRoleSlug,
+      assigneeType: step.assigneeType,
+      status: step.status,
+      activatedAt: this.toIsoStringOrNull(step.activatedAt),
+      actedAt: this.toIsoStringOrNull(step.actedAt),
+      actionByUserId: step.actionByUserId,
+      actionByUser: this.toWorkflowUserResponse(step.actionByUser),
+      comment: step.comment,
+      rejectionReason: step.rejectionReason,
+      actions: (step.actions ?? []).map((action) =>
+        this.toActionResponse(action),
+      ),
+      createdAt: step.createdAt.toISOString(),
+      updatedAt: step.updatedAt.toISOString(),
+    };
+  }
+
+  private toActionResponse(action: WorkflowAction): WorkflowActionResponseDto {
+    return {
+      id: action.id,
+      workflowInstanceId: action.workflowInstanceId,
+      workflowStepId: action.workflowStepId,
+      action: action.action,
+      actorUserId: action.actorUserId,
+      actorUser: this.toWorkflowUserResponse(action.actorUser),
+      comment: action.comment,
+      reason: action.reason,
+      metadataJson: action.metadataJson,
+      createdAt: action.createdAt.toISOString(),
+    };
+  }
+
+  private toWorkflowUserResponse(
+    user: { id: string; name: string; email: string } | null | undefined,
+  ): WorkflowUserResponseDto | null {
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
+  }
+
+  private toIsoStringOrNull(value: Date | null): string | null {
+    return value ? value.toISOString() : null;
   }
 }

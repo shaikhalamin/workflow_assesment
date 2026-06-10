@@ -422,8 +422,10 @@ export class SeedService implements OnApplicationBootstrap {
     await this.seedDepartments();
     await this.seedRolesAndPermissions();
     await this.seedUsers();
-    await this.seedWorkflowDefinitions();
-    await this.seedDemoRecords();
+    // Workflow definition seeds are paused until we need them again.
+    // await this.seedWorkflowDefinitions();
+    // Demo transaction seeds are paused so development starts from scratch.
+    // await this.seedDemoRecords();
   }
 
   private async seedDepartments(): Promise<Map<string, Department>> {

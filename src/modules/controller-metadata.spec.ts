@@ -15,6 +15,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { ExpensesModule } from './expenses/expenses.module';
 import { ExpensesController } from './expenses/expenses.controller';
+import { CreateExpenseDto } from './expenses/dto/create-expense.dto';
 import { LeavesModule } from './leaves/leaves.module';
 import { LeavesController } from './leaves/leaves.controller';
 import { PaymentsModule } from './payments/payments.module';
@@ -44,6 +45,7 @@ interface SwaggerPropertyMetadata {
   example?: unknown;
   default?: unknown;
   enum?: unknown;
+  type?: unknown;
 }
 
 interface SwaggerResponseMetadata {
@@ -204,5 +206,30 @@ describe('module controller metadata', () => {
     );
 
     expect(missingExamples).toEqual([]);
+  });
+
+  it('documents expense create primitive fields with concrete Swagger types for generated clients', () => {
+    const expectedTypes = new Map<string, unknown>([
+      ['description', String],
+      ['vendor', String],
+      ['itemValue', Number],
+      ['price', Number],
+      ['quantity', Number],
+      ['departmentId', String],
+    ]);
+
+    const incorrectlyTypedFields = [...expectedTypes].filter(
+      ([field, type]) => {
+        const propertyMetadata = typedMetadata<SwaggerPropertyMetadata>(
+          SWAGGER_MODEL_PROPERTIES_METADATA,
+          prototypeOf(CreateExpenseDto),
+          field,
+        );
+
+        return propertyMetadata?.type !== type;
+      },
+    );
+
+    expect(incorrectlyTypedFields).toEqual([]);
   });
 });

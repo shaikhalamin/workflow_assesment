@@ -12,6 +12,7 @@ import {
   WorkflowAssigneeType,
   WorkflowStepType,
 } from '../../workflow-builder/enums/workflow-builder.enums';
+import { User } from '../../users/entities/user.entity';
 import { WorkflowStepStatus } from '../enums/workflow-runtime.enums';
 import { WorkflowAction } from './workflow-action.entity';
 import { WorkflowInstance } from './workflow-instance.entity';
@@ -42,6 +43,10 @@ export class WorkflowStep {
   @Column({ type: 'uuid', nullable: true })
   assignedUserId!: string | null;
 
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'assignedUserId' })
+  assignedUser!: User | null;
+
   @Column({ type: 'varchar', nullable: true })
   assignedRoleSlug!: string | null;
 
@@ -63,6 +68,10 @@ export class WorkflowStep {
 
   @Column({ type: 'uuid', nullable: true })
   actionByUserId!: string | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'actionByUserId' })
+  actionByUser!: User | null;
 
   @Column({ type: 'text', nullable: true })
   comment!: string | null;

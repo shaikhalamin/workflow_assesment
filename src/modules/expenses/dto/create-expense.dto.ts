@@ -13,7 +13,10 @@ export class CreateExpenseDto {
   @IsString()
   title!: string;
 
-  @ApiPropertyOptional({ example: 'Replacement charger for office laptop' })
+  @ApiPropertyOptional({
+    type: String,
+    example: 'Replacement charger for office laptop',
+  })
   @IsOptional()
   @IsString()
   description?: string | null;
@@ -32,27 +35,28 @@ export class CreateExpenseDto {
   @IsString()
   category!: string;
 
-  @ApiPropertyOptional({ example: 'Star Tech' })
+  @ApiPropertyOptional({ type: String, example: 'Star Tech' })
   @IsOptional()
   @IsString()
   vendor?: string | null;
 
-  @ApiPropertyOptional({ example: 4500 })
+  @ApiPropertyOptional({ type: Number, example: 4500 })
   @IsOptional()
   @IsNumber()
   itemValue?: number | null;
 
-  @ApiPropertyOptional({ example: 4500 })
+  @ApiPropertyOptional({ type: Number, example: 4500 })
   @IsOptional()
   @IsNumber()
   price?: number | null;
 
-  @ApiPropertyOptional({ example: 1 })
+  @ApiPropertyOptional({ type: Number, example: 1 })
   @IsOptional()
   @IsNumber()
   quantity?: number | null;
 
   @ApiPropertyOptional({
+    type: String,
     example: '61f1d2de-5733-4830-a97c-cb1899482850',
   })
   @IsOptional()
