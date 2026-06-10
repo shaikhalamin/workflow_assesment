@@ -44,9 +44,10 @@ import { useWorkflowTemplateControllerFindOne } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerList } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerPublish } from '@/lib/api/gen'
 import { DataTable } from '@/components/data-table'
+import { FormField, FormShell } from '@/components/form'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input, Label, Select, Textarea } from '@/components/ui/form-controls'
+import { Input, Select, Textarea } from '@/components/ui/form-controls'
 import {
   createDefaultWorkflowDraft,
   getConditionFieldExample,
@@ -685,12 +686,19 @@ function ReviewWorkflow({ draft }: { draft: WorkflowDraft }) {
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+  description,
+}: {
+  label: string
+  children: React.ReactNode
+  description?: string
+}) {
   return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
+    <FormField label={label} description={description}>
       {children}
-    </div>
+    </FormField>
   )
 }
 
@@ -822,7 +830,13 @@ export function ExpenseCreatePage() {
   const createExpense = useExpensesControllerCreate({ mutation: { onSuccess: async () => navigate({ to: '/expenses' }) } })
   const [form, setForm] = useState({ title: '', amount: 0, category: '', description: '', currency: 'BDT', vendor: '' })
   return (
-    <CreatePanel title="New expense" error={createExpense.error} onSubmit={() => createExpense.mutate({ data: { ...form, vendor: form.vendor || undefined } as never })}>
+    <CreatePanel
+      title="New expense"
+      kicker="Expense request"
+      description="Capture request details before submitting for approval."
+      error={createExpense.error}
+      onSubmit={() => createExpense.mutate({ data: { ...form, vendor: form.vendor || undefined } as never })}
+    >
       <Input placeholder="Title" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
       <Input type="number" placeholder="Amount" value={form.amount} onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })} />
       <Input placeholder="Category" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} />
@@ -865,7 +879,13 @@ export function LeaveCreatePage() {
   const createLeave = useLeavesControllerCreate({ mutation: { onSuccess: async () => navigate({ to: '/leaves' }) } })
   const [form, setForm] = useState({ leaveType: 'ANNUAL', leaveDays: 1, startDate: '', endDate: '', reason: '' })
   return (
-    <CreatePanel title="New leave" error={createLeave.error} onSubmit={() => createLeave.mutate({ data: form as never })}>
+    <CreatePanel
+      title="New leave"
+      kicker="Leave request"
+      description="Capture leave details before sending through workflow."
+      error={createLeave.error}
+      onSubmit={() => createLeave.mutate({ data: form as never })}
+    >
       <Input placeholder="Leave type" value={form.leaveType} onChange={(event) => setForm({ ...form, leaveType: event.target.value })} />
       <Input type="number" placeholder="Leave days" value={form.leaveDays} onChange={(event) => setForm({ ...form, leaveDays: Number(event.target.value) })} />
       <Input type="date" value={form.startDate} onChange={(event) => setForm({ ...form, startDate: event.target.value })} />
@@ -980,32 +1000,75 @@ function ObjectPanel({ value }: { value: Row }) {
   )
 }
 
-function CreatePanel({
+export function SummaryCard({
   title,
-  children,
-  error,
-  onSubmit,
+  rows,
 }: {
   title: string
-  children: React.ReactNode
-  error: unknown
-  onSubmit: () => void
+  rows: Array<{ label: string; value: React.ReactNode }>
 }) {
   return (
-    <>
-      <PageHeader title={title} />
+    <div className="rounded-md border border-[var(--border)] bg-white p-4">
+      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--ink-3)]">
+        {title}
+      </p>
+      <div className="mt-3 space-y-2">
+        {rows.map((row) => (
+          <div key={row.label} className="flex items-start justify-between gap-3 text-sm">
+            <span className="text-[var(--muted-foreground)]">{row.label}</span>
+            <span className="text-right font-medium text-[var(--foreground)]">
+              {row.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CreatePanel({
+  title,
+  kicker,
+  description,
+  children,
+  aside,
+  error,
+  onSubmit,
+  submitLabel = 'Save',
+}: {
+  title: string
+  kicker: string
+  description: string
+  children: React.ReactNode
+  aside?: React.ReactNode
+  error: unknown
+  onSubmit: () => void
+  submitLabel?: string
+}) {
+  return (
+    <FormShell
+      kicker={kicker}
+      title={title}
+      description={description}
+      aside={aside}
+    >
       <ErrorNotice error={error} />
       <form
-        className="grid max-w-2xl gap-4 rounded-md border border-[var(--border)] bg-white p-5"
+        className="space-y-6"
         onSubmit={(event) => {
           event.preventDefault()
           onSubmit()
         }}
       >
         {children}
-        <Button type="submit">Save</Button>
+        <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="font-mono text-[11px] text-[var(--ink-3)]">
+            API payload and navigation stay unchanged.
+          </p>
+          <Button type="submit">{submitLabel}</Button>
+        </div>
       </form>
-    </>
+    </FormShell>
   )
 }
 
