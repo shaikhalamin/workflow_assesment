@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "properties": {
+    "moduleName": { "type": "string", "example": "expenses" },
+    "eventName": { "type": "string", "example": "expense.submitted" },
+    "entityType": { "type": "string", "example": "Expense" },
+    "fieldSchemaJson": {
+      "type": "object",
+      "example": {
+        "fields": [
+          {
+            "key": "amount",
+            "type": "number",
+            "operators": ["gt", "gte", "lt", "lte"]
+          }
+        ]
+      }
+    },
+    "outcomeActionsJson": {
+      "type": "object",
+      "example": { "approved": [{ "type": "set_status", "value": "APPROVED" }] }
+    },
+    "assigneeResolversJson": {
+      "type": "object",
+      "example": { "departmentHead": { "type": "DEPARTMENT_HEAD" } }
+    },
+    "isActive": { "type": "boolean", "default": true }
+  },
+  "x-readme-ref-name": "UpdateWorkflowEventSchemaDto"
+}

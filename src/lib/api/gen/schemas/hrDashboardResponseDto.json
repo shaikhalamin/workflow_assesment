@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "properties": {
+    "leaveTasks": { "type": "number", "example": 7 },
+    "leaveCounts": {
+      "type": "object",
+      "properties": {
+        "approved": { "type": "number", "example": 18 },
+        "rejected": { "type": "number", "example": 2 }
+      },
+      "required": ["approved", "rejected"],
+      "x-readme-ref-name": "HrLeaveCountsDto"
+    }
+  },
+  "required": ["leaveTasks", "leaveCounts"],
+  "x-readme-ref-name": "HrDashboardResponseDto"
+}

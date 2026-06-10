@@ -1,0 +1,155 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "43de63c7-c1e9-4527-aa1b-31d2d9030c93"
+    },
+    "workflowTemplateId": {
+      "type": "string",
+      "example": "24fa2355-a172-4910-9314-032b967f54ba"
+    },
+    "name": { "type": "string", "example": "High value expense" },
+    "priority": { "type": "number", "example": 10 },
+    "conditionJson": {
+      "type": "object",
+      "example": {
+        "mode": "all",
+        "conditions": [{ "field": "amount", "operator": "gte", "value": 50000 }]
+      },
+      "nullable": true
+    },
+    "isFallback": { "type": "boolean", "example": false },
+    "isActive": { "type": "boolean", "example": true },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "91332a94-53d5-41e3-a69d-b767e8881658"
+          },
+          "workflowApprovalRuleId": {
+            "type": "string",
+            "example": "43de63c7-c1e9-4527-aa1b-31d2d9030c93"
+          },
+          "stepOrder": { "type": "number", "example": 1 },
+          "stepName": { "type": "string", "example": "Finance review" },
+          "stepType": {
+            "type": "string",
+            "enum": [
+              "REVIEW",
+              "APPROVAL",
+              "FINANCE_CHECK",
+              "HR_CHECK",
+              "MANAGEMENT_APPROVAL",
+              "FINAL_VERIFICATION"
+            ],
+            "example": "FINANCE_CHECK"
+          },
+          "assigneeType": {
+            "type": "string",
+            "enum": [
+              "ROLE",
+              "USER",
+              "REQUESTER_MANAGER",
+              "DEPARTMENT_HEAD",
+              "CUSTOM_FIELD_USER"
+            ],
+            "example": "ROLE"
+          },
+          "assigneeRoleSlug": {
+            "type": "object",
+            "example": "accounts",
+            "nullable": true
+          },
+          "assigneeUserId": {
+            "type": "object",
+            "example": "71cb34da-1809-4c72-b132-2b9860be8936",
+            "nullable": true
+          },
+          "assigneeFieldPath": {
+            "type": "object",
+            "example": "customFields.budgetOwnerId",
+            "nullable": true
+          },
+          "isRequired": { "type": "boolean", "example": true },
+          "requiresComment": { "type": "boolean", "example": false },
+          "requiresAttachment": { "type": "boolean", "example": false },
+          "canReject": { "type": "boolean", "example": true },
+          "canReassign": { "type": "boolean", "example": false },
+          "slaHours": { "type": "object", "example": 24, "nullable": true },
+          "escalationAssigneeType": {
+            "type": "string",
+            "enum": [
+              "ROLE",
+              "USER",
+              "REQUESTER_MANAGER",
+              "DEPARTMENT_HEAD",
+              "CUSTOM_FIELD_USER"
+            ],
+            "example": "DEPARTMENT_HEAD",
+            "nullable": true
+          },
+          "escalationAssigneeRoleSlug": {
+            "type": "object",
+            "example": "department-head",
+            "nullable": true
+          },
+          "escalationAssigneeUserId": {
+            "type": "object",
+            "example": "71cb34da-1809-4c72-b132-2b9860be8936",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-10T09:30:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-06-10T10:15:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "workflowApprovalRuleId",
+          "stepOrder",
+          "stepName",
+          "stepType",
+          "assigneeType",
+          "assigneeRoleSlug",
+          "assigneeUserId",
+          "assigneeFieldPath",
+          "isRequired",
+          "requiresComment",
+          "requiresAttachment",
+          "canReject",
+          "canReassign",
+          "slaHours",
+          "escalationAssigneeType",
+          "escalationAssigneeRoleSlug",
+          "escalationAssigneeUserId",
+          "createdAt",
+          "updatedAt"
+        ],
+        "x-readme-ref-name": "WorkflowApprovalStepConfigResponseDto"
+      }
+    },
+    "createdAt": { "type": "string", "example": "2026-06-10T09:30:00.000Z" },
+    "updatedAt": { "type": "string", "example": "2026-06-10T10:15:00.000Z" }
+  },
+  "required": [
+    "id",
+    "workflowTemplateId",
+    "name",
+    "priority",
+    "conditionJson",
+    "isFallback",
+    "isActive",
+    "steps",
+    "createdAt",
+    "updatedAt"
+  ],
+  "x-readme-ref-name": "WorkflowApprovalRuleResponseDto"
+}

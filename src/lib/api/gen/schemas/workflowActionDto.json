@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "properties": {
+    "comment": {
+      "type": "string",
+      "example": "Approved after checking documents"
+    },
+    "reason": { "type": "string", "example": "Budget verified" },
+    "metadata": {
+      "type": "object",
+      "example": { "reviewedBy": "finance-admin" }
+    }
+  },
+  "x-readme-ref-name": "WorkflowActionDto"
+}

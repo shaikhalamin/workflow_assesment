@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "properties": {
+    "expenses": {
+      "type": "object",
+      "properties": {
+        "draft": { "type": "number", "example": 3 },
+        "underReview": { "type": "number", "example": 2 }
+      },
+      "required": ["draft", "underReview"],
+      "x-readme-ref-name": "EmployeeExpenseSummaryDto"
+    },
+    "leaves": {
+      "type": "object",
+      "properties": {
+        "approved": { "type": "number", "example": 4 },
+        "underReview": { "type": "number", "example": 1 }
+      },
+      "required": ["approved", "underReview"],
+      "x-readme-ref-name": "EmployeeLeaveSummaryDto"
+    },
+    "recentItems": {
+      "example": [],
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["expenses", "leaves", "recentItems"],
+  "x-readme-ref-name": "EmployeeDashboardResponseDto"
+}

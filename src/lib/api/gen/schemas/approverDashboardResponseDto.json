@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "properties": {
+    "pendingTasks": { "type": "number", "example": 5 },
+    "actedTasks": { "type": "number", "example": 21 },
+    "overdueTasks": { "type": "number", "example": 0 },
+    "averageApprovalTimeHours": { "type": "number", "example": 4 }
+  },
+  "required": [
+    "pendingTasks",
+    "actedTasks",
+    "overdueTasks",
+    "averageApprovalTimeHours"
+  ],
+  "x-readme-ref-name": "ApproverDashboardResponseDto"
+}

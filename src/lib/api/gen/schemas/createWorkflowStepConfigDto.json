@@ -1,0 +1,63 @@
+{
+  "type": "object",
+  "properties": {
+    "stepOrder": { "type": "number", "minimum": 1, "example": 1 },
+    "stepName": { "type": "string", "example": "Finance review" },
+    "stepType": {
+      "type": "string",
+      "enum": [
+        "REVIEW",
+        "APPROVAL",
+        "FINANCE_CHECK",
+        "HR_CHECK",
+        "MANAGEMENT_APPROVAL",
+        "FINAL_VERIFICATION"
+      ]
+    },
+    "assigneeType": {
+      "type": "string",
+      "enum": [
+        "ROLE",
+        "USER",
+        "REQUESTER_MANAGER",
+        "DEPARTMENT_HEAD",
+        "CUSTOM_FIELD_USER"
+      ]
+    },
+    "assigneeRoleSlug": { "type": "object", "example": "finance-admin" },
+    "assigneeUserId": {
+      "type": "object",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+    },
+    "assigneeFieldPath": {
+      "type": "object",
+      "example": "customFields.budgetOwnerId"
+    },
+    "isRequired": { "type": "boolean", "default": true },
+    "requiresComment": { "type": "boolean", "default": false },
+    "requiresAttachment": { "type": "boolean", "default": false },
+    "canReject": { "type": "boolean", "default": true },
+    "canReassign": { "type": "boolean", "default": false },
+    "slaHours": { "type": "object", "minimum": 1, "example": 24 },
+    "escalationAssigneeType": {
+      "type": "string",
+      "enum": [
+        "ROLE",
+        "USER",
+        "REQUESTER_MANAGER",
+        "DEPARTMENT_HEAD",
+        "CUSTOM_FIELD_USER"
+      ]
+    },
+    "escalationAssigneeRoleSlug": {
+      "type": "object",
+      "example": "department-head"
+    },
+    "escalationAssigneeUserId": {
+      "type": "object",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+    }
+  },
+  "required": ["stepOrder", "stepName", "stepType", "assigneeType"],
+  "x-readme-ref-name": "CreateWorkflowStepConfigDto"
+}

@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "2b26f21a-2451-42ec-8f44-25c0f40b3a9b"
+    },
+    "name": { "type": "string", "example": "Demo Employee" },
+    "email": { "type": "string", "example": "employee@fiberathome.net" },
+    "roles": {
+      "example": ["employee"],
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "permissions": {
+      "example": ["expenses.read", "expenses.write"],
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["id", "name", "email", "roles", "permissions"],
+  "x-readme-ref-name": "AuthUserDto"
+}

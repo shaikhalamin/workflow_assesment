@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "active": { "type": "number", "example": 8 },
+    "approved": { "type": "number", "example": 42 },
+    "rejected": { "type": "number", "example": 3 }
+  },
+  "required": ["active", "approved", "rejected"],
+  "x-readme-ref-name": "AdminWorkflowSummaryDto"
+}

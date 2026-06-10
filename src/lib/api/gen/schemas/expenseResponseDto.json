@@ -1,0 +1,104 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "example": "expense-2026-0001" },
+    "requesterId": {
+      "type": "string",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+    },
+    "departmentId": {
+      "type": "object",
+      "example": "61f1d2de-5733-4830-a97c-cb1899482850",
+      "nullable": true
+    },
+    "title": { "type": "string", "example": "Laptop charger reimbursement" },
+    "description": {
+      "type": "object",
+      "example": "Replacement charger for office laptop",
+      "nullable": true
+    },
+    "amount": { "type": "string", "example": "4500.00" },
+    "currency": { "type": "string", "example": "BDT" },
+    "category": { "type": "string", "example": "Office supplies" },
+    "vendor": { "type": "object", "example": "Star Tech", "nullable": true },
+    "itemValue": { "type": "object", "example": "4500.00", "nullable": true },
+    "price": { "type": "object", "example": "4500.00", "nullable": true },
+    "quantity": { "type": "object", "example": "1.00", "nullable": true },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "SUBMITTED",
+        "UNDER_REVIEW",
+        "REJECTED",
+        "APPROVED",
+        "PAYMENT_PENDING",
+        "PAID",
+        "CANCELLED"
+      ],
+      "example": "DRAFT"
+    },
+    "workflowInstanceId": {
+      "type": "object",
+      "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2",
+      "nullable": true
+    },
+    "rejectionReason": {
+      "type": "object",
+      "example": "Receipt missing",
+      "nullable": true
+    },
+    "customFieldsJson": {
+      "type": "object",
+      "example": { "invoiceNo": "INV-2026-001", "budgetCode": "IT-OPS" },
+      "nullable": true
+    },
+    "submittedAt": {
+      "type": "object",
+      "example": "2026-06-10T10:15:00.000Z",
+      "nullable": true
+    },
+    "approvedAt": {
+      "type": "object",
+      "example": "2026-06-10T12:15:00.000Z",
+      "nullable": true
+    },
+    "rejectedAt": {
+      "type": "object",
+      "example": "2026-06-10T12:15:00.000Z",
+      "nullable": true
+    },
+    "paidAt": {
+      "type": "object",
+      "example": "2026-06-11T09:00:00.000Z",
+      "nullable": true
+    },
+    "createdAt": { "type": "string", "example": "2026-06-10T09:30:00.000Z" },
+    "updatedAt": { "type": "string", "example": "2026-06-10T10:15:00.000Z" }
+  },
+  "required": [
+    "id",
+    "requesterId",
+    "departmentId",
+    "title",
+    "description",
+    "amount",
+    "currency",
+    "category",
+    "vendor",
+    "itemValue",
+    "price",
+    "quantity",
+    "status",
+    "workflowInstanceId",
+    "rejectionReason",
+    "customFieldsJson",
+    "submittedAt",
+    "approvedAt",
+    "rejectedAt",
+    "paidAt",
+    "createdAt",
+    "updatedAt"
+  ],
+  "x-readme-ref-name": "ExpenseResponseDto"
+}

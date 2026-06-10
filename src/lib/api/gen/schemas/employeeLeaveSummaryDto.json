@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "approved": { "type": "number", "example": 4 },
+    "underReview": { "type": "number", "example": 1 }
+  },
+  "required": ["approved", "underReview"],
+  "x-readme-ref-name": "EmployeeLeaveSummaryDto"
+}

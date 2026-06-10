@@ -1,0 +1,7 @@
+{
+  "type": "object",
+  "properties": {
+    "paymentReference": { "type": "string", "example": "BANK-TXN-2026-0001" }
+  },
+  "x-readme-ref-name": "MarkPaidDto"
+}

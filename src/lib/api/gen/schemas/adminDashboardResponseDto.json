@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "workflows": {
+      "type": "object",
+      "properties": {
+        "active": { "type": "number", "example": 8 },
+        "approved": { "type": "number", "example": 42 },
+        "rejected": { "type": "number", "example": 3 }
+      },
+      "required": ["active", "approved", "rejected"],
+      "x-readme-ref-name": "AdminWorkflowSummaryDto"
+    },
+    "recentWorkflowChanges": {
+      "example": [],
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "failedTriggers": { "type": "number", "example": 1 }
+  },
+  "required": ["workflows", "recentWorkflowChanges", "failedTriggers"],
+  "x-readme-ref-name": "AdminDashboardResponseDto"
+}

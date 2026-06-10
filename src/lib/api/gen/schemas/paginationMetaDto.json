@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "properties": {
+    "page": { "type": "number", "example": 1 },
+    "limit": { "type": "number", "example": 20 },
+    "total": { "type": "number", "example": 142 },
+    "totalPages": { "type": "number", "example": 8 },
+    "hasNext": { "type": "boolean", "example": true },
+    "hasPrev": { "type": "boolean", "example": false }
+  },
+  "required": ["page", "limit", "total", "totalPages", "hasNext", "hasPrev"],
+  "x-readme-ref-name": "PaginationMetaDto"
+}

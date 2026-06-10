@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "draft": { "type": "number", "example": 3 },
+    "underReview": { "type": "number", "example": 2 }
+  },
+  "required": ["draft", "underReview"],
+  "x-readme-ref-name": "EmployeeExpenseSummaryDto"
+}

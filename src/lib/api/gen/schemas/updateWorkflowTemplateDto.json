@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "example": "Expense approval workflow" },
+    "description": {
+      "type": "object",
+      "example": "Routes expenses through finance approval"
+    },
+    "moduleName": { "type": "string", "example": "expenses" },
+    "eventName": { "type": "string", "example": "expense.submitted" },
+    "entityType": { "type": "string", "example": "Expense" },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "PUBLISHED", "INACTIVE", "ARCHIVED"]
+    },
+    "priority": { "type": "number", "minimum": 0, "example": 10 },
+    "effectiveFrom": {
+      "type": "object",
+      "example": "2026-06-10T00:00:00.000Z"
+    },
+    "effectiveTo": { "type": "object", "example": "2026-12-31T23:59:59.000Z" },
+    "allowResubmission": { "type": "boolean", "default": true },
+    "createdById": {
+      "type": "object",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+    },
+    "triggerConditionJson": {
+      "type": "object",
+      "example": {
+        "mode": "all",
+        "conditions": [{ "field": "amount", "operator": "gte", "value": 50000 }]
+      }
+    },
+    "approvedActionsJson": {
+      "type": "object",
+      "example": { "setStatus": "APPROVED", "createPaymentRequest": true }
+    },
+    "rejectedActionsJson": {
+      "type": "object",
+      "example": { "setStatus": "REJECTED" }
+    }
+  },
+  "x-readme-ref-name": "UpdateWorkflowTemplateDto"
+}

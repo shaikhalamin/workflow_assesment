@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "example": "Signup Employee" },
+    "email": { "type": "string", "example": "signup.employee@example.com" },
+    "password": { "type": "string", "example": "Password123!" }
+  },
+  "required": ["name", "email", "password"],
+  "x-readme-ref-name": "SignupDto"
+}

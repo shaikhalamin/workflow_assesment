@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "512f52a0-08df-4ba7-b108-4e46f06a057b"
+    },
+    "workflowInstanceId": {
+      "type": "string",
+      "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2"
+    },
+    "workflowStepId": {
+      "type": "object",
+      "example": "e7c883f6-90e7-465e-8abc-4c7f8e5e7d4a",
+      "nullable": true
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "TRIGGERED",
+        "STEP_ACTIVATED",
+        "APPROVED",
+        "REJECTED",
+        "COMMENTED",
+        "REASSIGNED",
+        "CANCELLED",
+        "FAILED"
+      ],
+      "example": "APPROVED"
+    },
+    "actorUserId": {
+      "type": "object",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936",
+      "nullable": true
+    },
+    "comment": {
+      "type": "object",
+      "example": "Approved after checking documents",
+      "nullable": true
+    },
+    "reason": {
+      "type": "object",
+      "example": "Budget verified",
+      "nullable": true
+    },
+    "metadataJson": {
+      "type": "object",
+      "example": { "reviewedBy": "finance-admin" },
+      "nullable": true
+    },
+    "createdAt": { "type": "string", "example": "2026-06-10T10:15:00.000Z" }
+  },
+  "required": [
+    "id",
+    "workflowInstanceId",
+    "workflowStepId",
+    "action",
+    "actorUserId",
+    "comment",
+    "reason",
+    "metadataJson",
+    "createdAt"
+  ],
+  "x-readme-ref-name": "WorkflowActionResponseDto"
+}

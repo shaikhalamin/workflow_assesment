@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "example": "payment-2026-0001" },
+    "expenseId": { "type": "string", "example": "expense-2026-0001" },
+    "requesterId": {
+      "type": "string",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+    },
+    "amount": { "type": "string", "example": "4500.00" },
+    "currency": { "type": "string", "example": "BDT" },
+    "status": {
+      "type": "string",
+      "enum": ["PENDING", "PAID", "CANCELLED"],
+      "example": "PENDING"
+    },
+    "paymentReference": {
+      "type": "object",
+      "example": "BANK-TXN-2026-0001",
+      "nullable": true
+    },
+    "paidById": {
+      "type": "object",
+      "example": "e96cf99d-c871-4f29-a7b6-1d2246ddc542",
+      "nullable": true
+    },
+    "paidAt": {
+      "type": "object",
+      "example": "2026-06-11T09:00:00.000Z",
+      "nullable": true
+    },
+    "createdAt": { "type": "string", "example": "2026-06-10T09:30:00.000Z" },
+    "updatedAt": { "type": "string", "example": "2026-06-10T10:15:00.000Z" }
+  },
+  "required": [
+    "id",
+    "expenseId",
+    "requesterId",
+    "amount",
+    "currency",
+    "status",
+    "paymentReference",
+    "paidById",
+    "paidAt",
+    "createdAt",
+    "updatedAt"
+  ],
+  "x-readme-ref-name": "PaymentRequestResponseDto"
+}

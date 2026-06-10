@@ -1,0 +1,92 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "example": "leave-2026-0001" },
+    "requesterId": {
+      "type": "string",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+    },
+    "departmentId": {
+      "type": "object",
+      "example": "61f1d2de-5733-4830-a97c-cb1899482850",
+      "nullable": true
+    },
+    "leaveType": { "type": "string", "example": "ANNUAL" },
+    "leaveDays": { "type": "number", "example": 2 },
+    "startDate": { "type": "string", "example": "2026-06-10" },
+    "endDate": { "type": "string", "example": "2026-06-11" },
+    "reason": { "type": "object", "example": "Family event", "nullable": true },
+    "employeeGrade": { "type": "object", "example": "M2", "nullable": true },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "REQUESTED",
+        "UNDER_REVIEW",
+        "REJECTED",
+        "APPROVED",
+        "CANCELLED"
+      ],
+      "example": "DRAFT"
+    },
+    "workflowInstanceId": {
+      "type": "object",
+      "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2",
+      "nullable": true
+    },
+    "rejectionReason": {
+      "type": "object",
+      "example": "Insufficient balance",
+      "nullable": true
+    },
+    "approvedPeriodJson": {
+      "type": "object",
+      "example": { "startDate": "2026-06-10", "endDate": "2026-06-11" },
+      "nullable": true
+    },
+    "customFieldsJson": {
+      "type": "object",
+      "example": { "handoverTo": "team-lead" },
+      "nullable": true
+    },
+    "submittedAt": {
+      "type": "object",
+      "example": "2026-06-10T10:15:00.000Z",
+      "nullable": true
+    },
+    "approvedAt": {
+      "type": "object",
+      "example": "2026-06-10T12:15:00.000Z",
+      "nullable": true
+    },
+    "rejectedAt": {
+      "type": "object",
+      "example": "2026-06-10T12:15:00.000Z",
+      "nullable": true
+    },
+    "createdAt": { "type": "string", "example": "2026-06-10T09:30:00.000Z" },
+    "updatedAt": { "type": "string", "example": "2026-06-10T10:15:00.000Z" }
+  },
+  "required": [
+    "id",
+    "requesterId",
+    "departmentId",
+    "leaveType",
+    "leaveDays",
+    "startDate",
+    "endDate",
+    "reason",
+    "employeeGrade",
+    "status",
+    "workflowInstanceId",
+    "rejectionReason",
+    "approvedPeriodJson",
+    "customFieldsJson",
+    "submittedAt",
+    "approvedAt",
+    "rejectedAt",
+    "createdAt",
+    "updatedAt"
+  ],
+  "x-readme-ref-name": "LeaveResponseDto"
+}
