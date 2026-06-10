@@ -9,9 +9,9 @@ export type CreateExpenseDto = {
    */
   title: string;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  description?: object;
+  description?: string;
   /**
    * @minLength 0
    * @type number
@@ -27,25 +27,25 @@ export type CreateExpenseDto = {
    */
   category: string;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  vendor?: object;
+  vendor?: string;
   /**
-   * @type object | undefined
+   * @type number | undefined
    */
-  itemValue?: object;
+  itemValue?: number;
   /**
-   * @type object | undefined
+   * @type number | undefined
    */
-  price?: object;
+  price?: number;
   /**
-   * @type object | undefined
+   * @type number | undefined
    */
-  quantity?: object;
+  quantity?: number;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  departmentId?: object;
+  departmentId?: string;
   /**
    * @type object | undefined
    */

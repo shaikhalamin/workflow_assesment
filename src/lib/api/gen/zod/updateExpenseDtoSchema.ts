@@ -7,14 +7,14 @@ import { z } from "zod/v4";
 
 export const updateExpenseDtoSchema = z.object({
   title: z.optional(z.string()),
-  description: z.optional(z.object({})),
+  description: z.optional(z.string()),
   amount: z.optional(z.number().min(0)),
   currency: z.optional(z.string().default("BDT")),
   category: z.optional(z.string()),
-  vendor: z.optional(z.object({})),
-  itemValue: z.optional(z.object({})),
-  price: z.optional(z.object({})),
-  quantity: z.optional(z.object({})),
-  departmentId: z.optional(z.object({})),
+  vendor: z.optional(z.string()),
+  itemValue: z.optional(z.number()),
+  price: z.optional(z.number()),
+  quantity: z.optional(z.number()),
+  departmentId: z.optional(z.string()),
   customFieldsJson: z.optional(z.object({})),
 });

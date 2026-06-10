@@ -1791,78 +1791,99 @@ function WorkflowTemplateDetail({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge>{template.status}</Badge>
-              <Badge className="bg-[var(--surface-2)] text-[var(--ink-3)]">
-                {template.moduleName}
-              </Badge>
-              <Badge className="bg-[var(--surface-2)] text-[var(--ink-3)]">
-                {template.eventName}
-              </Badge>
-              <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 font-mono text-[11px] font-medium text-[var(--ink-3)]">
-                Priority {template.priority}
-              </span>
-            </div>
-            <h2 className="mt-3 text-lg font-semibold tracking-tight text-[var(--foreground)]">
-              {template.name}
-            </h2>
-          </div>
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge>{template.status}</Badge>
+          <Badge className="bg-[var(--surface-2)] text-[var(--ink-3)]">
+            {template.moduleName}
+          </Badge>
+          <Badge className="bg-[var(--surface-2)] text-[var(--ink-3)]">
+            {template.eventName}
+          </Badge>
+          <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 font-mono text-[11px] font-medium text-[var(--ink-3)]">
+            Priority {template.priority}
+          </span>
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <SummaryValue label="Entity type" value={template.entityType} />
           <SummaryValue
             label="Effective dates"
             value={`${formatDate(template.effectiveFrom)} to ${formatDate(template.effectiveTo)}`}
           />
           <SummaryValue
+            label="Rules / steps"
+            value={`${template.rules.length} rules / ${totalSteps} steps`}
+          />
+          <SummaryValue
             label="Resubmission"
             value={template.allowResubmission ? 'Allowed' : 'Not allowed'}
           />
-          <SummaryValue label="Rules" value={String(template.rules.length)} />
-          <SummaryValue label="Approval steps" value={String(totalSteps)} />
-          <SummaryValue label="Last updated" value={formatDate(template.updatedAt)} />
         </div>
       </section>
 
-      <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
-        <SectionHeading label="Trigger" title="When this workflow runs" />
-        <WorkflowTriggerSummary eventName={template.eventName} group={triggerGroup} />
-      </section>
+      <section
+        aria-label="Workflow logic"
+        className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm"
+        role="region"
+      >
+        <div className="border-b border-[var(--border)] pb-3">
+          <h2
+            className="mt-1 text-base font-semibold text-[var(--foreground)]"
+          >
+            Workflow logic
+          </h2>
+        </div>
 
-      <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
-        <SectionHeading label="Workflow flow" title="Execution path" />
-        <WorkflowFlow eventName={template.eventName} rules={sortedRules} />
-      </section>
+        <div className="mt-4 grid gap-3 sm:grid-cols-[48px_1fr]">
+          <div className="hidden h-12 w-12 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--brand-soft)] text-[var(--brand-emphasis)] sm:grid">
+            <PlayCircle className="h-5 w-5" />
+          </div>
+          <div className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+              Trigger
+            </p>
+            <p className="mt-1 text-sm font-semibold text-[var(--foreground)]">
+              {template.eventName}
+            </p>
+            <WorkflowTriggerSummary
+              eventName={template.eventName}
+              group={triggerGroup}
+            />
+          </div>
+        </div>
 
-      <section className="space-y-3">
-        <SectionHeading
-          label="Rules and approval steps"
-          title="Approval paths by priority"
-        />
-        {sortedRules.length > 0 ? (
-          sortedRules.map((rule) => <WorkflowRuleCard key={rule.id} rule={rule} />)
-        ) : (
-          <EmptyState message="No approval rules configured." />
-        )}
-      </section>
+        <div className="mt-5 border-l border-[var(--border)] pl-4 sm:ml-6 sm:pl-6">
+          <p className="text-sm italic text-[var(--ink-2)]">
+            Evaluates approval rules by priority
+          </p>
+          <div className="mt-4 space-y-5">
+            {sortedRules.length > 0 ? (
+              sortedRules.map((rule) => (
+                <WorkflowRuleCard key={rule.id} rule={rule} />
+              ))
+            ) : (
+              <EmptyState message="No approval rules configured." />
+            )}
+          </div>
+        </div>
 
-      <section className="space-y-3">
-        <SectionHeading label="Outcomes" title="After a decision" />
-        <div className="grid gap-3 lg:grid-cols-2">
-          <OutcomeCard
-            title="Approved outcome"
-            actions={approvedActions}
-            statusFallback="No approved status configured."
-          />
-          <OutcomeCard
-            title="Rejected outcome"
-            actions={rejectedActions}
-            statusFallback="No rejected status configured."
-            rejected
-          />
+        <div className="mt-6 border-t border-[var(--border)] pt-5">
+          <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+            Outcomes
+          </p>
+          <div className="mt-3 grid gap-3 lg:grid-cols-2">
+            <OutcomeCard
+              title="Approved outcome"
+              actions={approvedActions}
+              statusFallback="No approved status configured."
+            />
+            <OutcomeCard
+              title="Rejected outcome"
+              actions={rejectedActions}
+              statusFallback="No rejected status configured."
+              rejected
+            />
+          </div>
         </div>
       </section>
 
@@ -1959,65 +1980,13 @@ function WorkflowTriggerSummary({
   )
 }
 
-function WorkflowFlow({
-  eventName,
-  rules,
-}: {
-  eventName: string
-  rules: WorkflowApprovalRuleResponseDto[]
-}) {
-  return (
-    <div className="mt-3 space-y-3">
-      <div className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3">
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
-          Trigger
-        </p>
-        <p className="mt-1 text-sm font-medium text-[var(--foreground)]">
-          {eventName}
-        </p>
-      </div>
-      <div className="ml-4 h-6 w-px bg-[var(--border)]" />
-      <div className="rounded-md border border-[var(--border)] bg-[var(--brand-soft)] p-3 text-sm font-medium text-[var(--brand-emphasis)]">
-        Evaluate approval rules by priority
-      </div>
-      <div className="grid gap-3 lg:grid-cols-2">
-        {rules.length > 0 ? (
-          rules.map((rule) => (
-            <div
-              key={rule.id}
-              className="rounded-md border border-[var(--border)] bg-white p-3"
-            >
-              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
-                Priority {rule.priority} rule
-              </p>
-              <p className="mt-1 text-sm font-semibold text-[var(--foreground)]">
-                {rule.name}
-              </p>
-              <p className="mt-2 text-xs leading-5 text-[var(--muted-foreground)]">
-                {rule.steps.length > 0
-                  ? [...rule.steps]
-                      .sort((first, second) => first.stepOrder - second.stepOrder)
-                      .map((step) => `Step ${step.stepOrder}`)
-                      .join(' -> ')
-                  : 'No approval steps configured.'}
-              </p>
-            </div>
-          ))
-        ) : (
-          <EmptyState message="No approval rules configured." />
-        )}
-      </div>
-    </div>
-  )
-}
-
 function WorkflowRuleCard({ rule }: { rule: WorkflowApprovalRuleResponseDto }) {
   const sortedSteps = [...rule.steps].sort(
     (first, second) => first.stepOrder - second.stepOrder,
   )
 
   return (
-    <article className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+    <article className="rounded-md border border-[var(--border)] bg-white p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--ink-3)]">
@@ -2135,7 +2104,9 @@ function OutcomeCard({
   return (
     <article
       aria-label={title}
-      className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm"
+      className={`rounded-md border border-l-4 border-[var(--border)] bg-[var(--surface-2)] p-4 ${
+        rejected ? 'border-l-red-600' : 'border-l-emerald-600'
+      }`}
       role="region"
     >
       <h3 className="text-base font-semibold text-[var(--foreground)]">
@@ -2320,24 +2291,59 @@ export function ExpensesPage() {
           { header: 'Amount', cell: ({ row }) => `${formatValue(row.original.amount)} ${formatValue(row.original.currency)}` },
           { header: 'Category', accessorKey: 'category' },
           { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
-          { header: 'Actions', cell: ({ row }) => <div className="flex gap-2"><Link className="font-medium text-[var(--primary)]" to="/expenses/$expenseId" params={{ expenseId: String(row.original.id) }}>Open</Link>{canWriteExpenses ? <Button size="sm" variant="secondary" type="button" onClick={() => submit.mutate({ id: String(row.original.id) })}><Send className="h-4 w-4" /> Submit</Button> : null}</div> },
+          {
+            header: 'Actions',
+            cell: ({ row }) => (
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+                  to="/expenses/$expenseId"
+                  params={{ expenseId: String(row.original.id) }}
+                >
+                  <Eye className="h-4 w-4" />
+                  Open
+                </Link>
+                {canWriteExpenses ? (
+                  <Button
+                    className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+                    size="sm"
+                    type="button"
+                    onClick={() => submit.mutate({ id: String(row.original.id) })}
+                  >
+                    <Send className="h-4 w-4" />
+                    Submit
+                  </Button>
+                ) : null}
+              </div>
+            ),
+          },
         ]}
       />
     </>
   )
 }
 
+const expenseCategoryOptions = ['Travel', 'Meal', 'Office Supplies', 'Software']
+const expenseVendorOptions = ['Star Tech', 'Pathao', 'Daraz', 'Ryans Computers', 'Foodpanda']
+
 export function ExpenseCreatePage() {
   const navigate = useNavigate()
   const createExpense = useExpensesControllerCreate({ mutation: { onSuccess: async () => navigate({ to: '/expenses' }) } })
-  const [form, setForm] = useState({ title: '', amount: 0, category: '', description: '', currency: 'BDT', vendor: '' })
+  const [form, setForm] = useState({
+    title: '',
+    amount: '',
+    category: expenseCategoryOptions[0],
+    description: '',
+    currency: 'BDT',
+    vendor: expenseVendorOptions[0],
+  })
   const expensePayload: CreateExpenseDto = {
     title: form.title,
-    amount: form.amount,
+    amount: Number(form.amount),
     category: form.category,
     currency: form.currency,
-    description: form.description ? { text: form.description } : undefined,
-    vendor: form.vendor ? { name: form.vendor } : undefined,
+    description: form.description || undefined,
+    vendor: form.vendor || undefined,
   }
 
   return (
@@ -2352,21 +2358,24 @@ export function ExpenseCreatePage() {
       >
         <FormSection index="01" title="Expense details" hint="Required for approval routing.">
           <div className="grid gap-3 md:grid-cols-2">
-            <FormField label="Title">
+            <FormField label="Title" htmlFor="expense-title">
               <FormInput
+                id="expense-title"
                 value={form.title}
                 onChange={(event) => setForm({ ...form, title: event.target.value })}
               />
             </FormField>
-            <FormField label="Amount">
+            <FormField label="Amount" htmlFor="expense-amount">
               <FormInput
+                id="expense-amount"
                 type="number"
                 value={form.amount}
-                onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })}
+                onChange={(event) => setForm({ ...form, amount: event.target.value })}
               />
             </FormField>
-            <FormField label="Currency">
+            <FormField label="Currency" htmlFor="expense-currency">
               <FormInput
+                id="expense-currency"
                 value={form.currency}
                 onChange={(event) => setForm({ ...form, currency: event.target.value })}
               />
@@ -2375,23 +2384,38 @@ export function ExpenseCreatePage() {
         </FormSection>
         <FormSection index="02" title="Vendor and category">
           <div className="grid gap-3 md:grid-cols-2">
-            <FormField label="Category">
-              <FormInput
+            <FormField label="Category" htmlFor="expense-category">
+              <FormSelect
+                id="expense-category"
                 value={form.category}
                 onChange={(event) => setForm({ ...form, category: event.target.value })}
-              />
+              >
+                {expenseCategoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </FormSelect>
             </FormField>
-            <FormField label="Vendor">
-              <FormInput
+            <FormField label="Vendor" htmlFor="expense-vendor">
+              <FormSelect
+                id="expense-vendor"
                 value={form.vendor}
                 onChange={(event) => setForm({ ...form, vendor: event.target.value })}
-              />
+              >
+                {expenseVendorOptions.map((vendor) => (
+                  <option key={vendor} value={vendor}>
+                    {vendor}
+                  </option>
+                ))}
+              </FormSelect>
             </FormField>
           </div>
         </FormSection>
         <FormSection index="03" title="Notes">
-          <FormField label="Description">
+          <FormField label="Description" htmlFor="expense-description">
             <FormTextarea
+              id="expense-description"
               value={form.description}
               onChange={(event) => setForm({ ...form, description: event.target.value })}
             />

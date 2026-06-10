@@ -3,18 +3,18 @@
   "properties": {
     "title": { "type": "string", "example": "Laptop charger reimbursement" },
     "description": {
-      "type": "object",
+      "type": "string",
       "example": "Replacement charger for office laptop"
     },
     "amount": { "type": "number", "minimum": 0, "example": 4500 },
     "currency": { "type": "string", "default": "BDT" },
     "category": { "type": "string", "example": "Office supplies" },
-    "vendor": { "type": "object", "example": "Star Tech" },
-    "itemValue": { "type": "object", "example": 4500 },
-    "price": { "type": "object", "example": 4500 },
-    "quantity": { "type": "object", "example": 1 },
+    "vendor": { "type": "string", "example": "Star Tech" },
+    "itemValue": { "type": "number", "example": 4500 },
+    "price": { "type": "number", "example": 4500 },
+    "quantity": { "type": "number", "example": 1 },
     "departmentId": {
-      "type": "object",
+      "type": "string",
       "example": "61f1d2de-5733-4830-a97c-cb1899482850"
     },
     "customFieldsJson": {

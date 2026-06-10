@@ -214,6 +214,37 @@ const baseTemplate = {
 }
 
 describe('WorkflowTemplateDetailPage', () => {
+  it('keeps the page header and groups trigger, rules, steps, and outcomes in workflow logic', () => {
+    templateResponse = baseTemplate
+
+    render(<WorkflowTemplateDetailPage />)
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Expense approval workflow',
+      }),
+    ).toBeInTheDocument()
+
+    const workflowLogic = screen.getByRole('region', {
+      name: /workflow logic/i,
+    })
+    expect(within(workflowLogic).getByText('Trigger')).toBeInTheDocument()
+    expect(
+      within(workflowLogic).getByRole('heading', {
+        level: 3,
+        name: 'Amount Over 2000',
+      }),
+    ).toBeInTheDocument()
+    expect(within(workflowLogic).getByText('Step 1')).toBeInTheDocument()
+    expect(
+      within(workflowLogic).getByRole('region', { name: /approved outcome/i }),
+    ).toBeInTheDocument()
+    expect(
+      within(workflowLogic).getByRole('region', { name: /rejected outcome/i }),
+    ).toBeInTheDocument()
+  })
+
   it('renders a business-readable trigger with condition chips', () => {
     templateResponse = baseTemplate
 
