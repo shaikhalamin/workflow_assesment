@@ -43,7 +43,11 @@ import { useWorkflowTemplateControllerDuplicate } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerFindOne } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerList } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerPublish } from '@/lib/api/gen'
-import type { CreateExpenseDto, CreateLeaveDto } from '@/lib/api/gen'
+import type {
+  CreateExpenseDto,
+  CreateLeaveDto,
+  WorkflowStepResponseDto,
+} from '@/lib/api/gen'
 import { DataTable } from '@/components/data-table'
 import {
   FormCheckbox,
@@ -56,7 +60,6 @@ import {
 } from '@/components/form'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/form-controls'
 import {
   createDefaultWorkflowDraft,
   getConditionFieldExample,
@@ -115,14 +118,27 @@ function ErrorNotice({ error }: { error: unknown }) {
 function Metric({
   label,
   value,
+  tone = 'default',
 }: {
   label: string
   value: string | number | undefined
+  tone?: 'default' | 'success' | 'warning'
 }) {
+  const toneClass =
+    tone === 'success'
+      ? 'bg-[var(--success-soft)]'
+      : tone === 'warning'
+        ? 'bg-[var(--warning-soft)]'
+        : 'bg-[var(--surface-2)]'
+
   return (
-    <div className="rounded-md border border-[var(--border)] bg-white p-4">
-      <p className="text-sm text-[var(--muted-foreground)]">{label}</p>
-      <p className="mt-2 text-3xl font-semibold">{value ?? '-'}</p>
+    <div className={`rounded-md border border-transparent ${toneClass} p-4`}>
+      <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-3)]">
+        {label}
+      </p>
+      <p className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">
+        {value ?? '-'}
+      </p>
     </div>
   )
 }
@@ -139,28 +155,85 @@ export function DashboardPage() {
   const approverData = unwrapData(approver.data)
   const accountsData = unwrapData(accounts.data)
   const hrData = unwrapData(hr.data)
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [query, setQuery] = useState('')
+  const pendingRows = (unwrapData(pending.data) as WorkflowStepResponseDto[] | undefined) ?? []
+  const filteredPendingRows = pendingRows.filter((row) => {
+    const matchesStatus = statusFilter === 'all' || row.status === statusFilter
+    const searchable = [
+      row.stepName,
+      row.stepType,
+      row.assigneeType,
+      row.status,
+      formatValue(row.assignedRoleSlug),
+      formatValue(row.assignedUserId),
+    ]
+      .join(' ')
+      .toLowerCase()
+    return matchesStatus && searchable.includes(query.toLowerCase())
+  })
 
   return (
-    <>
-      <PageHeader
-        title="Dashboard"
-        description="Role-aware operational summary across workflow configuration, runtime approvals, employee requests, HR, and accounts."
-      />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Metric label="Published workflows" value={adminData?.workflows?.active} />
-        <Metric label="Pending approvals" value={approverData?.pendingTasks} />
+    <div className="space-y-5">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">
+            Operations
+          </p>
+          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--foreground)] sm:text-[26px]">
+            Dashboard
+          </h1>
+          <p className="mt-1 max-w-3xl text-sm text-[var(--muted-foreground)]">
+            Role-aware operational summary across workflow configuration, approvals, HR, and accounts.
+          </p>
+        </div>
+      </header>
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+        <Metric label="Published workflows" value={adminData?.workflows?.active} tone="success" />
+        <Metric label="Pending approvals" value={approverData?.pendingTasks} tone="warning" />
         <Metric label="Expense drafts" value={employeeData?.expenses?.draft} />
-        <Metric label="Pending payments" value={accountsData?.pendingPayments} />
+        <Metric label="Pending payments" value={accountsData?.pendingPayments} tone="warning" />
         <Metric label="HR leave tasks" value={hrData?.leaveTasks} />
-        <Metric label="Failed triggers" value={adminData?.failedTriggers} />
-        <Metric label="Acted tasks" value={approverData?.actedTasks} />
+        <Metric label="Failed triggers" value={adminData?.failedTriggers} tone="warning" />
+        <Metric label="Acted tasks" value={approverData?.actedTasks} tone="success" />
         <Metric label="Leave under review" value={employeeData?.leaves?.underReview} />
       </div>
-      <section className="mt-8">
-        <PageHeader title="My pending approval tasks" />
-        <TaskTable rows={(unwrapData(pending.data) as Row[] | undefined) ?? []} />
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">
+              Pending approvals
+            </p>
+            <h2 className="text-lg font-semibold tracking-tight">My approval queue</h2>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {['all', 'ACTIVE', 'WAITING', 'APPROVED', 'REJECTED'].map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setStatusFilter(status)}
+              className={`rounded-full border px-2.5 py-1 text-[12px] font-medium ${
+                statusFilter === status
+                  ? 'border-[var(--foreground)] bg-[var(--foreground)] text-white'
+                  : 'border-[var(--border)] bg-white text-[var(--ink-3)] hover:bg-[var(--surface-2)]'
+              }`}
+            >
+              {status === 'all' ? 'All' : status.replaceAll('_', ' ')}
+            </button>
+          ))}
+          <div className="ml-0 flex w-full items-center gap-2 rounded-md border border-[var(--border)] bg-white px-2.5 py-1.5 sm:ml-auto sm:max-w-[280px]">
+            <FormInput
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search task, type, assignee"
+              className="h-7 border-0 px-0 focus:ring-0"
+            />
+          </div>
+        </div>
+        <TaskTable rows={filteredPendingRows} />
       </section>
-    </>
+    </div>
   )
 }
 
@@ -802,15 +875,31 @@ export function TasksPage() {
   )
 }
 
-function TaskTable({ rows, withActions = false }: { rows: Row[]; withActions?: boolean }) {
+function TaskTable({
+  rows,
+  withActions = false,
+}: {
+  rows: Array<Row | WorkflowStepResponseDto>
+  withActions?: boolean
+}) {
   const queryClient = useQueryClient()
   const [comment, setComment] = useState('')
   const approve = useWorkflowRuntimeControllerApprove({ mutation: { onSuccess: () => void queryClient.invalidateQueries() } })
   const reject = useWorkflowRuntimeControllerReject({ mutation: { onSuccess: () => void queryClient.invalidateQueries() } })
-  const columns: ColumnDef<Row>[] = [
+  const columns: ColumnDef<Row | WorkflowStepResponseDto>[] = [
     { header: 'Step', accessorKey: 'stepName' },
     { header: 'Type', accessorKey: 'stepType' },
-    { header: 'Assignee', cell: ({ row }) => formatValue(row.original.assignedRoleSlug ?? row.original.assignedUserId ?? row.original.assigneeType) },
+    {
+      header: 'Assignee',
+      cell: ({ row }) => {
+        const original = row.original
+        const assignedRoleSlug =
+          'assignedRoleSlug' in original ? original.assignedRoleSlug : undefined
+        const assignedUserId =
+          'assignedUserId' in original ? original.assignedUserId : undefined
+        return formatValue(assignedRoleSlug ?? assignedUserId ?? original.assigneeType)
+      },
+    },
     { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
     { header: 'Activated', cell: ({ row }) => formatDate(row.original.activatedAt) },
   ]
@@ -819,7 +908,7 @@ function TaskTable({ rows, withActions = false }: { rows: Row[]; withActions?: b
       header: 'Decision',
       cell: ({ row }) => (
         <div className="flex min-w-72 flex-col gap-2">
-          <Input placeholder="Comment or rejection reason" value={comment} onChange={(event) => setComment(event.target.value)} />
+          <FormInput placeholder="Comment or rejection reason" value={comment} onChange={(event) => setComment(event.target.value)} />
           <div className="flex gap-2">
             <Button size="sm" type="button" onClick={() => approve.mutate({ id: String(row.original.id), data: { comment } })}>
               <CheckCircle2 className="h-4 w-4" /> Approve
@@ -1113,8 +1202,8 @@ export function EventSchemasPage() {
     <>
       <PageHeader title="Workflow event schemas" description="Field schemas drive condition fields, assignee resolvers, and outcome choices in the builder." />
       <div className="mb-5 grid gap-3 rounded-md border border-[var(--border)] bg-white p-4 md:grid-cols-[1fr_1fr_auto]">
-        <Input value={moduleName} onChange={(event) => setModuleName(event.target.value)} />
-        <Input value={eventName} onChange={(event) => setEventName(event.target.value)} />
+        <FormInput value={moduleName} onChange={(event) => setModuleName(event.target.value)} />
+        <FormInput value={eventName} onChange={(event) => setEventName(event.target.value)} />
         <Button type="button" onClick={() => createSchema.mutate({ data: { moduleName, eventName, entityType: moduleName === 'leaves' ? 'Leave' : 'Expense', fieldSchemaJson: { fields: [] } } })}>
           Create schema
         </Button>

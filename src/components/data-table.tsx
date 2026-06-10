@@ -1,9 +1,38 @@
-import {
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  type ColumnDef,
-} from '@tanstack/react-table'
+import type { ReactNode } from 'react'
+import type { ColumnDef } from '@tanstack/react-table'
+
+type RenderColumn<TData> = {
+  id?: string
+  accessorKey?: string
+  header?: ReactNode | (() => ReactNode)
+  cell?: (context: { row: { original: TData } }) => ReactNode
+}
+
+function readAccessor<TData>(row: TData, accessorKey: string) {
+  if (row && typeof row === 'object' && accessorKey in row) {
+    return (row as Record<string, unknown>)[accessorKey]
+  }
+  return undefined
+}
+
+function renderValue(value: unknown) {
+  if (value === null || value === undefined) return ''
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return String(value)
+  }
+  return String(value)
+}
+
+function rowKey<TData>(row: TData, index: number) {
+  if (row && typeof row === 'object' && 'id' in row) {
+    return String(row.id)
+  }
+  return String(index)
+}
 
 export function DataTable<TData>({
   columns,
@@ -14,46 +43,39 @@ export function DataTable<TData>({
   data: TData[]
   empty?: string
 }) {
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  })
+  const renderColumns = columns as unknown as RenderColumn<TData>[]
 
   return (
     <div className="overflow-hidden rounded-md border border-[var(--border)] bg-white">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-left">
-          <thead className="bg-[var(--muted)]">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)]"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </th>
-                ))}
-              </tr>
-            ))}
+        <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+          <thead className="bg-[var(--surface-2)]">
+            <tr>
+              {renderColumns.map((column, index) => (
+                <th
+                  key={column.id ?? column.accessorKey ?? index}
+                  className="px-4 py-2.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]"
+                >
+                  {typeof column.header === 'function'
+                    ? column.header()
+                    : column.header}
+                </th>
+              ))}
+            </tr>
           </thead>
           <tbody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-t border-[var(--border)]">
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3 align-top">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
+            {data.length ? (
+              data.map((row, rowIndex) => (
+                <tr key={rowKey(row, rowIndex)} className="border-t border-[var(--border)] transition hover:bg-[var(--surface-2)]">
+                  {renderColumns.map((column, columnIndex) => (
+                    <td key={column.id ?? column.accessorKey ?? columnIndex} className="px-4 py-2.5 align-top text-[13px]">
+                      {column.cell
+                        ? column.cell({ row: { original: row } })
+                        : renderValue(
+                            column.accessorKey
+                              ? readAccessor(row, column.accessorKey)
+                              : undefined,
+                          )}
                     </td>
                   ))}
                 </tr>
