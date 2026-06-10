@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 import { privateClient } from '@/lib/http/private-client'
@@ -25,20 +24,24 @@ export type ResponseConfig<TData = unknown> = {
 
 export type ResponseErrorConfig<TError = unknown> = AxiosError<TError>
 
+type ErrorConfigMarker<TError> = {
+  readonly __errorConfig?: TError
+}
+
 export type Client = <
   TResponseData,
-  _TError = unknown,
+  TError = unknown,
   TRequestData = unknown,
 >(
-  config: RequestConfig<TRequestData>,
+  config: RequestConfig<TRequestData> & ErrorConfigMarker<TError>,
 ) => Promise<ResponseConfig<TResponseData>>
 
 export const client = async <
   TResponseData,
-  _TError = unknown,
+  TError = unknown,
   TRequestData = unknown,
 >(
-  config: RequestConfig<TRequestData>,
+  config: RequestConfig<TRequestData> & ErrorConfigMarker<TError>,
 ) => {
   return privateClient.request<
     TResponseData,
