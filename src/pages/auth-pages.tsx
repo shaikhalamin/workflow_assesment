@@ -45,7 +45,9 @@ export function SignInPage() {
         const user = unwrapData(response)?.user
         if (user) setAuthenticatedUser(user)
         await navigate({
-          to: search.redirect || getDefaultPrivatePath(user?.roles ?? []),
+          to:
+            search.redirect ||
+            getDefaultPrivatePath(user?.roles ?? [], user?.permissions ?? []),
           replace: true,
         })
       },
@@ -142,7 +144,7 @@ export function SignUpPage() {
         const user = unwrapData(response)?.user
         if (user) setAuthenticatedUser(user)
         await navigate({
-          to: getDefaultPrivatePath(user?.roles ?? []),
+          to: getDefaultPrivatePath(user?.roles ?? [], user?.permissions ?? []),
           replace: true,
         })
       },

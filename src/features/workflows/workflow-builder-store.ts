@@ -76,6 +76,7 @@ export type WorkflowRuleDraft = {
   isFallback: boolean
   isActive: boolean
   steps: WorkflowStepDraft[]
+  copiedFromDefaultPath?: boolean
 }
 
 export type WorkflowDraft = {
@@ -135,8 +136,8 @@ export const workflowBuilderSteps: WorkflowBuilderStep[] = [
   },
   {
     id: 3,
-    name: 'Approval chain',
-    description: 'Ordered reviewers, approvers, owners, and SLAs.',
+    name: 'Approval chains by rule',
+    description: 'Ordered reviewers, approvers, owners, and SLAs for each matching rule.',
   },
   {
     id: 4,

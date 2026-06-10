@@ -62,6 +62,7 @@ import {
 } from '@/components/form'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { hasPermission } from '@/features/auth/auth-routing'
 import {
   createDefaultWorkflowDraft,
   describeWorkflowAssignee,
@@ -87,6 +88,7 @@ import {
   rowsFrom,
   unwrapData,
 } from '@/lib/format'
+import { useAuthStore } from '@/stores/auth-store'
 
 type Row = Record<string, unknown>
 
@@ -639,6 +641,7 @@ function ApprovalRules({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
   const fields = getWorkflowModule(draft.template.moduleName)?.fields ?? []
   const defaultField = fields[0]?.key ?? 'amount'
   const defaultExample = getConditionFieldExample(defaultField)
+  const defaultRule = draft.rules.find((rule) => rule.isFallback) ?? draft.rules[0]
   const updateRule = (index: number, rule: WorkflowRuleDraft) => {
     const rules = [...draft.rules]
     rules[index] = rule
@@ -750,7 +753,12 @@ function ApprovalRules({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
                     },
                   ],
                 },
-                steps: [],
+                steps:
+                  defaultRule?.steps.map((step, stepIndex) => ({
+                    ...step,
+                    stepOrder: stepIndex + 1,
+                  })) ?? [],
+                copiedFromDefaultPath: true,
               },
             ],
           })
@@ -878,8 +886,13 @@ function ApprovalSteps({
               {rule.name}
             </h2>
             <p className="text-sm text-[var(--muted-foreground)]">
-              Build the ordered people or queues that must review this rule when it matches.
+              This chain runs when this rule matches.
             </p>
+            {rule.copiedFromDefaultPath ? (
+              <p className="mt-1 text-xs font-medium text-[var(--brand-emphasis)]">
+                Started from the default approval path. Customize if this rule needs different approvers.
+              </p>
+            ) : null}
           </div>
           <div className="space-y-4">
             {rule.steps.map((step, stepIndex) => (
@@ -1451,12 +1464,28 @@ function TaskTable({
 }
 
 export function ExpensesPage() {
+  const user = useAuthStore((state) => state.user)
   const query = useExpensesControllerList({ params: { page: 1, limit: 50 } })
   const submit = useExpensesControllerSubmit({ mutation: { onSuccess: () => void query.refetch() } })
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
+  const canWriteExpenses = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'expenses.write',
+  )
   return (
     <>
-      <PageHeader title="Expenses" kicker="Requests" action={<Button type="button"><Link to="/expenses/new" className="inline-flex items-center gap-2"><FilePlus2 className="h-4 w-4" /> New expense</Link></Button>} />
+      <PageHeader
+        title="Expenses"
+        kicker="Requests"
+        action={
+          canWriteExpenses ? (
+            <Button type="button">
+              <Link to="/expenses/new" className="inline-flex items-center gap-2"><FilePlus2 className="h-4 w-4" /> New expense</Link>
+            </Button>
+          ) : undefined
+        }
+      />
       <ErrorNotice error={query.error} />
       <DataTable
         data={rows}
@@ -1465,7 +1494,7 @@ export function ExpensesPage() {
           { header: 'Amount', cell: ({ row }) => `${formatValue(row.original.amount)} ${formatValue(row.original.currency)}` },
           { header: 'Category', accessorKey: 'category' },
           { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
-          { header: 'Actions', cell: ({ row }) => <div className="flex gap-2"><Link className="font-medium text-[var(--primary)]" to="/expenses/$expenseId" params={{ expenseId: String(row.original.id) }}>Open</Link><Button size="sm" variant="secondary" type="button" onClick={() => submit.mutate({ id: String(row.original.id) })}><Send className="h-4 w-4" /> Submit</Button></div> },
+          { header: 'Actions', cell: ({ row }) => <div className="flex gap-2"><Link className="font-medium text-[var(--primary)]" to="/expenses/$expenseId" params={{ expenseId: String(row.original.id) }}>Open</Link>{canWriteExpenses ? <Button size="sm" variant="secondary" type="button" onClick={() => submit.mutate({ id: String(row.original.id) })}><Send className="h-4 w-4" /> Submit</Button> : null}</div> },
         ]}
       />
     </>
@@ -1555,12 +1584,28 @@ export function ExpenseDetailPage() {
 }
 
 export function LeavesPage() {
+  const user = useAuthStore((state) => state.user)
   const query = useLeavesControllerList({ params: { page: 1, limit: 50 } })
   const submit = useLeavesControllerSubmit({ mutation: { onSuccess: () => void query.refetch() } })
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
+  const canWriteLeaves = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'leaves.write',
+  )
   return (
     <>
-      <PageHeader title="Leaves" kicker="Requests" action={<Button type="button"><Link to="/leaves/new" className="inline-flex items-center gap-2"><FilePlus2 className="h-4 w-4" /> New leave</Link></Button>} />
+      <PageHeader
+        title="Leaves"
+        kicker="Requests"
+        action={
+          canWriteLeaves ? (
+            <Button type="button">
+              <Link to="/leaves/new" className="inline-flex items-center gap-2"><FilePlus2 className="h-4 w-4" /> New leave</Link>
+            </Button>
+          ) : undefined
+        }
+      />
       <ErrorNotice error={query.error} />
       <DataTable
         data={rows}
@@ -1569,7 +1614,7 @@ export function LeavesPage() {
           { header: 'Days', accessorKey: 'leaveDays' },
           { header: 'Period', cell: ({ row }) => `${formatValue(row.original.startDate)} - ${formatValue(row.original.endDate)}` },
           { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
-          { header: 'Actions', cell: ({ row }) => <div className="flex gap-2"><Link className="font-medium text-[var(--primary)]" to="/leaves/$leaveId" params={{ leaveId: String(row.original.id) }}>Open</Link><Button size="sm" variant="secondary" type="button" onClick={() => submit.mutate({ id: String(row.original.id) })}><Send className="h-4 w-4" /> Submit</Button></div> },
+          { header: 'Actions', cell: ({ row }) => <div className="flex gap-2"><Link className="font-medium text-[var(--primary)]" to="/leaves/$leaveId" params={{ leaveId: String(row.original.id) }}>Open</Link>{canWriteLeaves ? <Button size="sm" variant="secondary" type="button" onClick={() => submit.mutate({ id: String(row.original.id) })}><Send className="h-4 w-4" /> Submit</Button> : null}</div> },
         ]}
       />
     </>
@@ -1657,22 +1702,36 @@ export function LeaveDetailPage() {
 }
 
 export function PaymentsPage() {
+  const user = useAuthStore((state) => state.user)
   const query = usePaymentsControllerList({ params: { page: 1, limit: 50 } })
   const markPaid = usePaymentsControllerMarkPaid({ mutation: { onSuccess: () => void query.refetch() } })
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
+  const canWritePayments = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'payments.write',
+  )
+  const columns: ColumnDef<Row>[] = [
+    { header: 'Payment', accessorKey: 'id' },
+    { header: 'Expense', accessorKey: 'expenseId' },
+    { header: 'Amount', cell: ({ row }) => `${formatValue(row.original.amount)} ${formatValue(row.original.currency)}` },
+    { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
+  ]
+
+  if (canWritePayments) {
+    columns.push({
+      header: 'Action',
+      cell: ({ row }) => <Button size="sm" type="button" onClick={() => markPaid.mutate({ id: String(row.original.id), data: { paymentReference: `MANUAL-${Date.now()}` } })}>Mark paid</Button>,
+    })
+  }
+
   return (
     <>
       <PageHeader title="Payment requests" kicker="Accounts" />
       <ErrorNotice error={query.error} />
       <DataTable
         data={rows}
-        columns={[
-          { header: 'Payment', accessorKey: 'id' },
-          { header: 'Expense', accessorKey: 'expenseId' },
-          { header: 'Amount', cell: ({ row }) => `${formatValue(row.original.amount)} ${formatValue(row.original.currency)}` },
-          { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
-          { header: 'Action', cell: ({ row }) => <Button size="sm" type="button" onClick={() => markPaid.mutate({ id: String(row.original.id), data: { paymentReference: `MANUAL-${Date.now()}` } })}>Mark paid</Button> },
-        ]}
+        columns={columns}
       />
     </>
   )

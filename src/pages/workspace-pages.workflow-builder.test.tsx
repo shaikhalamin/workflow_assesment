@@ -54,4 +54,21 @@ describe('WorkflowBuilderPage trigger setup', () => {
     expect(screen.getByText('Operator')).toBeInTheDocument()
     expect(screen.getByText('Value')).toBeInTheDocument()
   })
+
+  it('starts added rules from the default approval chain', () => {
+    render(<WorkflowBuilderPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /rules/i }))
+    fireEvent.click(screen.getByRole('button', { name: /add rule/i }))
+
+    const rules = useWorkflowBuilderStore.getState().draft.rules
+
+    expect(rules[1]?.steps).toEqual(rules[0]?.steps)
+
+    fireEvent.click(screen.getByRole('button', { name: /approval chain/i }))
+
+    expect(screen.getAllByText('Default approval path').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('New approval rule').length).toBeGreaterThan(0)
+    expect(screen.getByText('Started from the default approval path. Customize if this rule needs different approvers.')).toBeInTheDocument()
+  })
 })

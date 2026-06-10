@@ -15,7 +15,7 @@ describe('workflow builder payload', () => {
     expect(workflowBuilderSteps.map((step) => step.name)).toEqual([
       'Setup',
       'Rules',
-      'Approval chain',
+      'Approval chains by rule',
       'Outcomes',
       'Review',
     ])

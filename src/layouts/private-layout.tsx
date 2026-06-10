@@ -1,14 +1,12 @@
 import { Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import {
-  Bell,
   ChevronDown,
   ClipboardCheck,
   FileText,
   LayoutDashboard,
   LogOut,
   Menu,
-  Moon,
   Receipt,
   ScrollText,
   Settings2,
@@ -22,6 +20,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuthControllerLogout } from '@/lib/api/gen'
 import { useAuthControllerMe } from '@/lib/api/gen'
 import { Button } from '@/components/ui/button'
+import { canAccessPrivatePath } from '@/features/auth/auth-routing'
 import { apiErrorMessage, unwrapData } from '@/lib/format'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -58,18 +57,18 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
   const meQuery = useAuthControllerMe({
     query: { retry: false },
   })
-  const logoutMutation = useAuthControllerLogout({
-    mutation: {
-      onSuccess: async () => {
-        await queryClient.clear()
-        clearAuthenticatedUser()
-        await navigate({ to: '/sign-in' })
-      },
-    },
-  })
+  const logoutMutation = useAuthControllerLogout()
   const user = unwrapData(meQuery.data)?.user
   const isPublicPath =
     location.pathname === '/sign-in' || location.pathname === '/sign-up'
+
+  const handleLogout = () => {
+    setUserMenuOpen(false)
+    logoutMutation.mutate()
+    queryClient.clear()
+    clearAuthenticatedUser()
+    void navigate({ to: '/sign-in' })
+  }
 
   useEffect(() => {
     if (meQuery.isError && !isPublicPath) {
@@ -178,31 +177,39 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
               <p className="px-2 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">
                 {group.label}
               </p>
-              {group.items.map((item) => {
-                const Icon = item.icon
-                const active =
-                  item.to === '/'
-                    ? location.pathname === '/'
-                    : location.pathname.startsWith(item.to)
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => setMobileSidebarOpen(false)}
-                    className={`relative flex min-w-max items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition ${
-                      active
-                        ? 'bg-[var(--surface-2)] text-[var(--foreground)]'
-                        : 'text-[var(--ink-3)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]'
-                    }`}
-                  >
-                    {active ? (
-                      <span className="absolute bottom-1 left-1 top-1 w-[3px] rounded-full bg-[var(--primary)]" />
-                    ) : null}
-                    <Icon className={`h-4 w-4 ${item.color}`} />
-                    {item.label}
-                  </Link>
+              {group.items
+                .filter((item) =>
+                  canAccessPrivatePath(
+                    item.to,
+                    user?.roles ?? [],
+                    user?.permissions ?? [],
+                  ),
                 )
-              })}
+                .map((item) => {
+                  const Icon = item.icon
+                  const active =
+                    item.to === '/'
+                      ? location.pathname === '/'
+                      : location.pathname.startsWith(item.to)
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMobileSidebarOpen(false)}
+                      className={`relative flex min-w-max items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition ${
+                        active
+                          ? 'bg-[var(--surface-2)] text-[var(--foreground)]'
+                          : 'text-[var(--ink-3)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]'
+                      }`}
+                    >
+                      {active ? (
+                        <span className="absolute bottom-1 left-1 top-1 w-[3px] rounded-full bg-[var(--primary)]" />
+                      ) : null}
+                      <Icon className={`h-4 w-4 ${item.color}`} />
+                      {item.label}
+                    </Link>
+                  )
+                })}
             </div>
           ))}
         </nav>
@@ -228,12 +235,6 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center justify-end gap-1 lg:gap-3">
-            <Button type="button" variant="ghost" size="icon" aria-label="Toggle theme">
-              <Moon className="h-4 w-4" />
-            </Button>
-            <Button type="button" variant="ghost" size="icon" aria-label="Notifications">
-              <Bell className="h-4 w-4" />
-            </Button>
             <div className="relative">
               <button
                 type="button"
@@ -259,7 +260,7 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
                   <button
                     type="button"
                     className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm hover:bg-[var(--surface-2)]"
-                    onClick={() => logoutMutation.mutate()}
+                    onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4" />
                     Log out
