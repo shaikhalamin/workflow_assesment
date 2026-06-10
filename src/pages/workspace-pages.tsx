@@ -43,18 +43,20 @@ import { useWorkflowTemplateControllerDuplicate } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerFindOne } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerList } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerPublish } from '@/lib/api/gen'
+import type { CreateExpenseDto, CreateLeaveDto } from '@/lib/api/gen'
 import { DataTable } from '@/components/data-table'
 import {
   FormCheckbox,
   FormField,
   FormInput,
+  FormSection,
   FormSelect,
   FormShell,
   FormTextarea,
 } from '@/components/form'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input, Textarea } from '@/components/ui/form-controls'
+import { Input } from '@/components/ui/form-controls'
 import {
   createDefaultWorkflowDraft,
   getConditionFieldExample,
@@ -858,19 +860,82 @@ export function ExpenseCreatePage() {
   const navigate = useNavigate()
   const createExpense = useExpensesControllerCreate({ mutation: { onSuccess: async () => navigate({ to: '/expenses' }) } })
   const [form, setForm] = useState({ title: '', amount: 0, category: '', description: '', currency: 'BDT', vendor: '' })
+  const expensePayload: CreateExpenseDto = {
+    title: form.title,
+    amount: form.amount,
+    category: form.category,
+    currency: form.currency,
+    description: form.description ? { text: form.description } : undefined,
+    vendor: form.vendor ? { name: form.vendor } : undefined,
+  }
+
   return (
     <CreatePanel
       title="New expense"
       kicker="Expense request"
-      description="Capture request details before submitting for approval."
+      description="Capture request details, vendor context, and notes before submitting for approval."
       error={createExpense.error}
-      onSubmit={() => createExpense.mutate({ data: { ...form, vendor: form.vendor || undefined } as never })}
+      onSubmit={() => createExpense.mutate({ data: expensePayload })}
+      submitLabel={createExpense.isPending ? 'Saving...' : 'Save expense'}
+      aside={
+        <SummaryCard
+          title="Expense preview"
+          rows={[
+            { label: 'Title', value: form.title || 'Untitled' },
+            { label: 'Amount', value: `${form.amount || 0} ${form.currency}` },
+            { label: 'Category', value: form.category || '-' },
+            { label: 'Vendor', value: form.vendor || '-' },
+          ]}
+        />
+      }
     >
-      <Input placeholder="Title" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
-      <Input type="number" placeholder="Amount" value={form.amount} onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })} />
-      <Input placeholder="Category" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} />
-      <Input placeholder="Vendor" value={form.vendor} onChange={(event) => setForm({ ...form, vendor: event.target.value })} />
-      <Textarea placeholder="Description" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+      <FormSection index="01" title="Expense details" hint="Required for approval routing.">
+        <div className="grid gap-3 md:grid-cols-2">
+          <FormField label="Title">
+            <FormInput
+              value={form.title}
+              onChange={(event) => setForm({ ...form, title: event.target.value })}
+            />
+          </FormField>
+          <FormField label="Amount">
+            <FormInput
+              type="number"
+              value={form.amount}
+              onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })}
+            />
+          </FormField>
+          <FormField label="Currency">
+            <FormInput
+              value={form.currency}
+              onChange={(event) => setForm({ ...form, currency: event.target.value })}
+            />
+          </FormField>
+        </div>
+      </FormSection>
+      <FormSection index="02" title="Vendor and category">
+        <div className="grid gap-3 md:grid-cols-2">
+          <FormField label="Category">
+            <FormInput
+              value={form.category}
+              onChange={(event) => setForm({ ...form, category: event.target.value })}
+            />
+          </FormField>
+          <FormField label="Vendor">
+            <FormInput
+              value={form.vendor}
+              onChange={(event) => setForm({ ...form, vendor: event.target.value })}
+            />
+          </FormField>
+        </div>
+      </FormSection>
+      <FormSection index="03" title="Notes">
+        <FormField label="Description">
+          <FormTextarea
+            value={form.description}
+            onChange={(event) => setForm({ ...form, description: event.target.value })}
+          />
+        </FormField>
+      </FormSection>
     </CreatePanel>
   )
 }
@@ -907,19 +972,80 @@ export function LeaveCreatePage() {
   const navigate = useNavigate()
   const createLeave = useLeavesControllerCreate({ mutation: { onSuccess: async () => navigate({ to: '/leaves' }) } })
   const [form, setForm] = useState({ leaveType: 'ANNUAL', leaveDays: 1, startDate: '', endDate: '', reason: '' })
+  const leavePayload: CreateLeaveDto = {
+    leaveType: form.leaveType,
+    leaveDays: form.leaveDays,
+    startDate: form.startDate,
+    endDate: form.endDate,
+    reason: form.reason ? { text: form.reason } : undefined,
+  }
+
   return (
     <CreatePanel
       title="New leave"
       kicker="Leave request"
-      description="Capture leave details before sending through workflow."
+      description="Capture leave type, dates, duration, and reason before sending through workflow."
       error={createLeave.error}
-      onSubmit={() => createLeave.mutate({ data: form as never })}
+      onSubmit={() => createLeave.mutate({ data: leavePayload })}
+      submitLabel={createLeave.isPending ? 'Saving...' : 'Save leave'}
+      aside={
+        <SummaryCard
+          title="Leave preview"
+          rows={[
+            { label: 'Type', value: form.leaveType },
+            { label: 'Days', value: form.leaveDays },
+            { label: 'Start', value: form.startDate || '-' },
+            { label: 'End', value: form.endDate || '-' },
+          ]}
+        />
+      }
     >
-      <Input placeholder="Leave type" value={form.leaveType} onChange={(event) => setForm({ ...form, leaveType: event.target.value })} />
-      <Input type="number" placeholder="Leave days" value={form.leaveDays} onChange={(event) => setForm({ ...form, leaveDays: Number(event.target.value) })} />
-      <Input type="date" value={form.startDate} onChange={(event) => setForm({ ...form, startDate: event.target.value })} />
-      <Input type="date" value={form.endDate} onChange={(event) => setForm({ ...form, endDate: event.target.value })} />
-      <Textarea placeholder="Reason" value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} />
+      <FormSection index="01" title="Leave type">
+        <FormField label="Type">
+          <FormSelect
+            value={form.leaveType}
+            onChange={(event) => setForm({ ...form, leaveType: event.target.value })}
+          >
+            <option value="ANNUAL">Annual</option>
+            <option value="SICK">Sick</option>
+            <option value="CASUAL">Casual</option>
+            <option value="UNPAID">Unpaid</option>
+          </FormSelect>
+        </FormField>
+      </FormSection>
+      <FormSection index="02" title="Dates and duration">
+        <div className="grid gap-3 md:grid-cols-3">
+          <FormField label="Start date">
+            <FormInput
+              type="date"
+              value={form.startDate}
+              onChange={(event) => setForm({ ...form, startDate: event.target.value })}
+            />
+          </FormField>
+          <FormField label="End date">
+            <FormInput
+              type="date"
+              value={form.endDate}
+              onChange={(event) => setForm({ ...form, endDate: event.target.value })}
+            />
+          </FormField>
+          <FormField label="Leave days">
+            <FormInput
+              type="number"
+              value={form.leaveDays}
+              onChange={(event) => setForm({ ...form, leaveDays: Number(event.target.value) })}
+            />
+          </FormField>
+        </div>
+      </FormSection>
+      <FormSection index="03" title="Reason">
+        <FormField label="Reason">
+          <FormTextarea
+            value={form.reason}
+            onChange={(event) => setForm({ ...form, reason: event.target.value })}
+          />
+        </FormField>
+      </FormSection>
     </CreatePanel>
   )
 }
