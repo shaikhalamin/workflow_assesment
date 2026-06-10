@@ -21,11 +21,11 @@ export function Button({
         size === 'md' && 'h-10 px-4 text-sm',
         size === 'icon' && 'h-9 w-9 p-0',
         variant === 'primary' &&
-          'border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[#0f493d]',
+          'border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm hover:bg-[#155996]',
         variant === 'secondary' &&
-          'border-[var(--border)] bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:bg-[#dce8e0]',
+          'border-[var(--border)] bg-white text-[var(--secondary-foreground)] shadow-sm hover:bg-[var(--surface-2)]',
         variant === 'ghost' &&
-          'border-transparent bg-transparent text-[var(--foreground)] hover:bg-[var(--muted)]',
+          'border-transparent bg-transparent text-[var(--foreground)] hover:bg-[var(--surface-2)]',
         variant === 'destructive' &&
           'border-[var(--destructive)] bg-[var(--destructive)] text-[var(--destructive-foreground)] hover:bg-[#931d14]',
         className,

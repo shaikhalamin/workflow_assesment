@@ -98,6 +98,20 @@ export type WorkflowDraft = {
   rejectedActionsJson: Record<string, unknown>
 }
 
+export type WorkflowBuilderStepState = 'complete' | 'current' | 'upcoming'
+
+export type WorkflowBuilderStep = {
+  id: number
+  name: string
+  description: string
+}
+
+type WorkflowAssigneeUser = {
+  id: string
+  name: string
+  email: string
+}
+
 type WorkflowBuilderStore = {
   step: number
   draft: WorkflowDraft
@@ -106,6 +120,35 @@ type WorkflowBuilderStore = {
   setDraft: (draft: WorkflowDraft) => void
   reset: () => void
 }
+
+export const workflowBuilderSteps: WorkflowBuilderStep[] = [
+  {
+    id: 1,
+    name: 'Setup',
+    description:
+      'Basics, event, and trigger settings that define when this workflow starts.',
+  },
+  {
+    id: 2,
+    name: 'Rules',
+    description: 'Approval paths selected by event field conditions.',
+  },
+  {
+    id: 3,
+    name: 'Approval chain',
+    description: 'Ordered reviewers, approvers, owners, and SLAs.',
+  },
+  {
+    id: 4,
+    name: 'Outcomes',
+    description: 'Business status and side effects after approve or reject.',
+  },
+  {
+    id: 5,
+    name: 'Review',
+    description: 'Final payload check before saving the workflow template.',
+  },
+]
 
 export const workflowModules: WorkflowModuleOption[] = [
   {
@@ -208,6 +251,52 @@ export const roleOptions = [
   'management',
 ]
 
+export function getWorkflowBuilderStepState(
+  currentStep: number,
+  stepId: number,
+): WorkflowBuilderStepState {
+  if (stepId < currentStep) return 'complete'
+  if (stepId === currentStep) return 'current'
+  return 'upcoming'
+}
+
+export function formatRoleLabel(roleSlug: string) {
+  return roleSlug
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+export function describeWorkflowAssignee(
+  step: WorkflowStepDraft,
+  users: WorkflowAssigneeUser[] = [],
+) {
+  if (step.assigneeType === 'ROLE') {
+    return step.assigneeRoleSlug
+      ? `Role: ${formatRoleLabel(step.assigneeRoleSlug)}`
+      : 'Needs assignment'
+  }
+
+  if (step.assigneeType === 'USER') {
+    const user = users.find((item) => item.id === step.assigneeUserId)
+    if (user) return `User: ${user.name} <${user.email}>`
+    return step.assigneeUserId ? `User ID: ${step.assigneeUserId}` : 'Needs assignment'
+  }
+
+  if (step.assigneeType === 'REQUESTER_MANAGER') {
+    return "Requester's manager"
+  }
+
+  if (step.assigneeType === 'DEPARTMENT_HEAD') {
+    return 'Department head'
+  }
+
+  return step.assigneeFieldPath
+    ? `User from event field: ${step.assigneeFieldPath}`
+    : 'Needs assignment'
+}
+
 export function createDefaultWorkflowDraft(): WorkflowDraft {
   return {
     template: {
@@ -246,19 +335,6 @@ export function createDefaultWorkflowDraft(): WorkflowDraft {
             canReject: true,
             canReassign: false,
             slaHours: 24,
-          },
-          {
-            stepOrder: 2,
-            stepName: 'Accounts review',
-            stepType: 'FINAL_VERIFICATION',
-            assigneeType: 'ROLE',
-            assigneeRoleSlug: 'accounts',
-            isRequired: true,
-            requiresComment: true,
-            requiresAttachment: false,
-            canReject: true,
-            canReassign: false,
-            slaHours: 48,
           },
         ],
       },

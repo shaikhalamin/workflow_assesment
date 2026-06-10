@@ -46,15 +46,15 @@ export function DataTable<TData>({
   const renderColumns = columns as unknown as RenderColumn<TData>[]
 
   return (
-    <div className="overflow-hidden rounded-md border border-[var(--border)] bg-white">
+    <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-          <thead className="bg-[var(--surface-2)]">
+        <table className="w-full min-w-[920px] border-collapse text-left text-sm">
+          <thead>
             <tr>
               {renderColumns.map((column, index) => (
                 <th
                   key={column.id ?? column.accessorKey ?? index}
-                  className="px-4 py-2.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]"
+                  className="border-b border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]"
                 >
                   {typeof column.header === 'function'
                     ? column.header()
@@ -66,9 +66,9 @@ export function DataTable<TData>({
           <tbody>
             {data.length ? (
               data.map((row, rowIndex) => (
-                <tr key={rowKey(row, rowIndex)} className="border-t border-[var(--border)] transition hover:bg-[var(--surface-2)]">
+                <tr key={rowKey(row, rowIndex)} className="border-b border-[var(--border)] transition last:border-b-0 hover:bg-[var(--surface-2)]">
                   {renderColumns.map((column, columnIndex) => (
-                    <td key={column.id ?? column.accessorKey ?? columnIndex} className="px-4 py-2.5 align-top text-[13px]">
+                    <td key={column.id ?? column.accessorKey ?? columnIndex} className="px-4 py-3 align-top text-[13px] text-[var(--foreground)]">
                       {column.cell
                         ? column.cell({ row: { original: row } })
                         : renderValue(
@@ -83,7 +83,7 @@ export function DataTable<TData>({
             ) : (
               <tr>
                 <td
-                  className="px-4 py-8 text-center text-[var(--muted-foreground)]"
+                  className="px-4 py-10 text-center text-sm text-[var(--muted-foreground)]"
                   colSpan={columns.length}
                 >
                   {empty}

@@ -30,6 +30,7 @@ import { useLeavesControllerList } from '@/lib/api/gen'
 import { useLeavesControllerSubmit } from '@/lib/api/gen'
 import { usePaymentsControllerList } from '@/lib/api/gen'
 import { usePaymentsControllerMarkPaid } from '@/lib/api/gen'
+import { useUsersControllerGetUsers } from '@/lib/api/gen'
 import { useWorkflowEventSchemaControllerCreate } from '@/lib/api/gen'
 import { useWorkflowEventSchemaControllerList } from '@/lib/api/gen'
 import { useWorkflowRuntimeControllerApprove } from '@/lib/api/gen'
@@ -46,6 +47,7 @@ import { useWorkflowTemplateControllerPublish } from '@/lib/api/gen'
 import type {
   CreateExpenseDto,
   CreateLeaveDto,
+  UserResponseDto,
   WorkflowStepResponseDto,
 } from '@/lib/api/gen'
 import { DataTable } from '@/components/data-table'
@@ -62,21 +64,27 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   createDefaultWorkflowDraft,
+  describeWorkflowAssignee,
+  formatRoleLabel,
   getConditionFieldExample,
   getDefaultConditionOperator,
+  getWorkflowBuilderStepState,
   getWorkflowModule,
   parseConditionValue,
   roleOptions,
   toWorkflowWizardPayload,
   useWorkflowBuilderStore,
+  workflowBuilderSteps,
   workflowModules,
   type WorkflowDraft,
   type WorkflowRuleDraft,
+  type WorkflowStepDraft,
 } from '@/features/workflows/workflow-builder-store'
 import {
   apiErrorMessage,
   formatDate,
   formatValue,
+  rowsFrom,
   unwrapData,
 } from '@/lib/format'
 
@@ -86,15 +94,22 @@ function PageHeader({
   title,
   description,
   action,
+  kicker = 'Workspace',
 }: {
   title: string
   description?: string
   action?: React.ReactNode
+  kicker?: string
 }) {
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div>
-        <h1 className="text-2xl font-semibold">{title}</h1>
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div className="min-w-0">
+        <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+          {kicker}
+        </p>
+        <h1 className="text-[22px] font-semibold tracking-tight text-[var(--foreground)] sm:text-[26px]">
+          {title}
+        </h1>
         {description ? (
           <p className="mt-1 max-w-3xl text-sm text-[var(--muted-foreground)]">
             {description}
@@ -126,17 +141,17 @@ function Metric({
 }) {
   const toneClass =
     tone === 'success'
-      ? 'bg-[var(--success-soft)]'
+      ? 'bg-[#eef8ff]'
       : tone === 'warning'
         ? 'bg-[var(--warning-soft)]'
         : 'bg-[var(--surface-2)]'
 
   return (
-    <div className={`rounded-md border border-transparent ${toneClass} p-4`}>
+    <div className={`rounded-lg border border-[var(--border)] ${toneClass} p-4 shadow-sm`}>
       <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-3)]">
         {label}
       </p>
-      <p className="mt-2 text-3xl font-semibold tracking-tight text-[var(--foreground)]">
+      <p className="mt-3 text-3xl font-semibold tracking-tight text-[var(--foreground)]">
         {value ?? '-'}
       </p>
     </div>
@@ -291,6 +306,7 @@ export function WorkflowTemplatesPage() {
     <>
       <PageHeader
         title="Workflow Builder"
+        kicker="Templates"
         description="Create, publish, duplicate, and deactivate configurable workflow templates."
         action={
           <Button type="button">
@@ -310,6 +326,9 @@ export function WorkflowBuilderPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { step, setStep, draft, setDraft, reset } = useWorkflowBuilderStore()
+  const usersQuery = useUsersControllerGetUsers({ params: { page: 1, limit: 100 } })
+  const users = rowsFrom(usersQuery.data)
+  const currentStep = workflowBuilderSteps.find((item) => item.id === step)
   const createWizard = useWorkflowTemplateControllerCreateWizard({
     mutation: {
       onSuccess: async (response) => {
@@ -327,59 +346,87 @@ export function WorkflowBuilderPage() {
   return (
     <FormShell
       kicker="Workflow templates"
-      title="Create workflow"
-      description="Seven-step workflow configuration from module event to final outcomes."
+      title="Create workflow template"
+      description={
+        currentStep
+          ? currentStep.description
+          : 'Configure the business event, approval chain, and final outcomes.'
+      }
       actions={
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 font-mono text-[11px] text-[var(--ink-3)]">
-            Step {step} of 7
+            {currentStep?.name ?? 'Workflow'} - {step} of {workflowBuilderSteps.length}
           </span>
         </div>
       }
       aside={
-        <SummaryCard
-          title="Template preview"
-          rows={[
-            { label: 'Name', value: draft.template.name || 'Untitled' },
-            { label: 'Module', value: draft.template.moduleName },
-            { label: 'Event', value: draft.template.eventName },
-            { label: 'Rules', value: draft.rules.length },
-            { label: 'Status', value: draft.template.status },
-          ]}
-        />
+        <WorkflowPreview draft={draft} users={users} />
       }
     >
       <ErrorNotice error={createWizard.error} />
-      <div className="flex flex-wrap gap-1.5">
-        {[1, 2, 3, 4, 5, 6, 7].map((item) => (
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
+        {workflowBuilderSteps.map((item) => {
+          const state = getWorkflowBuilderStepState(step, item.id)
+          const stateLabel =
+            state === 'complete'
+              ? 'Complete'
+              : state === 'current'
+                ? 'Current'
+                : 'Upcoming'
+          return (
           <button
-            key={item}
+            key={item.id}
             type="button"
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium transition ${
-              step === item
+            className={`min-h-16 rounded-md border px-3 py-2 text-left transition ${
+              state === 'current'
                 ? 'border-[var(--foreground)] bg-[var(--foreground)] text-white'
-                : 'border-[var(--border)] bg-white text-[var(--ink-3)] hover:bg-[var(--surface-2)]'
+                : state === 'complete'
+                  ? 'border-[var(--primary)] bg-[var(--brand-soft)] text-[var(--brand-emphasis)]'
+                  : 'border-[var(--border)] bg-white text-[var(--ink-3)] hover:bg-[var(--surface-2)]'
             }`}
-            onClick={() => setStep(item)}
+            onClick={() => setStep(item.id)}
           >
-            <span className="font-mono text-[10.5px]">{String(item).padStart(2, '0')}</span>
-            Step
+            <span className="flex items-center gap-2">
+              <span
+                className={`grid h-6 w-6 place-items-center rounded-full font-mono text-[10px] ${
+                  state === 'current'
+                    ? 'bg-white/15 text-white'
+                    : 'bg-[var(--surface-2)] text-[var(--ink-3)]'
+                }`}
+              >
+                {String(item.id).padStart(2, '0')}
+              </span>
+              <span className="block text-sm font-semibold">{item.name}</span>
+            </span>
+            <span
+              className={`mt-1 block font-mono text-[10px] uppercase tracking-[0.08em] ${
+                state === 'current' ? 'text-white/80' : 'text-[var(--muted-foreground)]'
+              }`}
+            >
+              {stateLabel}
+            </span>
           </button>
-        ))}
+          )
+        })}
       </div>
       <div className="rounded-md border border-[var(--border)] bg-white p-4">
-        {step === 1 ? <BasicInfo draft={draft} setDraft={setDraft} /> : null}
-        {step === 2 ? <ModuleEvent draft={draft} setDraft={setDraft} /> : null}
-        {step === 3 ? <TriggerConditions draft={draft} setDraft={setDraft} /> : null}
-        {step === 4 ? <ApprovalRules draft={draft} setDraft={setDraft} /> : null}
-        {step === 5 ? <ApprovalSteps draft={draft} setDraft={setDraft} /> : null}
-        {step === 6 ? <Outcomes draft={draft} setDraft={setDraft} /> : null}
-        {step === 7 ? <ReviewWorkflow draft={draft} /> : null}
+        {step === 1 ? <WorkflowSetup draft={draft} setDraft={setDraft} /> : null}
+        {step === 2 ? <ApprovalRules draft={draft} setDraft={setDraft} /> : null}
+        {step === 3 ? (
+          <ApprovalSteps
+            draft={draft}
+            setDraft={setDraft}
+            users={users}
+            usersLoading={usersQuery.isLoading}
+          />
+        ) : null}
+        {step === 4 ? <Outcomes draft={draft} setDraft={setDraft} /> : null}
+        {step === 5 ? <ReviewWorkflow draft={draft} /> : null}
         <div className="mt-6 flex justify-between border-t border-[var(--border)] pt-4">
           <Button type="button" variant="secondary" disabled={step === 1} onClick={() => setStep(step - 1)}>
             Back
           </Button>
-          {step < 7 ? (
+          {step < workflowBuilderSteps.length ? (
             <Button type="button" onClick={() => setStep(step + 1)}>
               Next
             </Button>
@@ -441,6 +488,40 @@ function BasicInfo({
   )
 }
 
+function WorkflowSetup({
+  draft,
+  setDraft,
+}: {
+  draft: WorkflowDraft
+  setDraft: (draft: WorkflowDraft) => void
+}) {
+  return (
+    <div className="space-y-5">
+      <FormSection
+        index="01"
+        title="Basics"
+        hint="Name, status, priority, dates, and resubmission policy."
+      >
+        <BasicInfo draft={draft} setDraft={setDraft} />
+      </FormSection>
+      <FormSection
+        index="02"
+        title="Event"
+        hint="The business module event that starts this workflow."
+      >
+        <ModuleEvent draft={draft} setDraft={setDraft} />
+      </FormSection>
+      <FormSection
+        index="03"
+        title="Trigger"
+        hint="Choose whether every event runs this workflow or only matching events do."
+      >
+        <TriggerConditions draft={draft} setDraft={setDraft} />
+      </FormSection>
+    </div>
+  )
+}
+
 function ModuleEvent({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (draft: WorkflowDraft) => void }) {
   const selected = getWorkflowModule(draft.template.moduleName) ?? workflowModules[0]
   return (
@@ -498,52 +579,58 @@ function TriggerConditions({ draft, setDraft }: { draft: WorkflowDraft; setDraft
           <option value="conditions">Run When Conditions Match</option>
         </FormSelect>
       </Field>
-      <div className="grid gap-4 md:grid-cols-3">
-        <Field label="Field">
-          <FormSelect value={condition.field} onChange={(event) => {
-            const field = event.target.value
-            setDraft({
-              ...draft,
-              triggerConditions: {
-                mode: 'all',
-                conditions: [{ ...condition, field, operator: getDefaultConditionOperator(field) }],
-              },
-            })
-          }}>
-            {fields.map((field) => (
-              <option key={field.key} value={field.key}>{field.key}</option>
-            ))}
-          </FormSelect>
-        </Field>
-        <Field label="Operator">
-          <FormSelect value={condition.operator} onChange={(event) => setDraft({ ...draft, triggerConditions: { mode: 'all', conditions: [{ ...condition, operator: event.target.value as typeof condition.operator }] } })}>
-            {['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between', 'in', 'not_in', 'contains', 'is_empty', 'is_not_empty'].map((operator) => (
-              <option key={operator} value={operator}>{operator}</option>
-            ))}
-          </FormSelect>
-        </Field>
-        <Field label="Value">
-          <FormInput
-            placeholder={String(fieldExample.value)}
-            value={String(condition.value ?? '')}
-            onChange={(event) =>
+      {draft.triggerMode === 'always' ? (
+        <div className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm leading-6 text-[var(--ink-2)]">
+          This workflow starts for every {draft.template.eventName} event in the selected module.
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-3">
+          <Field label="Field">
+            <FormSelect value={condition.field} onChange={(event) => {
+              const field = event.target.value
               setDraft({
                 ...draft,
                 triggerConditions: {
                   mode: 'all',
-                  conditions: [
-                    {
-                      ...condition,
-                      value: parseConditionValue(event.target.value, condition.field),
-                    },
-                  ],
+                  conditions: [{ ...condition, field, operator: getDefaultConditionOperator(field) }],
                 },
               })
-            }
-          />
-          <p className="text-xs text-[var(--muted-foreground)]">{fieldExample.label}</p>
-        </Field>
-      </div>
+            }}>
+              {fields.map((field) => (
+                <option key={field.key} value={field.key}>{field.key}</option>
+              ))}
+            </FormSelect>
+          </Field>
+          <Field label="Operator">
+            <FormSelect value={condition.operator} onChange={(event) => setDraft({ ...draft, triggerConditions: { mode: 'all', conditions: [{ ...condition, operator: event.target.value as typeof condition.operator }] } })}>
+              {['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between', 'in', 'not_in', 'contains', 'is_empty', 'is_not_empty'].map((operator) => (
+                <option key={operator} value={operator}>{operator}</option>
+              ))}
+            </FormSelect>
+          </Field>
+          <Field label="Value">
+            <FormInput
+              placeholder={String(fieldExample.value)}
+              value={String(condition.value ?? '')}
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  triggerConditions: {
+                    mode: 'all',
+                    conditions: [
+                      {
+                        ...condition,
+                        value: parseConditionValue(event.target.value, condition.field),
+                      },
+                    ],
+                  },
+                })
+              }
+            />
+            <p className="text-xs text-[var(--muted-foreground)]">{fieldExample.label}</p>
+          </Field>
+        </div>
+      )}
     </div>
   )
 }
@@ -675,52 +762,360 @@ function ApprovalRules({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
   )
 }
 
-function ApprovalSteps({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (draft: WorkflowDraft) => void }) {
+const stepTypeOptions: Array<{
+  value: WorkflowStepDraft['stepType']
+  label: string
+  description: string
+}> = [
+  {
+    value: 'REVIEW',
+    label: 'Review',
+    description: 'Checks the request before an approval decision.',
+  },
+  {
+    value: 'APPROVAL',
+    label: 'Approval',
+    description: 'Approves or rejects the business request.',
+  },
+  {
+    value: 'FINANCE_CHECK',
+    label: 'Finance check',
+    description: 'Validates finance impact, budget, or payment readiness.',
+  },
+  {
+    value: 'HR_CHECK',
+    label: 'HR check',
+    description: 'Validates HR policy, leave, or employee data.',
+  },
+  {
+    value: 'MANAGEMENT_APPROVAL',
+    label: 'Management approval',
+    description: 'Routes the request to senior management.',
+  },
+  {
+    value: 'FINAL_VERIFICATION',
+    label: 'Final verification',
+    description: 'Confirms final details before the workflow is completed.',
+  },
+]
+
+const assigneeTypeOptions: Array<{
+  value: WorkflowStepDraft['assigneeType']
+  label: string
+  description: string
+}> = [
+  {
+    value: 'ROLE',
+    label: 'Role queue',
+    description: 'Any active user with the selected role can act on this step.',
+  },
+  {
+    value: 'USER',
+    label: 'Specific user',
+    description: 'Only the selected user can act on this step.',
+  },
+  {
+    value: 'REQUESTER_MANAGER',
+    label: "Requester's manager",
+    description: 'Resolved at runtime from the requester profile.',
+  },
+  {
+    value: 'DEPARTMENT_HEAD',
+    label: 'Department head',
+    description: 'Resolved at runtime from the requester department.',
+  },
+  {
+    value: 'CUSTOM_FIELD_USER',
+    label: 'User from event field',
+    description: 'Resolved from a user ID field in the event payload.',
+  },
+]
+
+function optionDescription<TValue extends string>(
+  options: Array<{ value: TValue; description: string }>,
+  value: TValue,
+) {
+  return options.find((option) => option.value === value)?.description
+}
+
+function ApprovalSteps({
+  draft,
+  setDraft,
+  users,
+  usersLoading,
+}: {
+  draft: WorkflowDraft
+  setDraft: (draft: WorkflowDraft) => void
+  users: UserResponseDto[]
+  usersLoading: boolean
+}) {
+  const userFields =
+    getWorkflowModule(draft.template.moduleName)?.fields.filter(
+      (field) => field.type === 'user',
+    ) ?? []
   const updateRule = (index: number, rule: WorkflowRuleDraft) => {
     const rules = [...draft.rules]
     rules[index] = rule
     setDraft({ ...draft, rules })
   }
+  const updateStep = (
+    ruleIndex: number,
+    stepIndex: number,
+    step: WorkflowStepDraft,
+  ) => {
+    const rule = draft.rules[ruleIndex]
+    const steps = [...rule.steps]
+    steps[stepIndex] = step
+    updateRule(ruleIndex, { ...rule, steps })
+  }
+
   return (
     <div className="space-y-5">
       {draft.rules.map((rule, ruleIndex) => (
-        <div key={ruleIndex} className="rounded-md border border-[var(--border)] p-4">
-          <h2 className="mb-3 font-semibold">{rule.name}</h2>
-          <div className="space-y-3">
+        <section key={ruleIndex} className="space-y-3">
+          <div>
+            <h2 className="text-base font-semibold text-[var(--foreground)]">
+              {rule.name}
+            </h2>
+            <p className="text-sm text-[var(--muted-foreground)]">
+              Build the ordered people or queues that must review this rule when it matches.
+            </p>
+          </div>
+          <div className="space-y-4">
             {rule.steps.map((step, stepIndex) => (
-              <div key={stepIndex} className="grid gap-3 rounded-md bg-[var(--muted)] p-3 md:grid-cols-5">
-                <FormInput value={step.stepName} onChange={(event) => {
-                  const steps = [...rule.steps]
-                  steps[stepIndex] = { ...step, stepName: event.target.value }
-                  updateRule(ruleIndex, { ...rule, steps })
-                }} />
-                <FormSelect value={step.stepType} onChange={(event) => {
-                  const steps = [...rule.steps]
-                  steps[stepIndex] = { ...step, stepType: event.target.value as typeof step.stepType }
-                  updateRule(ruleIndex, { ...rule, steps })
-                }}>
-                  {['REVIEW', 'APPROVAL', 'FINANCE_CHECK', 'HR_CHECK', 'MANAGEMENT_APPROVAL', 'FINAL_VERIFICATION'].map((type) => <option key={type} value={type}>{type}</option>)}
-                </FormSelect>
-                <FormSelect value={step.assigneeType} onChange={(event) => {
-                  const steps = [...rule.steps]
-                  steps[stepIndex] = { ...step, assigneeType: event.target.value as typeof step.assigneeType }
-                  updateRule(ruleIndex, { ...rule, steps })
-                }}>
-                  {['ROLE', 'USER', 'REQUESTER_MANAGER', 'DEPARTMENT_HEAD', 'CUSTOM_FIELD_USER'].map((type) => <option key={type} value={type}>{type}</option>)}
-                </FormSelect>
-                <FormSelect value={step.assigneeRoleSlug ?? ''} onChange={(event) => {
-                  const steps = [...rule.steps]
-                  steps[stepIndex] = { ...step, assigneeRoleSlug: event.target.value }
-                  updateRule(ruleIndex, { ...rule, steps })
-                }}>
-                  <option value="">Resolver/default</option>
-                  {roleOptions.map((role) => <option key={role} value={role}>{role}</option>)}
-                </FormSelect>
-                <FormInput type="number" value={step.slaHours ?? ''} onChange={(event) => {
-                  const steps = [...rule.steps]
-                  steps[stepIndex] = { ...step, slaHours: Number(event.target.value) || undefined }
-                  updateRule(ruleIndex, { ...rule, steps })
-                }} />
+              <div
+                key={stepIndex}
+                className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-4"
+              >
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+                      Approval chain item {stepIndex + 1}
+                    </p>
+                    <h3 className="text-base font-semibold text-[var(--foreground)]">
+                      {step.stepName || 'Unnamed workflow step'}
+                    </h3>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                      {describeWorkflowAssignee(step, users)}
+                    </p>
+                  </div>
+                  <Badge
+                    className={
+                      step.canReject
+                        ? 'bg-[var(--warning-soft)] text-[var(--warning)]'
+                        : 'bg-[var(--success-soft)] text-[var(--success)]'
+                    }
+                  >
+                    {step.canReject ? 'Can reject' : 'Approve only'}
+                  </Badge>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Step name" description="Use a business name users will recognize in their task list.">
+                    <FormInput
+                      value={step.stepName}
+                      onChange={(event) =>
+                        updateStep(ruleIndex, stepIndex, {
+                          ...step,
+                          stepName: event.target.value,
+                        })
+                      }
+                    />
+                  </Field>
+                  <Field
+                    label="Action type"
+                    description={optionDescription(stepTypeOptions, step.stepType)}
+                  >
+                    <FormSelect
+                      value={step.stepType}
+                      onChange={(event) =>
+                        updateStep(ruleIndex, stepIndex, {
+                          ...step,
+                          stepType: event.target.value as WorkflowStepDraft['stepType'],
+                        })
+                      }
+                    >
+                      {stepTypeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Field>
+                  <Field
+                    label="Who handles this step"
+                    description={optionDescription(
+                      assigneeTypeOptions,
+                      step.assigneeType,
+                    )}
+                  >
+                    <FormSelect
+                      value={step.assigneeType}
+                      onChange={(event) => {
+                        const assigneeType = event.target
+                          .value as WorkflowStepDraft['assigneeType']
+                        updateStep(ruleIndex, stepIndex, {
+                          ...step,
+                          assigneeType,
+                          assigneeRoleSlug:
+                            assigneeType === 'ROLE' ? roleOptions[0] : undefined,
+                          assigneeUserId: undefined,
+                          assigneeFieldPath:
+                            assigneeType === 'CUSTOM_FIELD_USER'
+                              ? userFields[0]?.key
+                              : undefined,
+                        })
+                      }}
+                    >
+                      {assigneeTypeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Field>
+                  {step.assigneeType === 'ROLE' ? (
+                    <Field label="Role queue" description="The task appears for users who have this role.">
+                      <FormSelect
+                        value={step.assigneeRoleSlug ?? ''}
+                        onChange={(event) =>
+                          updateStep(ruleIndex, stepIndex, {
+                            ...step,
+                            assigneeRoleSlug: event.target.value || undefined,
+                            assigneeUserId: undefined,
+                            assigneeFieldPath: undefined,
+                          })
+                        }
+                      >
+                        <option value="">Select role</option>
+                        {roleOptions.map((role) => (
+                          <option key={role} value={role}>
+                            {formatRoleLabel(role)}
+                          </option>
+                        ))}
+                      </FormSelect>
+                    </Field>
+                  ) : null}
+                  {step.assigneeType === 'USER' ? (
+                    <Field label="Specific user" description="The task appears only for this person.">
+                      <FormSelect
+                        value={step.assigneeUserId ?? ''}
+                        disabled={usersLoading}
+                        onChange={(event) =>
+                          updateStep(ruleIndex, stepIndex, {
+                            ...step,
+                            assigneeRoleSlug: undefined,
+                            assigneeUserId: event.target.value || undefined,
+                            assigneeFieldPath: undefined,
+                          })
+                        }
+                      >
+                        <option value="">
+                          {usersLoading ? 'Loading users...' : 'Select user'}
+                        </option>
+                        {step.assigneeUserId &&
+                        !users.some((user) => user.id === step.assigneeUserId) ? (
+                          <option value={step.assigneeUserId}>
+                            Selected user ID: {step.assigneeUserId}
+                          </option>
+                        ) : null}
+                        {users.map((user) => (
+                          <option key={user.id} value={user.id}>
+                            {user.name} &lt;{user.email}&gt;
+                          </option>
+                        ))}
+                      </FormSelect>
+                    </Field>
+                  ) : null}
+                  {step.assigneeType === 'CUSTOM_FIELD_USER' ? (
+                    <Field
+                      label="Event user field"
+                      description="The event payload must contain a user ID at this field path."
+                    >
+                      <FormSelect
+                        value={step.assigneeFieldPath ?? ''}
+                        onChange={(event) =>
+                          updateStep(ruleIndex, stepIndex, {
+                            ...step,
+                            assigneeRoleSlug: undefined,
+                            assigneeUserId: undefined,
+                            assigneeFieldPath: event.target.value || undefined,
+                          })
+                        }
+                      >
+                        <option value="">Select event user field</option>
+                        {userFields.map((field) => (
+                          <option key={field.key} value={field.key}>
+                            {field.key}
+                          </option>
+                        ))}
+                      </FormSelect>
+                      {userFields.length === 0 ? (
+                        <p className="mt-1 text-xs text-[var(--destructive)]">
+                          This event has no user field configured for assignment.
+                        </p>
+                      ) : null}
+                    </Field>
+                  ) : null}
+                  <Field label="SLA hours" description="How long this step should remain open before it is late.">
+                    <FormInput
+                      type="number"
+                      min={1}
+                      value={step.slaHours ?? ''}
+                      onChange={(event) =>
+                        updateStep(ruleIndex, stepIndex, {
+                          ...step,
+                          slaHours: Number(event.target.value) || undefined,
+                        })
+                      }
+                    />
+                  </Field>
+                </div>
+                <div className="mt-4 grid gap-3 border-t border-[var(--border)] pt-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <FormCheckbox
+                    label="Required step"
+                    description="The workflow cannot finish without this step."
+                    checked={step.isRequired}
+                    onChange={(event) =>
+                      updateStep(ruleIndex, stepIndex, {
+                        ...step,
+                        isRequired: event.target.checked,
+                      })
+                    }
+                  />
+                  <FormCheckbox
+                    label="Requires comment"
+                    description="Actor must write a note before action."
+                    checked={step.requiresComment}
+                    onChange={(event) =>
+                      updateStep(ruleIndex, stepIndex, {
+                        ...step,
+                        requiresComment: event.target.checked,
+                      })
+                    }
+                  />
+                  <FormCheckbox
+                    label="Requires attachment"
+                    description="Actor must upload supporting evidence."
+                    checked={step.requiresAttachment}
+                    onChange={(event) =>
+                      updateStep(ruleIndex, stepIndex, {
+                        ...step,
+                        requiresAttachment: event.target.checked,
+                      })
+                    }
+                  />
+                  <FormCheckbox
+                    label="Can reject"
+                    description="Actor may reject the whole workflow."
+                    checked={step.canReject}
+                    onChange={(event) =>
+                      updateStep(ruleIndex, stepIndex, {
+                        ...step,
+                        canReject: event.target.checked,
+                      })
+                    }
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -753,8 +1148,137 @@ function ApprovalSteps({ draft, setDraft }: { draft: WorkflowDraft; setDraft: (d
           >
             <Plus className="h-4 w-4" /> Add step
           </Button>
-        </div>
+        </section>
       ))}
+    </div>
+  )
+}
+
+function WorkflowPreview({
+  draft,
+  users,
+}: {
+  draft: WorkflowDraft
+  users: UserResponseDto[]
+}) {
+  const triggerSummary =
+    draft.triggerMode === 'always'
+      ? 'Runs for every matching event.'
+      : draft.triggerConditions.conditions.length > 0
+        ? draft.triggerConditions.conditions
+            .map(
+              (condition) =>
+                `${condition.field} ${condition.operator} ${formatValue(condition.value)}`,
+            )
+            .join(', ')
+        : 'Needs trigger condition.'
+
+  return (
+    <div className="rounded-md border border-[var(--border)] bg-white p-4">
+      <div className="border-b border-[var(--border)] pb-3">
+        <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+          Live workflow preview
+        </p>
+        <h2 className="mt-1 text-base font-semibold text-[var(--foreground)]">
+          {draft.template.name || 'Untitled workflow'}
+        </h2>
+        <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
+          {draft.template.moduleName} / {draft.template.eventName}
+        </p>
+      </div>
+      <div className="space-y-4 pt-4">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+            Trigger
+          </p>
+          <p className="mt-1 text-sm leading-5 text-[var(--ink-2)]">
+            {triggerSummary}
+          </p>
+        </div>
+        <div className="space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+            Approval paths
+          </p>
+          {draft.rules.map((rule, ruleIndex) => {
+            const conditionText = rule.isFallback
+              ? 'Fallback path when no earlier rule matches.'
+              : rule.conditionJson?.conditions.length
+                ? rule.conditionJson.conditions
+                    .map(
+                      (condition) =>
+                        `${condition.field} ${condition.operator} ${formatValue(
+                          condition.value,
+                        )}`,
+                    )
+                    .join(', ')
+                : 'Needs rule condition.'
+
+            return (
+              <div
+                key={ruleIndex}
+                className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-semibold text-[var(--foreground)]">
+                      {rule.name || `Rule ${ruleIndex + 1}`}
+                    </h3>
+                    <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
+                      {conditionText}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-white px-2 py-1 font-mono text-[10px] text-[var(--ink-3)]">
+                    {rule.steps.length} steps
+                  </span>
+                </div>
+                <ol className="mt-3 space-y-2">
+                  {rule.steps.length > 0 ? (
+                    rule.steps.map((item, stepIndex) => {
+                      const assigneeText = describeWorkflowAssignee(item, users)
+                      const needsAssignment = assigneeText === 'Needs assignment'
+                      const stepTypeLabel =
+                        stepTypeOptions.find((option) => option.value === item.stepType)
+                          ?.label ?? item.stepType
+
+                      return (
+                        <li
+                          key={stepIndex}
+                          className="grid grid-cols-[24px_1fr] gap-2 text-sm"
+                        >
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white font-mono text-[10px] text-[var(--ink-3)]">
+                            {stepIndex + 1}
+                          </span>
+                          <span>
+                            <span className="block font-medium text-[var(--foreground)]">
+                              {item.stepName || 'Unnamed step'}
+                            </span>
+                            <span className="block text-xs leading-5 text-[var(--muted-foreground)]">
+                              {stepTypeLabel} -{' '}
+                              <span
+                                className={
+                                  needsAssignment
+                                    ? 'font-semibold text-[var(--destructive)]'
+                                    : ''
+                                }
+                              >
+                                {assigneeText}
+                              </span>
+                            </span>
+                          </span>
+                        </li>
+                      )
+                    })
+                  ) : (
+                    <li className="text-sm text-[var(--destructive)]">
+                      Add at least one approval-chain item for this rule.
+                    </li>
+                  )}
+                </ol>
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
@@ -813,7 +1337,7 @@ export function WorkflowTemplateDetailPage() {
 
   return (
     <>
-      <PageHeader title={String(template?.name ?? 'Workflow detail')} />
+      <PageHeader title={String(template?.name ?? 'Workflow detail')} kicker="Template detail" />
       <ErrorNotice error={query.error} />
       {template ? <ObjectPanel value={template} /> : null}
     </>
@@ -825,7 +1349,8 @@ export function WorkflowInstancesPage() {
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   return (
     <>
-      <PageHeader title="Workflow Runtime" description="Runtime workflow instances created by module events." />
+      <PageHeader title="Workflow Runtime" kicker="Runtime" description="Runtime workflow instances created by module events." />
+      <ErrorNotice error={query.error} />
       <DataTable
         data={rows}
         columns={[
@@ -849,15 +1374,15 @@ export function WorkflowInstanceDetailPage() {
   const steps = ((instance?.steps as Row[] | undefined) ?? []).sort((a, b) => Number(a.stepOrder) - Number(b.stepOrder))
   return (
     <>
-      <PageHeader title={`Workflow ${instanceId}`} />
+      <PageHeader title={`Workflow ${instanceId}`} kicker="Runtime detail" />
       <ErrorNotice error={query.error} />
       {instance ? <ObjectPanel value={instance} /> : null}
       <section className="mt-6">
-        <PageHeader title="Approval timeline" />
+        <PageHeader title="Approval timeline" kicker="Steps" />
         <TaskTable rows={steps} />
       </section>
       <section className="mt-6">
-        <PageHeader title="Audit history" />
+        <PageHeader title="Audit history" kicker="Logs" />
         <AuditTable rows={(unwrapData(logs.data) as Row[] | undefined) ?? []} />
       </section>
     </>
@@ -869,7 +1394,8 @@ export function TasksPage() {
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   return (
     <>
-      <PageHeader title="Pending approvals" description="Approve or reject active workflow steps assigned to your user or role." />
+      <PageHeader title="Pending approvals" kicker="Approvals" description="Approve or reject active workflow steps assigned to your user or role." />
+      <ErrorNotice error={query.error} />
       <TaskTable rows={rows} withActions />
     </>
   )
@@ -930,7 +1456,8 @@ export function ExpensesPage() {
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   return (
     <>
-      <PageHeader title="Expenses" action={<Button type="button"><Link to="/expenses/new" className="inline-flex items-center gap-2"><FilePlus2 className="h-4 w-4" /> New expense</Link></Button>} />
+      <PageHeader title="Expenses" kicker="Requests" action={<Button type="button"><Link to="/expenses/new" className="inline-flex items-center gap-2"><FilePlus2 className="h-4 w-4" /> New expense</Link></Button>} />
+      <ErrorNotice error={query.error} />
       <DataTable
         data={rows}
         columns={[
@@ -959,73 +1486,64 @@ export function ExpenseCreatePage() {
   }
 
   return (
-    <CreatePanel
-      title="New expense"
-      kicker="Expense request"
-      description="Capture request details, vendor context, and notes before submitting for approval."
-      error={createExpense.error}
-      onSubmit={() => createExpense.mutate({ data: expensePayload })}
-      submitLabel={createExpense.isPending ? 'Saving...' : 'Save expense'}
-      aside={
-        <SummaryCard
-          title="Expense preview"
-          rows={[
-            { label: 'Title', value: form.title || 'Untitled' },
-            { label: 'Amount', value: `${form.amount || 0} ${form.currency}` },
-            { label: 'Category', value: form.category || '-' },
-            { label: 'Vendor', value: form.vendor || '-' },
-          ]}
-        />
-      }
-    >
-      <FormSection index="01" title="Expense details" hint="Required for approval routing.">
-        <div className="grid gap-3 md:grid-cols-2">
-          <FormField label="Title">
-            <FormInput
-              value={form.title}
-              onChange={(event) => setForm({ ...form, title: event.target.value })}
+    <div className="max-w-3xl">
+      <CreatePanel
+        title="New expense"
+        kicker="Expense request"
+        description="Capture request details, vendor context, and notes before submitting for approval."
+        error={createExpense.error}
+        onSubmit={() => createExpense.mutate({ data: expensePayload })}
+        submitLabel={createExpense.isPending ? 'Saving...' : 'Save expense'}
+      >
+        <FormSection index="01" title="Expense details" hint="Required for approval routing.">
+          <div className="grid gap-3 md:grid-cols-2">
+            <FormField label="Title">
+              <FormInput
+                value={form.title}
+                onChange={(event) => setForm({ ...form, title: event.target.value })}
+              />
+            </FormField>
+            <FormField label="Amount">
+              <FormInput
+                type="number"
+                value={form.amount}
+                onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })}
+              />
+            </FormField>
+            <FormField label="Currency">
+              <FormInput
+                value={form.currency}
+                onChange={(event) => setForm({ ...form, currency: event.target.value })}
+              />
+            </FormField>
+          </div>
+        </FormSection>
+        <FormSection index="02" title="Vendor and category">
+          <div className="grid gap-3 md:grid-cols-2">
+            <FormField label="Category">
+              <FormInput
+                value={form.category}
+                onChange={(event) => setForm({ ...form, category: event.target.value })}
+              />
+            </FormField>
+            <FormField label="Vendor">
+              <FormInput
+                value={form.vendor}
+                onChange={(event) => setForm({ ...form, vendor: event.target.value })}
+              />
+            </FormField>
+          </div>
+        </FormSection>
+        <FormSection index="03" title="Notes">
+          <FormField label="Description">
+            <FormTextarea
+              value={form.description}
+              onChange={(event) => setForm({ ...form, description: event.target.value })}
             />
           </FormField>
-          <FormField label="Amount">
-            <FormInput
-              type="number"
-              value={form.amount}
-              onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })}
-            />
-          </FormField>
-          <FormField label="Currency">
-            <FormInput
-              value={form.currency}
-              onChange={(event) => setForm({ ...form, currency: event.target.value })}
-            />
-          </FormField>
-        </div>
-      </FormSection>
-      <FormSection index="02" title="Vendor and category">
-        <div className="grid gap-3 md:grid-cols-2">
-          <FormField label="Category">
-            <FormInput
-              value={form.category}
-              onChange={(event) => setForm({ ...form, category: event.target.value })}
-            />
-          </FormField>
-          <FormField label="Vendor">
-            <FormInput
-              value={form.vendor}
-              onChange={(event) => setForm({ ...form, vendor: event.target.value })}
-            />
-          </FormField>
-        </div>
-      </FormSection>
-      <FormSection index="03" title="Notes">
-        <FormField label="Description">
-          <FormTextarea
-            value={form.description}
-            onChange={(event) => setForm({ ...form, description: event.target.value })}
-          />
-        </FormField>
-      </FormSection>
-    </CreatePanel>
+        </FormSection>
+      </CreatePanel>
+    </div>
   )
 }
 
@@ -1042,7 +1560,8 @@ export function LeavesPage() {
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   return (
     <>
-      <PageHeader title="Leaves" action={<Button type="button"><Link to="/leaves/new" className="inline-flex items-center gap-2"><FilePlus2 className="h-4 w-4" /> New leave</Link></Button>} />
+      <PageHeader title="Leaves" kicker="Requests" action={<Button type="button"><Link to="/leaves/new" className="inline-flex items-center gap-2"><FilePlus2 className="h-4 w-4" /> New leave</Link></Button>} />
+      <ErrorNotice error={query.error} />
       <DataTable
         data={rows}
         columns={[
@@ -1070,72 +1589,63 @@ export function LeaveCreatePage() {
   }
 
   return (
-    <CreatePanel
-      title="New leave"
-      kicker="Leave request"
-      description="Capture leave type, dates, duration, and reason before sending through workflow."
-      error={createLeave.error}
-      onSubmit={() => createLeave.mutate({ data: leavePayload })}
-      submitLabel={createLeave.isPending ? 'Saving...' : 'Save leave'}
-      aside={
-        <SummaryCard
-          title="Leave preview"
-          rows={[
-            { label: 'Type', value: form.leaveType },
-            { label: 'Days', value: form.leaveDays },
-            { label: 'Start', value: form.startDate || '-' },
-            { label: 'End', value: form.endDate || '-' },
-          ]}
-        />
-      }
-    >
-      <FormSection index="01" title="Leave type">
-        <FormField label="Type">
-          <FormSelect
-            value={form.leaveType}
-            onChange={(event) => setForm({ ...form, leaveType: event.target.value })}
-          >
-            <option value="ANNUAL">Annual</option>
-            <option value="SICK">Sick</option>
-            <option value="CASUAL">Casual</option>
-            <option value="UNPAID">Unpaid</option>
-          </FormSelect>
-        </FormField>
-      </FormSection>
-      <FormSection index="02" title="Dates and duration">
-        <div className="grid gap-3 md:grid-cols-3">
-          <FormField label="Start date">
-            <FormInput
-              type="date"
-              value={form.startDate}
-              onChange={(event) => setForm({ ...form, startDate: event.target.value })}
+    <div className="max-w-3xl">
+      <CreatePanel
+        title="New leave"
+        kicker="Leave request"
+        description="Capture leave type, dates, duration, and reason before sending through workflow."
+        error={createLeave.error}
+        onSubmit={() => createLeave.mutate({ data: leavePayload })}
+        submitLabel={createLeave.isPending ? 'Saving...' : 'Save leave'}
+      >
+        <FormSection index="01" title="Leave type">
+          <FormField label="Type">
+            <FormSelect
+              value={form.leaveType}
+              onChange={(event) => setForm({ ...form, leaveType: event.target.value })}
+            >
+              <option value="ANNUAL">Annual</option>
+              <option value="SICK">Sick</option>
+              <option value="CASUAL">Casual</option>
+              <option value="UNPAID">Unpaid</option>
+            </FormSelect>
+          </FormField>
+        </FormSection>
+        <FormSection index="02" title="Dates and duration">
+          <div className="grid gap-3 md:grid-cols-3">
+            <FormField label="Start date">
+              <FormInput
+                type="date"
+                value={form.startDate}
+                onChange={(event) => setForm({ ...form, startDate: event.target.value })}
+              />
+            </FormField>
+            <FormField label="End date">
+              <FormInput
+                type="date"
+                value={form.endDate}
+                onChange={(event) => setForm({ ...form, endDate: event.target.value })}
+              />
+            </FormField>
+            <FormField label="Leave days">
+              <FormInput
+                type="number"
+                value={form.leaveDays}
+                onChange={(event) => setForm({ ...form, leaveDays: Number(event.target.value) })}
+              />
+            </FormField>
+          </div>
+        </FormSection>
+        <FormSection index="03" title="Reason">
+          <FormField label="Reason">
+            <FormTextarea
+              value={form.reason}
+              onChange={(event) => setForm({ ...form, reason: event.target.value })}
             />
           </FormField>
-          <FormField label="End date">
-            <FormInput
-              type="date"
-              value={form.endDate}
-              onChange={(event) => setForm({ ...form, endDate: event.target.value })}
-            />
-          </FormField>
-          <FormField label="Leave days">
-            <FormInput
-              type="number"
-              value={form.leaveDays}
-              onChange={(event) => setForm({ ...form, leaveDays: Number(event.target.value) })}
-            />
-          </FormField>
-        </div>
-      </FormSection>
-      <FormSection index="03" title="Reason">
-        <FormField label="Reason">
-          <FormTextarea
-            value={form.reason}
-            onChange={(event) => setForm({ ...form, reason: event.target.value })}
-          />
-        </FormField>
-      </FormSection>
-    </CreatePanel>
+        </FormSection>
+      </CreatePanel>
+    </div>
   )
 }
 
@@ -1152,7 +1662,8 @@ export function PaymentsPage() {
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   return (
     <>
-      <PageHeader title="Payment requests" />
+      <PageHeader title="Payment requests" kicker="Accounts" />
+      <ErrorNotice error={query.error} />
       <DataTable
         data={rows}
         columns={[
@@ -1171,7 +1682,8 @@ export function AuditLogsPage() {
   const query = useAuditLogsControllerList({ params: { page: 1, limit: 50 } })
   return (
     <>
-      <PageHeader title="Audit logs" />
+      <PageHeader title="Audit logs" kicker="History" />
+      <ErrorNotice error={query.error} />
       <AuditTable rows={(unwrapData(query.data) as Row[] | undefined) ?? []} />
     </>
   )
@@ -1200,10 +1712,15 @@ export function EventSchemasPage() {
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   return (
     <>
-      <PageHeader title="Workflow event schemas" description="Field schemas drive condition fields, assignee resolvers, and outcome choices in the builder." />
-      <div className="mb-5 grid gap-3 rounded-md border border-[var(--border)] bg-white p-4 md:grid-cols-[1fr_1fr_auto]">
-        <FormInput value={moduleName} onChange={(event) => setModuleName(event.target.value)} />
-        <FormInput value={eventName} onChange={(event) => setEventName(event.target.value)} />
+      <PageHeader title="Workflow event schemas" kicker="Schemas" description="Field schemas drive condition fields, assignee resolvers, and outcome choices in the builder." />
+      <ErrorNotice error={query.error ?? createSchema.error} />
+      <div className="mb-5 grid gap-3 rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm md:grid-cols-[1fr_1fr_auto] md:items-end">
+        <FormField label="Module">
+          <FormInput value={moduleName} onChange={(event) => setModuleName(event.target.value)} />
+        </FormField>
+        <FormField label="Event">
+          <FormInput value={eventName} onChange={(event) => setEventName(event.target.value)} />
+        </FormField>
         <Button type="button" onClick={() => createSchema.mutate({ data: { moduleName, eventName, entityType: moduleName === 'leaves' ? 'Leave' : 'Expense', fieldSchemaJson: { fields: [] } } })}>
           Create schema
         </Button>
@@ -1233,10 +1750,10 @@ function DetailPage({ title, error, value, workflowId }: { title: string; error:
 
 function ObjectPanel({ value }: { value: Row }) {
   return (
-    <div className="grid gap-3 rounded-md border border-[var(--border)] bg-white p-4 md:grid-cols-2">
+    <div className="grid gap-3 rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm md:grid-cols-2">
       {Object.entries(value).map(([key, item]) => (
         <div key={key} className="min-w-0 border-b border-[var(--border)] pb-2">
-          <p className="text-xs font-medium uppercase text-[var(--muted-foreground)]">{key}</p>
+          <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{key}</p>
           <p className="mt-1 break-words text-sm">{formatValue(item)}</p>
         </div>
       ))}
@@ -1252,7 +1769,7 @@ export function SummaryCard({
   rows: Array<{ label: string; value: React.ReactNode }>
 }) {
   return (
-    <div className="rounded-md border border-[var(--border)] bg-white p-4">
+    <div className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
       <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--ink-3)]">
         {title}
       </p>

@@ -2,12 +2,115 @@ import { describe, expect, it } from 'vitest'
 
 import {
   createDefaultWorkflowDraft,
+  describeWorkflowAssignee,
   getConditionFieldExample,
+  getWorkflowBuilderStepState,
   getWorkflowModule,
   toWorkflowWizardPayload,
+  workflowBuilderSteps,
 } from './workflow-builder-store'
 
 describe('workflow builder payload', () => {
+  it('defines named wizard steps with explicit progress state', () => {
+    expect(workflowBuilderSteps.map((step) => step.name)).toEqual([
+      'Setup',
+      'Rules',
+      'Approval chain',
+      'Outcomes',
+      'Review',
+    ])
+    expect(workflowBuilderSteps[0]?.description).toContain(
+      'Basics, event, and trigger',
+    )
+
+    expect(getWorkflowBuilderStepState(3, 1)).toBe('complete')
+    expect(getWorkflowBuilderStepState(3, 3)).toBe('current')
+    expect(getWorkflowBuilderStepState(3, 5)).toBe('upcoming')
+  })
+
+  it('describes workflow assignees in production-readable language', () => {
+    expect(
+      describeWorkflowAssignee({
+        stepOrder: 1,
+        stepName: 'Finance review',
+        stepType: 'FINANCE_CHECK',
+        assigneeType: 'ROLE',
+        assigneeRoleSlug: 'finance-admin',
+        isRequired: true,
+        requiresComment: true,
+        requiresAttachment: false,
+        canReject: true,
+        canReassign: false,
+      }),
+    ).toBe('Role: Finance Admin')
+
+    expect(
+      describeWorkflowAssignee(
+        {
+          stepOrder: 2,
+          stepName: 'CFO approval',
+          stepType: 'MANAGEMENT_APPROVAL',
+          assigneeType: 'USER',
+          assigneeUserId: 'user-1',
+          isRequired: true,
+          requiresComment: false,
+          requiresAttachment: false,
+          canReject: true,
+          canReassign: false,
+        },
+        [{ id: 'user-1', name: 'Ayesha Rahman', email: 'ayesha@example.com' }],
+      ),
+    ).toBe('User: Ayesha Rahman <ayesha@example.com>')
+
+    expect(
+      describeWorkflowAssignee({
+        stepOrder: 3,
+        stepName: 'Budget owner approval',
+        stepType: 'APPROVAL',
+        assigneeType: 'CUSTOM_FIELD_USER',
+        assigneeFieldPath: 'customFields.budgetOwnerId',
+        isRequired: true,
+        requiresComment: false,
+        requiresAttachment: false,
+        canReject: true,
+        canReassign: false,
+      }),
+    ).toBe('User from event field: customFields.budgetOwnerId')
+
+    expect(
+      describeWorkflowAssignee({
+        stepOrder: 4,
+        stepName: 'Missing user approval',
+        stepType: 'APPROVAL',
+        assigneeType: 'USER',
+        isRequired: true,
+        requiresComment: false,
+        requiresAttachment: false,
+        canReject: true,
+        canReassign: false,
+      }),
+    ).toBe('Needs assignment')
+  })
+
+  it('starts new workflows with only manager approval in the default path', () => {
+    const draft = createDefaultWorkflowDraft()
+
+    expect(draft.rules[0]?.steps).toEqual([
+      {
+        stepOrder: 1,
+        stepName: 'Manager approval',
+        stepType: 'APPROVAL',
+        assigneeType: 'REQUESTER_MANAGER',
+        isRequired: true,
+        requiresComment: false,
+        requiresAttachment: false,
+        canReject: true,
+        canReassign: false,
+        slaHours: 24,
+      },
+    ])
+  })
+
   it('exposes backend-backed condition field examples for rule guidance', () => {
     expect(getWorkflowModule('expenses')?.fields.map((field) => field.key)).toEqual([
       'amount',

@@ -260,15 +260,17 @@ function AuthPanel({
   error?: string
 }) {
   return (
-    <div className="w-full max-w-[440px]">
+    <div className="w-full max-w-[440px] min-w-0">
       <p className="mb-3 inline-flex rounded-sm border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-3)]">
         ERP Workflow
       </p>
-      <div className="rounded-md border border-[var(--border)] bg-white p-6 shadow-sm sm:p-8">
-        <div className="mb-5">
-          <div className="mb-1.5 flex items-baseline justify-between gap-4">
-            <h1 className="text-[24px] font-semibold tracking-tight">{title}</h1>
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
+      <div className="rounded-md border border-[var(--border)] bg-white p-4 shadow-sm sm:p-8">
+        <div className="mb-5 min-w-0">
+          <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h1 className="min-w-0 text-[22px] font-semibold tracking-tight sm:text-[24px]">
+              {title}
+            </h1>
+            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--muted-foreground)] sm:text-[10.5px]">
               Email · Password
             </span>
           </div>

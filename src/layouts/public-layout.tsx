@@ -21,12 +21,12 @@ export function PublicLayout({ children }: { children?: ReactNode }) {
   const panel = location.pathname === '/sign-up' ? authPanels.signUp : authPanels.signIn
 
   return (
-    <main className="grid min-h-screen grid-cols-1 bg-[var(--background)] lg:grid-cols-[minmax(360px,500px)_1fr]">
-      <section className="flex items-center justify-center px-5 py-8 sm:px-6 lg:px-10">
+    <main className="grid min-h-dvh grid-cols-1 bg-[var(--background)] lg:min-h-screen lg:grid-cols-2">
+      <section className="flex min-w-0 items-center justify-center px-4 py-6 sm:px-6 lg:order-2 lg:px-10">
         {children ?? <Outlet />}
       </section>
       <section
-        className={`hidden overflow-hidden bg-gradient-to-br ${panel.className} px-12 py-10 lg:flex lg:flex-col lg:justify-between`}
+        className={`hidden overflow-hidden bg-gradient-to-br ${panel.className} px-12 py-10 lg:order-1 lg:flex lg:flex-col lg:justify-between`}
       >
         <Link to="/sign-in" className="text-lg font-semibold tracking-tight">
           ERP Workflow
