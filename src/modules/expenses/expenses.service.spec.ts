@@ -1,5 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import type { TriggerWorkflowDto } from '../workflow-runtime/dto/trigger-workflow.dto';
+import { WorkflowStepStatus } from '../workflow-runtime/enums/workflow-runtime.enums';
+import type { TriggerWorkflowResult } from '../workflow-runtime/workflow-runtime.service';
 import { ExpensesService } from './expenses.service';
 import { ExpenseStatus } from './entities/expense.entity';
 
@@ -126,6 +128,54 @@ describe('ExpensesService', () => {
     expect(response.createdBy).toEqual(creator);
   });
 
+  it('marks rejected expenses as resubmittable when the workflow allows it', async () => {
+    const repo = {
+      findOne: jest.fn().mockResolvedValue({
+        id: 'expense-1',
+        requesterId: 'requester-1',
+        requester: null,
+        createdById: 'requester-1',
+        createdBy: null,
+        departmentId: 'dept-1',
+        title: 'Laptop reimbursement',
+        description: null,
+        amount: '4500',
+        currency: 'BDT',
+        category: 'Software',
+        vendor: null,
+        itemValue: null,
+        price: null,
+        quantity: null,
+        status: ExpenseStatus.REJECTED,
+        workflowInstanceId: 'workflow-1',
+        rejectionReason: 'Receipt missing',
+        customFieldsJson: null,
+        submittedAt: new Date('2026-06-10T08:00:00.000Z'),
+        approvedAt: null,
+        rejectedAt: new Date('2026-06-11T08:00:00.000Z'),
+        paidAt: null,
+        createdAt: new Date('2026-06-10T08:00:00.000Z'),
+        updatedAt: new Date('2026-06-11T08:00:00.000Z'),
+      }),
+    };
+    const runtime = {
+      allowsResubmission: jest.fn().mockResolvedValue(true),
+    };
+    const service = new ExpensesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
+
+    const response = await service.findOne('expense-1', {
+      userId: 'requester-1',
+      roles: [],
+    } as never);
+
+    expect(runtime.allowsResubmission).toHaveBeenCalledWith('workflow-1');
+    expect(response.canResubmit).toBe(true);
+  });
+
   it('submits a draft expense and triggers workflow metadata', async () => {
     const expense = {
       id: 'expense-1',
@@ -162,14 +212,22 @@ describe('ExpensesService', () => {
       save: jest.fn().mockImplementation((value) => Promise.resolve(value)),
     };
     const runtime: {
-      trigger: jest.Mock<
-        Promise<{ workflowInstanceId: string }>,
-        [TriggerWorkflowDto]
-      >;
+      trigger: jest.Mock<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>;
     } = {
       trigger: jest
-        .fn<Promise<{ workflowInstanceId: string }>, [TriggerWorkflowDto]>()
-        .mockResolvedValue({ workflowInstanceId: 'wi-1' }),
+        .fn<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>()
+        .mockResolvedValue({
+          status: 'triggered',
+          workflowInstanceId: 'wi-1',
+          activeStep: {
+            id: 'step-1',
+            stepName: 'Review',
+            stepOrder: 1,
+            assignedUserId: null,
+            assignedRoleSlug: 'manager',
+            status: WorkflowStepStatus.ACTIVE,
+          },
+        }),
     };
     const service = new ExpensesService(
       repo as never,
@@ -195,6 +253,58 @@ describe('ExpensesService', () => {
     );
   });
 
+  it('rejects submitting a draft expense when no published workflow applies', async () => {
+    const expense = {
+      id: 'expense-1',
+      requesterId: 'user-1',
+      departmentId: 'dept-1',
+      title: 'Travel',
+      amount: '7500',
+      currency: 'BDT',
+      category: 'travel',
+      status: ExpenseStatus.DRAFT,
+      customFieldsJson: {},
+    };
+    const repo = {
+      findOneBy: jest.fn().mockResolvedValue(expense),
+      findOne: jest.fn().mockResolvedValue({
+        ...expense,
+        requester: null,
+        createdById: 'user-1',
+        createdBy: null,
+        description: null,
+        vendor: null,
+        itemValue: null,
+        price: null,
+        quantity: null,
+        workflowInstanceId: null,
+        rejectionReason: null,
+        submittedAt: new Date('2026-06-11T08:00:00.000Z'),
+        approvedAt: null,
+        rejectedAt: null,
+        paidAt: null,
+        createdAt: new Date('2026-06-10T08:00:00.000Z'),
+        updatedAt: new Date('2026-06-11T08:00:00.000Z'),
+      }),
+      save: jest.fn(),
+    };
+    const runtime = {
+      trigger: jest.fn().mockResolvedValue({ status: 'skipped' }),
+    };
+    const service = new ExpensesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
+
+    await expect(
+      service.submit('expense-1', { userId: 'user-1', roles: [] } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(repo.save).not.toHaveBeenCalled();
+    expect(expense.status).toBe(ExpenseStatus.DRAFT);
+  });
+
   it('rejects submit by a non-owner', async () => {
     const service = new ExpensesService(
       {
@@ -207,6 +317,37 @@ describe('ExpensesService', () => {
     await expect(
       service.submit('expense-1', { userId: 'other-1' } as never),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects resubmitting an expense when the workflow disallows it', async () => {
+    const expense = {
+      id: 'expense-1',
+      requesterId: 'user-1',
+      status: ExpenseStatus.REJECTED,
+      workflowInstanceId: 'workflow-1',
+    };
+    const repo = {
+      findOneBy: jest.fn().mockResolvedValue(expense),
+      save: jest.fn(),
+    };
+    const runtime = {
+      allowsResubmission: jest.fn().mockResolvedValue(false),
+    };
+    const service = new ExpensesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
+
+    await expect(
+      service.resubmit('expense-1', {}, {
+        userId: 'user-1',
+        roles: [],
+      } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(runtime.allowsResubmission).toHaveBeenCalledWith('workflow-1');
+    expect(repo.save).not.toHaveBeenCalled();
   });
 
   it('deletes a draft expense owned by the requester', async () => {

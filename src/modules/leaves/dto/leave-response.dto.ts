@@ -60,6 +60,9 @@ export class LeaveResponseDto {
   })
   workflowInstanceId!: string | null;
 
+  @ApiProperty({ example: false })
+  canResubmit!: boolean;
+
   @ApiProperty({
     type: String,
     example: 'Insufficient balance',

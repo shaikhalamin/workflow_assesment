@@ -8,6 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { paginateRepo } from '../../common/http/paginate';
 import { PaginationQueryDto } from '../../common/http/pagination.query';
+import {
+  toIsoStringOrNull,
+  toWorkflowUserResponse,
+} from '../../common/workflow.utils';
 import { AuditLog } from '../audit-logs/entities/audit-log.entity';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { Expense } from '../expenses/entities/expense.entity';
@@ -26,7 +30,6 @@ import {
   WorkflowInstanceResponseDto,
   WorkflowRequestSummaryResponseDto,
   WorkflowStepResponseDto,
-  WorkflowUserResponseDto,
 } from './dto/workflow-runtime-response.dto';
 import { WorkflowAction } from './entities/workflow-action.entity';
 import { WorkflowInstance } from './entities/workflow-instance.entity';
@@ -42,6 +45,23 @@ import { RuleEngineService } from './rule-engine.service';
 type WorkflowInstanceWithRequestTitle = WorkflowInstance & {
   expenseRequest?: Pick<Expense, 'title'> | null;
 };
+
+type WorkflowStepSummary = {
+  id: string;
+  stepName: string;
+  stepOrder: number;
+  assignedUserId: string | null;
+  assignedRoleSlug: string | null;
+  status: WorkflowStepStatus;
+};
+
+export type TriggerWorkflowResult =
+  | { status: 'skipped' }
+  | {
+      status: 'triggered';
+      workflowInstanceId: string;
+      activeStep: WorkflowStepSummary;
+    };
 
 @Injectable()
 export class WorkflowRuntimeService {
@@ -63,7 +83,7 @@ export class WorkflowRuntimeService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async trigger(dto: TriggerWorkflowDto) {
+  async trigger(dto: TriggerWorkflowDto): Promise<TriggerWorkflowResult> {
     return this.dataSource.transaction(async (manager) => {
       const templatesRepository = manager.getRepository(WorkflowTemplate);
       const instancesRepository = manager.getRepository(WorkflowInstance);
@@ -176,6 +196,15 @@ export class WorkflowRuntimeService {
         activeStep: this.toStepSummary(activeStep),
       };
     });
+  }
+
+  async allowsResubmission(workflowInstanceId: string): Promise<boolean> {
+    const instance = await this.instancesRepository.findOne({
+      where: { id: workflowInstanceId },
+      relations: { workflowTemplate: true },
+    });
+
+    return instance?.workflowTemplate.allowResubmission ?? false;
   }
 
   list(query: PaginationQueryDto) {
@@ -520,7 +549,7 @@ export class WorkflowRuntimeService {
     );
   }
 
-  private toStepSummary(step: WorkflowStep) {
+  private toStepSummary(step: WorkflowStep): WorkflowStepSummary {
     return {
       id: step.id,
       stepName: step.stepName,
@@ -546,9 +575,9 @@ export class WorkflowRuntimeService {
       departmentId: instance.departmentId,
       status: instance.status,
       metadataJson: instance.metadataJson,
-      startedAt: this.toIsoStringOrNull(instance.startedAt),
-      completedAt: this.toIsoStringOrNull(instance.completedAt),
-      rejectedAt: this.toIsoStringOrNull(instance.rejectedAt),
+      startedAt: toIsoStringOrNull(instance.startedAt),
+      completedAt: toIsoStringOrNull(instance.completedAt),
+      rejectedAt: toIsoStringOrNull(instance.rejectedAt),
       steps: (instance.steps ?? []).map((step) => this.toStepResponse(step)),
       actions: (instance.actions ?? []).map((action) =>
         this.toActionResponse(action),
@@ -567,14 +596,14 @@ export class WorkflowRuntimeService {
       stepName: step.stepName,
       stepType: step.stepType,
       assignedUserId: step.assignedUserId,
-      assignedUser: this.toWorkflowUserResponse(step.assignedUser),
+      assignedUser: toWorkflowUserResponse(step.assignedUser),
       assignedRoleSlug: step.assignedRoleSlug,
       assigneeType: step.assigneeType,
       status: step.status,
-      activatedAt: this.toIsoStringOrNull(step.activatedAt),
-      actedAt: this.toIsoStringOrNull(step.actedAt),
+      activatedAt: toIsoStringOrNull(step.activatedAt),
+      actedAt: toIsoStringOrNull(step.actedAt),
       actionByUserId: step.actionByUserId,
-      actionByUser: this.toWorkflowUserResponse(step.actionByUser),
+      actionByUser: toWorkflowUserResponse(step.actionByUser),
       comment: step.comment,
       rejectionReason: step.rejectionReason,
       actions: (step.actions ?? []).map((action) =>
@@ -592,7 +621,7 @@ export class WorkflowRuntimeService {
       workflowStepId: action.workflowStepId,
       action: action.action,
       actorUserId: action.actorUserId,
-      actorUser: this.toWorkflowUserResponse(action.actorUser),
+      actorUser: toWorkflowUserResponse(action.actorUser),
       comment: action.comment,
       reason: action.reason,
       metadataJson: action.metadataJson,
@@ -610,7 +639,7 @@ export class WorkflowRuntimeService {
       title: this.requestTitle(instance, metadata),
       type: instance.entityType,
       requesterId: instance.requesterId,
-      requester: this.toWorkflowUserResponse(instance.requester),
+      requester: toWorkflowUserResponse(instance.requester),
       amount: this.metadataNumber(metadata, 'amount'),
       currency: this.metadataString(metadata, 'currency'),
       leaveDays: this.metadataNumber(metadata, 'leaveDays'),
@@ -667,21 +696,5 @@ export class WorkflowRuntimeService {
       .filter(Boolean)
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ');
-  }
-
-  private toWorkflowUserResponse(
-    user: { id: string; name: string; email: string } | null | undefined,
-  ): WorkflowUserResponseDto | null {
-    if (!user) return null;
-
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    };
-  }
-
-  private toIsoStringOrNull(value: Date | null): string | null {
-    return value ? value.toISOString() : null;
   }
 }

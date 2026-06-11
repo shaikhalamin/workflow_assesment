@@ -8,9 +8,13 @@ import { Repository } from 'typeorm';
 import { paginateQb } from '../../common/http/paginate';
 import { Paginated } from '../../common/http/paginated';
 import { SuccessResponseDto } from '../../common/http/success-response.dto';
+import {
+  canResubmit,
+  toIsoStringOrNull,
+  toWorkflowUserResponse,
+} from '../../common/workflow.utils';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { WorkflowRuntimeService } from '../workflow-runtime/workflow-runtime.service';
-import { WorkflowUserResponseDto } from '../workflow-runtime/dto/workflow-runtime-response.dto';
 import { CreateLeaveDto } from './dto/create-leave.dto';
 import { LeaveResponseDto } from './dto/leave-response.dto';
 import { LeaveQueryDto } from './dto/leave-query.dto';
@@ -82,7 +86,7 @@ export class LeavesService {
       idColumn: 'leave.id',
     });
     return new Paginated(
-      paginated.items.map((leave) => this.toResponse(leave)),
+      await Promise.all(paginated.items.map((leave) => this.toResponse(leave))),
       paginated.page,
       paginated.limit,
       paginated.total,
@@ -141,13 +145,14 @@ export class LeavesService {
       departmentId: leave.departmentId,
       metadata: this.workflowMetadata(leave),
     });
+    if (result.status !== 'triggered') {
+      throw new BadRequestException(
+        'No published workflow applies to this leave request',
+      );
+    }
 
     leave.status = LeaveRequestStatus.UNDER_REVIEW;
-    leave.workflowInstanceId =
-      'workflowInstanceId' in result &&
-      typeof result.workflowInstanceId === 'string'
-        ? result.workflowInstanceId
-        : null;
+    leave.workflowInstanceId = result.workflowInstanceId;
     leave.submittedAt = new Date();
     await this.auditLogsService.record?.({
       actorUserId: actor.userId,
@@ -166,14 +171,27 @@ export class LeavesService {
     dto: ResubmitLeaveDto,
     actor: Express.User,
   ): Promise<LeaveResponseDto> {
-    await this.update(id, dto, actor);
     const leave = await this.findVisibleLeave(id, actor, false);
     if (leave.status !== LeaveRequestStatus.REJECTED) {
       throw new BadRequestException('Only rejected leave can be resubmitted');
     }
-    leave.status = LeaveRequestStatus.DRAFT;
-    leave.rejectionReason = null;
-    await this.leavesRepository.save(leave);
+    if (
+      !(await canResubmit(
+        leave,
+        LeaveRequestStatus.REJECTED,
+        (workflowInstanceId) =>
+          this.workflowRuntimeService.allowsResubmission(workflowInstanceId),
+      ))
+    ) {
+      throw new BadRequestException(
+        'This leave workflow does not allow resubmission',
+      );
+    }
+    await this.update(id, dto, actor);
+    const updatedLeave = await this.findVisibleLeave(id, actor, false);
+    updatedLeave.status = LeaveRequestStatus.DRAFT;
+    updatedLeave.rejectionReason = null;
+    await this.leavesRepository.save(updatedLeave);
     return this.submit(id, actor);
   }
 
@@ -237,13 +255,13 @@ export class LeavesService {
     };
   }
 
-  private toResponse(leave: LeaveRequest): LeaveResponseDto {
+  private async toResponse(leave: LeaveRequest): Promise<LeaveResponseDto> {
     return {
       id: leave.id,
       requesterId: leave.requesterId,
-      requester: this.toWorkflowUserResponse(leave.requester),
+      requester: toWorkflowUserResponse(leave.requester),
       createdById: leave.createdById,
-      createdBy: this.toWorkflowUserResponse(leave.createdBy),
+      createdBy: toWorkflowUserResponse(leave.createdBy),
       departmentId: leave.departmentId,
       leaveType: leave.leaveType,
       leaveDays: leave.leaveDays,
@@ -253,31 +271,21 @@ export class LeavesService {
       employeeGrade: leave.employeeGrade,
       status: leave.status,
       workflowInstanceId: leave.workflowInstanceId,
+      canResubmit: await canResubmit(
+        leave,
+        LeaveRequestStatus.REJECTED,
+        (workflowInstanceId) =>
+          this.workflowRuntimeService.allowsResubmission(workflowInstanceId),
+      ),
       rejectionReason: leave.rejectionReason,
       approvedPeriodJson: leave.approvedPeriodJson,
       customFieldsJson: leave.customFieldsJson,
-      submittedAt: this.toIsoStringOrNull(leave.submittedAt),
-      approvedAt: this.toIsoStringOrNull(leave.approvedAt),
-      rejectedAt: this.toIsoStringOrNull(leave.rejectedAt),
+      submittedAt: toIsoStringOrNull(leave.submittedAt),
+      approvedAt: toIsoStringOrNull(leave.approvedAt),
+      rejectedAt: toIsoStringOrNull(leave.rejectedAt),
       createdAt: leave.createdAt.toISOString(),
       updatedAt: leave.updatedAt.toISOString(),
     };
-  }
-
-  private toWorkflowUserResponse(
-    user: { id: string; name: string; email: string } | null | undefined,
-  ): WorkflowUserResponseDto | null {
-    if (!user) return null;
-
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    };
-  }
-
-  private toIsoStringOrNull(value: Date | null): string | null {
-    return value ? value.toISOString() : null;
   }
 
   private humanizeLeaveType(value: string): string {

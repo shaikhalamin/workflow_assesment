@@ -1,5 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import type { TriggerWorkflowDto } from '../workflow-runtime/dto/trigger-workflow.dto';
+import { WorkflowStepStatus } from '../workflow-runtime/enums/workflow-runtime.enums';
+import type { TriggerWorkflowResult } from '../workflow-runtime/workflow-runtime.service';
 import { LeavesService } from './leaves.service';
 import { LeaveRequestStatus } from './entities/leave-request.entity';
 
@@ -109,6 +111,52 @@ describe('LeavesService', () => {
     expect(response.createdBy).toEqual(creator);
   });
 
+  it('marks rejected leave requests as resubmittable when the workflow allows it', async () => {
+    const leave = {
+      id: 'leave-1',
+      requesterId: 'requester-1',
+      requester: null,
+      createdById: 'requester-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      leaveType: 'ANNUAL',
+      leaveDays: 2,
+      startDate: '2026-06-10',
+      endDate: '2026-06-11',
+      reason: 'Family event',
+      employeeGrade: 'G5',
+      status: LeaveRequestStatus.REJECTED,
+      workflowInstanceId: 'workflow-1',
+      rejectionReason: 'Insufficient balance',
+      approvedPeriodJson: null,
+      customFieldsJson: null,
+      submittedAt: new Date('2026-06-10T09:30:00.000Z'),
+      approvedAt: null,
+      rejectedAt: new Date('2026-06-11T09:30:00.000Z'),
+      createdAt: new Date('2026-06-10T09:30:00.000Z'),
+      updatedAt: new Date('2026-06-11T09:30:00.000Z'),
+    };
+    const repo = {
+      findOne: jest.fn().mockResolvedValue(leave),
+    };
+    const runtime = {
+      allowsResubmission: jest.fn().mockResolvedValue(true),
+    };
+    const service = new LeavesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
+
+    const response = await service.findOne('leave-1', {
+      userId: 'requester-1',
+      roles: [],
+    } as never);
+
+    expect(runtime.allowsResubmission).toHaveBeenCalledWith('workflow-1');
+    expect(response.canResubmit).toBe(true);
+  });
+
   it('submits a draft leave request and triggers workflow metadata', async () => {
     const leave = {
       id: 'leave-1',
@@ -139,14 +187,22 @@ describe('LeavesService', () => {
       save: jest.fn().mockImplementation((value) => Promise.resolve(value)),
     };
     const runtime: {
-      trigger: jest.Mock<
-        Promise<{ workflowInstanceId: string }>,
-        [TriggerWorkflowDto]
-      >;
+      trigger: jest.Mock<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>;
     } = {
       trigger: jest
-        .fn<Promise<{ workflowInstanceId: string }>, [TriggerWorkflowDto]>()
-        .mockResolvedValue({ workflowInstanceId: 'wi-2' }),
+        .fn<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>()
+        .mockResolvedValue({
+          status: 'triggered',
+          workflowInstanceId: 'wi-2',
+          activeStep: {
+            id: 'step-1',
+            stepName: 'Review',
+            stepOrder: 1,
+            assignedUserId: null,
+            assignedRoleSlug: 'manager',
+            status: WorkflowStepStatus.ACTIVE,
+          },
+        }),
     };
     const service = new LeavesService(
       repo as never,
@@ -170,6 +226,80 @@ describe('LeavesService', () => {
         leaveDays: 2,
       }),
     );
+  });
+
+  it('rejects submitting a draft leave request when no published workflow applies', async () => {
+    const leave = {
+      id: 'leave-1',
+      requesterId: 'user-1',
+      requester: null,
+      createdById: 'user-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      leaveType: 'ANNUAL',
+      leaveDays: 2,
+      startDate: '2026-06-10',
+      endDate: '2026-06-11',
+      reason: null,
+      status: LeaveRequestStatus.DRAFT,
+      employeeGrade: 'G5',
+      workflowInstanceId: null,
+      rejectionReason: null,
+      approvedPeriodJson: null,
+      customFieldsJson: {},
+      submittedAt: null,
+      approvedAt: null,
+      rejectedAt: null,
+      createdAt: new Date('2026-06-10T09:30:00.000Z'),
+      updatedAt: new Date('2026-06-10T09:30:00.000Z'),
+    };
+    const repo = {
+      findOneBy: jest.fn().mockResolvedValue(leave),
+      save: jest.fn().mockImplementation((value) => Promise.resolve(value)),
+    };
+    const runtime = {
+      trigger: jest.fn().mockResolvedValue({ status: 'skipped' }),
+    };
+    const service = new LeavesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
+
+    await expect(
+      service.submit('leave-1', { userId: 'user-1' } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(repo.save).not.toHaveBeenCalled();
+    expect(leave.status).toBe(LeaveRequestStatus.DRAFT);
+  });
+
+  it('rejects resubmitting a leave request when the workflow disallows it', async () => {
+    const leave = {
+      id: 'leave-1',
+      requesterId: 'user-1',
+      status: LeaveRequestStatus.REJECTED,
+      workflowInstanceId: 'workflow-1',
+    };
+    const repo = {
+      findOneBy: jest.fn().mockResolvedValue(leave),
+      save: jest.fn(),
+    };
+    const runtime = {
+      allowsResubmission: jest.fn().mockResolvedValue(false),
+    };
+    const service = new LeavesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
+
+    await expect(
+      service.resubmit('leave-1', {}, { userId: 'user-1', roles: [] } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(runtime.allowsResubmission).toHaveBeenCalledWith('workflow-1');
+    expect(repo.save).not.toHaveBeenCalled();
   });
 
   it('deletes a draft leave request owned by the requester', async () => {

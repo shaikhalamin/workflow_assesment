@@ -9,6 +9,11 @@ import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { paginateQb } from '../../common/http/paginate';
 import { Paginated } from '../../common/http/paginated';
 import { SuccessResponseDto } from '../../common/http/success-response.dto';
+import {
+  canResubmit,
+  toIsoStringOrNull,
+  toWorkflowUserResponse,
+} from '../../common/workflow.utils';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { ExpenseResponseDto } from './dto/expense-response.dto';
 import { ExpenseQueryDto } from './dto/expense-query.dto';
@@ -16,7 +21,6 @@ import { ResubmitExpenseDto } from './dto/resubmit-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { Expense, ExpenseStatus } from './entities/expense.entity';
 import { WorkflowRuntimeService } from '../workflow-runtime/workflow-runtime.service';
-import { WorkflowUserResponseDto } from '../workflow-runtime/dto/workflow-runtime-response.dto';
 
 @Injectable()
 export class ExpensesService {
@@ -85,7 +89,9 @@ export class ExpensesService {
       idColumn: 'expense.id',
     });
     return new Paginated(
-      paginated.items.map((expense) => this.toResponse(expense)),
+      await Promise.all(
+        paginated.items.map((expense) => this.toResponse(expense)),
+      ),
       paginated.page,
       paginated.limit,
       paginated.total,
@@ -142,13 +148,14 @@ export class ExpensesService {
       departmentId: expense.departmentId,
       metadata: this.workflowMetadata(expense),
     });
+    if (result.status !== 'triggered') {
+      throw new BadRequestException(
+        'No published workflow applies to this expense request',
+      );
+    }
 
     expense.status = ExpenseStatus.UNDER_REVIEW;
-    expense.workflowInstanceId =
-      'workflowInstanceId' in result &&
-      typeof result.workflowInstanceId === 'string'
-        ? result.workflowInstanceId
-        : null;
+    expense.workflowInstanceId = result.workflowInstanceId;
     expense.submittedAt = new Date();
     await this.auditLogsService.record?.({
       actorUserId: actor.userId,
@@ -168,16 +175,29 @@ export class ExpensesService {
     dto: ResubmitExpenseDto,
     actor: Express.User,
   ): Promise<ExpenseResponseDto> {
-    await this.update(id, dto, actor);
     const expense = await this.findVisibleExpense(id, actor, false);
     if (expense.status !== ExpenseStatus.REJECTED) {
       throw new BadRequestException(
         'Only rejected expenses can be resubmitted',
       );
     }
-    expense.status = ExpenseStatus.DRAFT;
-    expense.rejectionReason = null;
-    await this.expensesRepository.save(expense);
+    if (
+      !(await canResubmit(
+        expense,
+        ExpenseStatus.REJECTED,
+        (workflowInstanceId) =>
+          this.workflowRuntimeService.allowsResubmission(workflowInstanceId),
+      ))
+    ) {
+      throw new BadRequestException(
+        'This expense workflow does not allow resubmission',
+      );
+    }
+    await this.update(id, dto, actor);
+    const updatedExpense = await this.findVisibleExpense(id, actor, false);
+    updatedExpense.status = ExpenseStatus.DRAFT;
+    updatedExpense.rejectionReason = null;
+    await this.expensesRepository.save(updatedExpense);
     return this.submit(id, actor);
   }
 
@@ -257,13 +277,13 @@ export class ExpensesService {
     };
   }
 
-  private toResponse(expense: Expense): ExpenseResponseDto {
+  private async toResponse(expense: Expense): Promise<ExpenseResponseDto> {
     return {
       id: expense.id,
       requesterId: expense.requesterId,
-      requester: this.toWorkflowUserResponse(expense.requester),
+      requester: toWorkflowUserResponse(expense.requester),
       createdById: expense.createdById,
-      createdBy: this.toWorkflowUserResponse(expense.createdBy),
+      createdBy: toWorkflowUserResponse(expense.createdBy),
       departmentId: expense.departmentId,
       title: expense.title,
       description: expense.description,
@@ -276,30 +296,20 @@ export class ExpensesService {
       quantity: expense.quantity,
       status: expense.status,
       workflowInstanceId: expense.workflowInstanceId,
+      canResubmit: await canResubmit(
+        expense,
+        ExpenseStatus.REJECTED,
+        (workflowInstanceId) =>
+          this.workflowRuntimeService.allowsResubmission(workflowInstanceId),
+      ),
       rejectionReason: expense.rejectionReason,
       customFieldsJson: expense.customFieldsJson,
-      submittedAt: this.toIsoStringOrNull(expense.submittedAt),
-      approvedAt: this.toIsoStringOrNull(expense.approvedAt),
-      rejectedAt: this.toIsoStringOrNull(expense.rejectedAt),
-      paidAt: this.toIsoStringOrNull(expense.paidAt),
+      submittedAt: toIsoStringOrNull(expense.submittedAt),
+      approvedAt: toIsoStringOrNull(expense.approvedAt),
+      rejectedAt: toIsoStringOrNull(expense.rejectedAt),
+      paidAt: toIsoStringOrNull(expense.paidAt),
       createdAt: expense.createdAt.toISOString(),
       updatedAt: expense.updatedAt.toISOString(),
     };
-  }
-
-  private toWorkflowUserResponse(
-    user: { id: string; name: string; email: string } | null | undefined,
-  ): WorkflowUserResponseDto | null {
-    if (!user) return null;
-
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    };
-  }
-
-  private toIsoStringOrNull(value: Date | null): string | null {
-    return value ? value.toISOString() : null;
   }
 }

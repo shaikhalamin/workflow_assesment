@@ -70,6 +70,9 @@ export class ExpenseResponseDto {
   })
   workflowInstanceId!: string | null;
 
+  @ApiProperty({ example: false })
+  canResubmit!: boolean;
+
   @ApiProperty({ type: String, example: 'Receipt missing', nullable: true })
   rejectionReason!: string | null;
 
