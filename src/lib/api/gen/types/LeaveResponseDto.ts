@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { WorkflowUserResponseDto } from "./WorkflowUserResponseDto.ts";
+
 export type LeaveResponseDtoStatusEnum =
   | "DRAFT"
   | "REQUESTED"
@@ -23,7 +25,19 @@ export type LeaveResponseDto = {
   /**
    * @type object
    */
-  departmentId: object | null;
+  requester: WorkflowUserResponseDto | null;
+  /**
+   * @type string
+   */
+  createdById: string | null;
+  /**
+   * @type object
+   */
+  createdBy: WorkflowUserResponseDto | null;
+  /**
+   * @type string
+   */
+  departmentId: string | null;
   /**
    * @type string
    */
@@ -41,25 +55,25 @@ export type LeaveResponseDto = {
    */
   endDate: string;
   /**
-   * @type object
+   * @type string
    */
-  reason: object | null;
+  reason: string | null;
   /**
-   * @type object
+   * @type string
    */
-  employeeGrade: object | null;
+  employeeGrade: string | null;
   /**
    * @type string
    */
   status: LeaveResponseDtoStatusEnum;
   /**
-   * @type object
+   * @type string
    */
-  workflowInstanceId: object | null;
+  workflowInstanceId: string | null;
   /**
-   * @type object
+   * @type string
    */
-  rejectionReason: object | null;
+  rejectionReason: string | null;
   /**
    * @type object
    */
@@ -69,17 +83,17 @@ export type LeaveResponseDto = {
    */
   customFieldsJson: object | null;
   /**
-   * @type object
+   * @type string
    */
-  submittedAt: object | null;
+  submittedAt: string | null;
   /**
-   * @type object
+   * @type string
    */
-  approvedAt: object | null;
+  approvedAt: string | null;
   /**
-   * @type object
+   * @type string
    */
-  rejectedAt: object | null;
+  rejectedAt: string | null;
   /**
    * @type string
    */

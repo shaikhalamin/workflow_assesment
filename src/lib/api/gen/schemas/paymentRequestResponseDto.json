@@ -15,17 +15,18 @@
       "example": "PENDING"
     },
     "paymentReference": {
-      "type": "object",
+      "type": "string",
       "example": "BANK-TXN-2026-0001",
       "nullable": true
     },
     "paidById": {
-      "type": "object",
+      "type": "string",
       "example": "e96cf99d-c871-4f29-a7b6-1d2246ddc542",
       "nullable": true
     },
     "paidAt": {
-      "type": "object",
+      "type": "string",
+      "format": "date-time",
       "example": "2026-06-11T09:00:00.000Z",
       "nullable": true
     },

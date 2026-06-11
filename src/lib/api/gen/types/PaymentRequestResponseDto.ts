@@ -34,17 +34,17 @@ export type PaymentRequestResponseDto = {
    */
   status: PaymentRequestResponseDtoStatusEnum;
   /**
-   * @type object
+   * @type string
    */
-  paymentReference: object | null;
+  paymentReference: string | null;
   /**
-   * @type object
+   * @type string
    */
-  paidById: object | null;
+  paidById: string | null;
   /**
-   * @type object
+   * @type string, date-time
    */
-  paidAt: object | null;
+  paidAt: string | null;
   /**
    * @type string
    */

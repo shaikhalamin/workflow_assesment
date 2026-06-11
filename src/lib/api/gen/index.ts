@@ -136,6 +136,7 @@ export type {
   WorkflowInstanceResponseDtoStatusEnum,
 } from "./types/WorkflowInstanceResponseDto.ts";
 export type { WorkflowOutcomeConfigResponseDto } from "./types/WorkflowOutcomeConfigResponseDto.ts";
+export type { WorkflowRequestSummaryResponseDto } from "./types/WorkflowRequestSummaryResponseDto.ts";
 export type {
   WorkflowStepResponseDto,
   WorkflowStepResponseDtoAssigneeTypeEnum,
@@ -147,6 +148,7 @@ export type {
   WorkflowTemplateResponseDtoStatusEnum,
 } from "./types/WorkflowTemplateResponseDto.ts";
 export type { WorkflowTriggerConditionResponseDto } from "./types/WorkflowTriggerConditionResponseDto.ts";
+export type { WorkflowUserResponseDto } from "./types/WorkflowUserResponseDto.ts";
 export type { WorkflowWizardDto } from "./types/WorkflowWizardDto.ts";
 export type {
   AppControllerGetHello200,
@@ -960,6 +962,7 @@ export {
 } from "./zod/workflowEventSchemasController/workflowEventSchemaControllerUpdateSchema.ts";
 export { workflowInstanceResponseDtoSchema } from "./zod/workflowInstanceResponseDtoSchema.ts";
 export { workflowOutcomeConfigResponseDtoSchema } from "./zod/workflowOutcomeConfigResponseDtoSchema.ts";
+export { workflowRequestSummaryResponseDtoSchema } from "./zod/workflowRequestSummaryResponseDtoSchema.ts";
 export {
   workflowRuleControllerDelete200Schema,
   workflowRuleControllerDeleteMutationResponseSchema,
@@ -1075,4 +1078,5 @@ export {
   workflowTemplateControllerUpdatePathParamsSchema,
 } from "./zod/workflowTemplatesController/workflowTemplateControllerUpdateSchema.ts";
 export { workflowTriggerConditionResponseDtoSchema } from "./zod/workflowTriggerConditionResponseDtoSchema.ts";
+export { workflowUserResponseDtoSchema } from "./zod/workflowUserResponseDtoSchema.ts";
 export { workflowWizardDtoSchema } from "./zod/workflowWizardDtoSchema.ts";

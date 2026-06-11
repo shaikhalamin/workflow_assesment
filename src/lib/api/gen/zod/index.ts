@@ -230,6 +230,7 @@ export {
 } from "./workflowEventSchemasController/workflowEventSchemaControllerUpdateSchema.ts";
 export { workflowInstanceResponseDtoSchema } from "./workflowInstanceResponseDtoSchema.ts";
 export { workflowOutcomeConfigResponseDtoSchema } from "./workflowOutcomeConfigResponseDtoSchema.ts";
+export { workflowRequestSummaryResponseDtoSchema } from "./workflowRequestSummaryResponseDtoSchema.ts";
 export {
   workflowRuleControllerDelete200Schema,
   workflowRuleControllerDeleteMutationResponseSchema,
@@ -345,4 +346,5 @@ export {
   workflowTemplateControllerUpdatePathParamsSchema,
 } from "./workflowTemplatesController/workflowTemplateControllerUpdateSchema.ts";
 export { workflowTriggerConditionResponseDtoSchema } from "./workflowTriggerConditionResponseDtoSchema.ts";
+export { workflowUserResponseDtoSchema } from "./workflowUserResponseDtoSchema.ts";
 export { workflowWizardDtoSchema } from "./workflowWizardDtoSchema.ts";

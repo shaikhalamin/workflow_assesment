@@ -15,9 +15,9 @@ export type UpdateWorkflowTemplateDto = {
    */
   name?: string;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  description?: object;
+  description?: string;
   /**
    * @type string | undefined
    */
@@ -40,22 +40,22 @@ export type UpdateWorkflowTemplateDto = {
    */
   priority?: number;
   /**
-   * @type object | undefined
+   * @type string | undefined, date-time
    */
-  effectiveFrom?: object;
+  effectiveFrom?: string;
   /**
-   * @type object | undefined
+   * @type string | undefined, date-time
    */
-  effectiveTo?: object;
+  effectiveTo?: string;
   /**
    * @default true
    * @type boolean | undefined
    */
   allowResubmission?: boolean;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  createdById?: object;
+  createdById?: string;
   /**
    * @type object | undefined
    */

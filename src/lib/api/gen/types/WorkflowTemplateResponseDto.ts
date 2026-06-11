@@ -23,9 +23,9 @@ export type WorkflowTemplateResponseDto = {
    */
   name: string;
   /**
-   * @type object
+   * @type string
    */
-  description: object | null;
+  description: string | null;
   /**
    * @type string
    */
@@ -47,21 +47,21 @@ export type WorkflowTemplateResponseDto = {
    */
   priority: number;
   /**
-   * @type object
+   * @type string, date-time
    */
-  effectiveFrom: object | null;
+  effectiveFrom: string | null;
   /**
-   * @type object
+   * @type string, date-time
    */
-  effectiveTo: object | null;
+  effectiveTo: string | null;
   /**
    * @type boolean
    */
   allowResubmission: boolean;
   /**
-   * @type object
+   * @type string
    */
-  createdById: object | null;
+  createdById: string | null;
   /**
    * @type object
    */

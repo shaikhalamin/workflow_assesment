@@ -22,17 +22,17 @@ export type ResubmitLeaveDto = {
    */
   endDate?: string;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  reason?: object;
+  reason?: string;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  employeeGrade?: object;
+  employeeGrade?: string;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  departmentId?: object;
+  departmentId?: string;
   /**
    * @type object | undefined
    */

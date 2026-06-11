@@ -51,17 +51,17 @@ export type WorkflowApprovalStepConfigResponseDto = {
    */
   assigneeType: WorkflowApprovalStepConfigResponseDtoAssigneeTypeEnum;
   /**
-   * @type object
+   * @type string
    */
-  assigneeRoleSlug: object | null;
+  assigneeRoleSlug: string | null;
   /**
-   * @type object
+   * @type string
    */
-  assigneeUserId: object | null;
+  assigneeUserId: string | null;
   /**
-   * @type object
+   * @type string
    */
-  assigneeFieldPath: object | null;
+  assigneeFieldPath: string | null;
   /**
    * @type boolean
    */
@@ -83,21 +83,21 @@ export type WorkflowApprovalStepConfigResponseDto = {
    */
   canReassign: boolean;
   /**
-   * @type object
+   * @type number
    */
-  slaHours: object | null;
+  slaHours: number | null;
   /**
    * @type string
    */
   escalationAssigneeType: WorkflowApprovalStepConfigResponseDtoEscalationAssigneeTypeEnum | null;
   /**
-   * @type object
+   * @type string
    */
-  escalationAssigneeRoleSlug: object | null;
+  escalationAssigneeRoleSlug: string | null;
   /**
-   * @type object
+   * @type string
    */
-  escalationAssigneeUserId: object | null;
+  escalationAssigneeUserId: string | null;
   /**
    * @type string
    */

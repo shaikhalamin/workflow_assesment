@@ -11,6 +11,6 @@ export const triggerWorkflowDtoSchema = z.object({
   entityType: z.string(),
   entityId: z.string(),
   requesterId: z.string(),
-  departmentId: z.optional(z.object({})),
+  departmentId: z.optional(z.string()),
   metadata: z.optional(z.object({})),
 });

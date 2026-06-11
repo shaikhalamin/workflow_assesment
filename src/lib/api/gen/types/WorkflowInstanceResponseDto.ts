@@ -48,9 +48,9 @@ export type WorkflowInstanceResponseDto = {
    */
   requesterId: string;
   /**
-   * @type object
+   * @type string
    */
-  departmentId: object | null;
+  departmentId: string | null;
   /**
    * @type string
    */
@@ -60,17 +60,17 @@ export type WorkflowInstanceResponseDto = {
    */
   metadataJson: object | null;
   /**
-   * @type object
+   * @type string, date-time
    */
-  startedAt: object | null;
+  startedAt: string | null;
   /**
-   * @type object
+   * @type string, date-time
    */
-  completedAt: object | null;
+  completedAt: string | null;
   /**
-   * @type object
+   * @type string, date-time
    */
-  rejectedAt: object | null;
+  rejectedAt: string | null;
   /**
    * @type array
    */

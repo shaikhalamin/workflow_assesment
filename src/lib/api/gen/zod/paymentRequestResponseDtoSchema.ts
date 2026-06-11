@@ -12,9 +12,9 @@ export const paymentRequestResponseDtoSchema = z.object({
   amount: z.string(),
   currency: z.string(),
   status: z.enum(["PENDING", "PAID", "CANCELLED"]),
-  paymentReference: z.nullable(z.object({})),
-  paidById: z.nullable(z.object({})),
-  paidAt: z.nullable(z.object({})),
+  paymentReference: z.nullable(z.string()),
+  paidById: z.nullable(z.string()),
+  paidAt: z.nullable(z.iso.datetime()),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

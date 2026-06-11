@@ -25,9 +25,9 @@ export type TriggerWorkflowDto = {
    */
   requesterId: string;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  departmentId?: object;
+  departmentId?: string;
   /**
    * @type object | undefined
    */

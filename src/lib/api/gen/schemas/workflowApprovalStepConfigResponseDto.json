@@ -35,17 +35,17 @@
       "example": "ROLE"
     },
     "assigneeRoleSlug": {
-      "type": "object",
+      "type": "string",
       "example": "accounts",
       "nullable": true
     },
     "assigneeUserId": {
-      "type": "object",
+      "type": "string",
       "example": "71cb34da-1809-4c72-b132-2b9860be8936",
       "nullable": true
     },
     "assigneeFieldPath": {
-      "type": "object",
+      "type": "string",
       "example": "customFields.budgetOwnerId",
       "nullable": true
     },
@@ -54,7 +54,7 @@
     "requiresAttachment": { "type": "boolean", "example": false },
     "canReject": { "type": "boolean", "example": true },
     "canReassign": { "type": "boolean", "example": false },
-    "slaHours": { "type": "object", "example": 24, "nullable": true },
+    "slaHours": { "type": "number", "example": 24, "nullable": true },
     "escalationAssigneeType": {
       "type": "string",
       "enum": [
@@ -68,12 +68,12 @@
       "nullable": true
     },
     "escalationAssigneeRoleSlug": {
-      "type": "object",
+      "type": "string",
       "example": "department-head",
       "nullable": true
     },
     "escalationAssigneeUserId": {
-      "type": "object",
+      "type": "string",
       "example": "71cb34da-1809-4c72-b132-2b9860be8936",
       "nullable": true
     },

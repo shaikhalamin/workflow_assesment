@@ -23,15 +23,15 @@ export const createWorkflowStepConfigDtoSchema = z.object({
     "DEPARTMENT_HEAD",
     "CUSTOM_FIELD_USER",
   ]),
-  assigneeRoleSlug: z.optional(z.object({})),
-  assigneeUserId: z.optional(z.object({})),
-  assigneeFieldPath: z.optional(z.object({})),
+  assigneeRoleSlug: z.optional(z.string()),
+  assigneeUserId: z.optional(z.string()),
+  assigneeFieldPath: z.optional(z.string()),
   isRequired: z.optional(z.boolean().default(true)),
   requiresComment: z.optional(z.boolean().default(false)),
   requiresAttachment: z.optional(z.boolean().default(false)),
   canReject: z.optional(z.boolean().default(true)),
   canReassign: z.optional(z.boolean().default(false)),
-  slaHours: z.optional(z.object({})),
+  slaHours: z.optional(z.number().min(1)),
   escalationAssigneeType: z.optional(
     z.enum([
       "ROLE",
@@ -41,6 +41,6 @@ export const createWorkflowStepConfigDtoSchema = z.object({
       "CUSTOM_FIELD_USER",
     ]),
   ),
-  escalationAssigneeRoleSlug: z.optional(z.object({})),
-  escalationAssigneeUserId: z.optional(z.object({})),
+  escalationAssigneeRoleSlug: z.optional(z.string()),
+  escalationAssigneeUserId: z.optional(z.string()),
 });

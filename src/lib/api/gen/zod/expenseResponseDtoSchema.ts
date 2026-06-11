@@ -3,21 +3,29 @@
  * Do not edit manually.
  */
 
+import { workflowUserResponseDtoSchema } from "./workflowUserResponseDtoSchema.ts";
 import { z } from "zod/v4";
 
 export const expenseResponseDtoSchema = z.object({
   id: z.string(),
   requesterId: z.string(),
-  departmentId: z.nullable(z.object({})),
+  get requester() {
+    return workflowUserResponseDtoSchema.nullable();
+  },
+  createdById: z.nullable(z.string()),
+  get createdBy() {
+    return workflowUserResponseDtoSchema.nullable();
+  },
+  departmentId: z.nullable(z.string()),
   title: z.string(),
-  description: z.nullable(z.object({})),
+  description: z.nullable(z.string()),
   amount: z.string(),
   currency: z.string(),
   category: z.string(),
-  vendor: z.nullable(z.object({})),
-  itemValue: z.nullable(z.object({})),
-  price: z.nullable(z.object({})),
-  quantity: z.nullable(z.object({})),
+  vendor: z.nullable(z.string()),
+  itemValue: z.nullable(z.string()),
+  price: z.nullable(z.string()),
+  quantity: z.nullable(z.string()),
   status: z.enum([
     "DRAFT",
     "SUBMITTED",
@@ -28,13 +36,13 @@ export const expenseResponseDtoSchema = z.object({
     "PAID",
     "CANCELLED",
   ]),
-  workflowInstanceId: z.nullable(z.object({})),
-  rejectionReason: z.nullable(z.object({})),
+  workflowInstanceId: z.nullable(z.string()),
+  rejectionReason: z.nullable(z.string()),
   customFieldsJson: z.nullable(z.object({})),
-  submittedAt: z.nullable(z.object({})),
-  approvedAt: z.nullable(z.object({})),
-  rejectedAt: z.nullable(z.object({})),
-  paidAt: z.nullable(z.object({})),
+  submittedAt: z.nullable(z.iso.datetime()),
+  approvedAt: z.nullable(z.iso.datetime()),
+  rejectedAt: z.nullable(z.iso.datetime()),
+  paidAt: z.nullable(z.iso.datetime()),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

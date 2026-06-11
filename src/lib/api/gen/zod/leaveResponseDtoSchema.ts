@@ -3,18 +3,26 @@
  * Do not edit manually.
  */
 
+import { workflowUserResponseDtoSchema } from "./workflowUserResponseDtoSchema.ts";
 import { z } from "zod/v4";
 
 export const leaveResponseDtoSchema = z.object({
   id: z.string(),
   requesterId: z.string(),
-  departmentId: z.nullable(z.object({})),
+  get requester() {
+    return workflowUserResponseDtoSchema.nullable();
+  },
+  createdById: z.nullable(z.string()),
+  get createdBy() {
+    return workflowUserResponseDtoSchema.nullable();
+  },
+  departmentId: z.nullable(z.string()),
   leaveType: z.string(),
   leaveDays: z.number(),
   startDate: z.string(),
   endDate: z.string(),
-  reason: z.nullable(z.object({})),
-  employeeGrade: z.nullable(z.object({})),
+  reason: z.nullable(z.string()),
+  employeeGrade: z.nullable(z.string()),
   status: z.enum([
     "DRAFT",
     "REQUESTED",
@@ -23,13 +31,13 @@ export const leaveResponseDtoSchema = z.object({
     "APPROVED",
     "CANCELLED",
   ]),
-  workflowInstanceId: z.nullable(z.object({})),
-  rejectionReason: z.nullable(z.object({})),
+  workflowInstanceId: z.nullable(z.string()),
+  rejectionReason: z.nullable(z.string()),
   approvedPeriodJson: z.nullable(z.object({})),
   customFieldsJson: z.nullable(z.object({})),
-  submittedAt: z.nullable(z.object({})),
-  approvedAt: z.nullable(z.object({})),
-  rejectedAt: z.nullable(z.object({})),
+  submittedAt: z.nullable(z.string()),
+  approvedAt: z.nullable(z.string()),
+  rejectedAt: z.nullable(z.string()),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

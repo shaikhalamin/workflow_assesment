@@ -6,24 +6,67 @@
       "type": "string",
       "example": "71cb34da-1809-4c72-b132-2b9860be8936"
     },
-    "departmentId": {
+    "requester": {
+      "nullable": true,
       "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+            },
+            "name": { "type": "string", "example": "Finance Approver" },
+            "email": { "type": "string", "example": "finance@example.com" }
+          },
+          "required": ["id", "name", "email"],
+          "x-readme-ref-name": "WorkflowUserResponseDto"
+        }
+      ]
+    },
+    "createdById": {
+      "type": "string",
+      "example": "f33b2ef8-0c6d-4d22-b9c7-8592cb4e5037",
+      "nullable": true
+    },
+    "createdBy": {
+      "nullable": true,
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+            },
+            "name": { "type": "string", "example": "Finance Approver" },
+            "email": { "type": "string", "example": "finance@example.com" }
+          },
+          "required": ["id", "name", "email"],
+          "x-readme-ref-name": "WorkflowUserResponseDto"
+        }
+      ]
+    },
+    "departmentId": {
+      "type": "string",
       "example": "61f1d2de-5733-4830-a97c-cb1899482850",
       "nullable": true
     },
     "title": { "type": "string", "example": "Laptop charger reimbursement" },
     "description": {
-      "type": "object",
+      "type": "string",
       "example": "Replacement charger for office laptop",
       "nullable": true
     },
     "amount": { "type": "string", "example": "4500.00" },
     "currency": { "type": "string", "example": "BDT" },
     "category": { "type": "string", "example": "Office supplies" },
-    "vendor": { "type": "object", "example": "Star Tech", "nullable": true },
-    "itemValue": { "type": "object", "example": "4500.00", "nullable": true },
-    "price": { "type": "object", "example": "4500.00", "nullable": true },
-    "quantity": { "type": "object", "example": "1.00", "nullable": true },
+    "vendor": { "type": "string", "example": "Star Tech", "nullable": true },
+    "itemValue": { "type": "string", "example": "4500.00", "nullable": true },
+    "price": { "type": "string", "example": "4500.00", "nullable": true },
+    "quantity": { "type": "string", "example": "1.00", "nullable": true },
     "status": {
       "type": "string",
       "enum": [
@@ -39,12 +82,12 @@
       "example": "DRAFT"
     },
     "workflowInstanceId": {
-      "type": "object",
+      "type": "string",
       "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2",
       "nullable": true
     },
     "rejectionReason": {
-      "type": "object",
+      "type": "string",
       "example": "Receipt missing",
       "nullable": true
     },
@@ -54,22 +97,26 @@
       "nullable": true
     },
     "submittedAt": {
-      "type": "object",
+      "type": "string",
+      "format": "date-time",
       "example": "2026-06-10T10:15:00.000Z",
       "nullable": true
     },
     "approvedAt": {
-      "type": "object",
+      "type": "string",
+      "format": "date-time",
       "example": "2026-06-10T12:15:00.000Z",
       "nullable": true
     },
     "rejectedAt": {
-      "type": "object",
+      "type": "string",
+      "format": "date-time",
       "example": "2026-06-10T12:15:00.000Z",
       "nullable": true
     },
     "paidAt": {
-      "type": "object",
+      "type": "string",
+      "format": "date-time",
       "example": "2026-06-11T09:00:00.000Z",
       "nullable": true
     },
@@ -79,6 +126,9 @@
   "required": [
     "id",
     "requesterId",
+    "requester",
+    "createdById",
+    "createdBy",
     "departmentId",
     "title",
     "description",

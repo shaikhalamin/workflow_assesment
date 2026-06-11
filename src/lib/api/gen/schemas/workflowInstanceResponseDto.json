@@ -22,7 +22,7 @@
       "example": "71cb34da-1809-4c72-b132-2b9860be8936"
     },
     "departmentId": {
-      "type": "object",
+      "type": "string",
       "example": "61f1d2de-5733-4830-a97c-cb1899482850",
       "nullable": true
     },
@@ -44,17 +44,20 @@
       "nullable": true
     },
     "startedAt": {
-      "type": "object",
+      "type": "string",
+      "format": "date-time",
       "example": "2026-06-10T10:15:00.000Z",
       "nullable": true
     },
     "completedAt": {
-      "type": "object",
+      "type": "string",
+      "format": "date-time",
       "example": "2026-06-10T12:15:00.000Z",
       "nullable": true
     },
     "rejectedAt": {
-      "type": "object",
+      "type": "string",
+      "format": "date-time",
       "example": "2026-06-10T12:15:00.000Z",
       "nullable": true
     },
@@ -71,6 +74,81 @@
             "type": "string",
             "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2"
           },
+          "request": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Laptop charger reimbursement"
+                  },
+                  "type": { "type": "string", "example": "Expense" },
+                  "requesterId": {
+                    "type": "string",
+                    "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                  },
+                  "requester": {
+                    "nullable": true,
+                    "type": "object",
+                    "allOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Finance Approver"
+                          },
+                          "email": {
+                            "type": "string",
+                            "example": "finance@example.com"
+                          }
+                        },
+                        "required": ["id", "name", "email"],
+                        "x-readme-ref-name": "WorkflowUserResponseDto"
+                      }
+                    ]
+                  },
+                  "amount": {
+                    "type": "number",
+                    "example": 4500,
+                    "nullable": true
+                  },
+                  "currency": {
+                    "type": "string",
+                    "example": "BDT",
+                    "nullable": true
+                  },
+                  "leaveDays": {
+                    "type": "number",
+                    "example": 2,
+                    "nullable": true
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "example": "2026-06-10T09:30:00.000Z"
+                  }
+                },
+                "required": [
+                  "title",
+                  "type",
+                  "requesterId",
+                  "requester",
+                  "amount",
+                  "currency",
+                  "leaveDays",
+                  "createdAt"
+                ],
+                "x-readme-ref-name": "WorkflowRequestSummaryResponseDto"
+              }
+            ]
+          },
           "stepOrder": { "type": "number", "example": 1 },
           "stepName": { "type": "string", "example": "Finance review" },
           "stepType": {
@@ -86,12 +164,34 @@
             "example": "FINANCE_CHECK"
           },
           "assignedUserId": {
-            "type": "object",
+            "type": "string",
             "example": "71cb34da-1809-4c72-b132-2b9860be8936",
             "nullable": true
           },
-          "assignedRoleSlug": {
+          "assignedUser": {
+            "nullable": true,
             "type": "object",
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                  },
+                  "name": { "type": "string", "example": "Finance Approver" },
+                  "email": {
+                    "type": "string",
+                    "example": "finance@example.com"
+                  }
+                },
+                "required": ["id", "name", "email"],
+                "x-readme-ref-name": "WorkflowUserResponseDto"
+              }
+            ]
+          },
+          "assignedRoleSlug": {
+            "type": "string",
             "example": "accounts",
             "nullable": true
           },
@@ -112,27 +212,51 @@
             "example": "ACTIVE"
           },
           "activatedAt": {
-            "type": "object",
+            "type": "string",
+            "format": "date-time",
             "example": "2026-06-10T10:15:00.000Z",
             "nullable": true
           },
           "actedAt": {
-            "type": "object",
+            "type": "string",
+            "format": "date-time",
             "example": "2026-06-10T12:15:00.000Z",
             "nullable": true
           },
           "actionByUserId": {
-            "type": "object",
+            "type": "string",
             "example": "71cb34da-1809-4c72-b132-2b9860be8936",
             "nullable": true
           },
-          "comment": {
+          "actionByUser": {
+            "nullable": true,
             "type": "object",
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                  },
+                  "name": { "type": "string", "example": "Finance Approver" },
+                  "email": {
+                    "type": "string",
+                    "example": "finance@example.com"
+                  }
+                },
+                "required": ["id", "name", "email"],
+                "x-readme-ref-name": "WorkflowUserResponseDto"
+              }
+            ]
+          },
+          "comment": {
+            "type": "string",
             "example": "Approved after checking documents",
             "nullable": true
           },
           "rejectionReason": {
-            "type": "object",
+            "type": "string",
             "example": "Receipt missing",
             "nullable": true
           },
@@ -150,7 +274,7 @@
                   "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2"
                 },
                 "workflowStepId": {
-                  "type": "object",
+                  "type": "string",
                   "example": "e7c883f6-90e7-465e-8abc-4c7f8e5e7d4a",
                   "nullable": true
                 },
@@ -169,17 +293,42 @@
                   "example": "APPROVED"
                 },
                 "actorUserId": {
-                  "type": "object",
+                  "type": "string",
                   "example": "71cb34da-1809-4c72-b132-2b9860be8936",
                   "nullable": true
                 },
-                "comment": {
+                "actorUser": {
+                  "nullable": true,
                   "type": "object",
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Finance Approver"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "finance@example.com"
+                        }
+                      },
+                      "required": ["id", "name", "email"],
+                      "x-readme-ref-name": "WorkflowUserResponseDto"
+                    }
+                  ]
+                },
+                "comment": {
+                  "type": "string",
                   "example": "Approved after checking documents",
                   "nullable": true
                 },
                 "reason": {
-                  "type": "object",
+                  "type": "string",
                   "example": "Budget verified",
                   "nullable": true
                 },
@@ -199,6 +348,7 @@
                 "workflowStepId",
                 "action",
                 "actorUserId",
+                "actorUser",
                 "comment",
                 "reason",
                 "metadataJson",
@@ -219,16 +369,19 @@
         "required": [
           "id",
           "workflowInstanceId",
+          "request",
           "stepOrder",
           "stepName",
           "stepType",
           "assignedUserId",
+          "assignedUser",
           "assignedRoleSlug",
           "assigneeType",
           "status",
           "activatedAt",
           "actedAt",
           "actionByUserId",
+          "actionByUser",
           "comment",
           "rejectionReason",
           "actions",
@@ -252,7 +405,7 @@
             "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2"
           },
           "workflowStepId": {
-            "type": "object",
+            "type": "string",
             "example": "e7c883f6-90e7-465e-8abc-4c7f8e5e7d4a",
             "nullable": true
           },
@@ -271,17 +424,39 @@
             "example": "APPROVED"
           },
           "actorUserId": {
-            "type": "object",
+            "type": "string",
             "example": "71cb34da-1809-4c72-b132-2b9860be8936",
             "nullable": true
           },
-          "comment": {
+          "actorUser": {
+            "nullable": true,
             "type": "object",
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                  },
+                  "name": { "type": "string", "example": "Finance Approver" },
+                  "email": {
+                    "type": "string",
+                    "example": "finance@example.com"
+                  }
+                },
+                "required": ["id", "name", "email"],
+                "x-readme-ref-name": "WorkflowUserResponseDto"
+              }
+            ]
+          },
+          "comment": {
+            "type": "string",
             "example": "Approved after checking documents",
             "nullable": true
           },
           "reason": {
-            "type": "object",
+            "type": "string",
             "example": "Budget verified",
             "nullable": true
           },
@@ -301,6 +476,7 @@
           "workflowStepId",
           "action",
           "actorUserId",
+          "actorUser",
           "comment",
           "reason",
           "metadataJson",

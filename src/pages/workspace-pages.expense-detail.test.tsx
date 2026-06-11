@@ -244,18 +244,21 @@ describe('ExpenseDetailPage', () => {
     ]
   })
 
-  it('renders business expense fields and custom fields without raw object JSON', () => {
+  it('renders only the requested business expense fields with a labeled note', () => {
     const { container } = render(<ExpenseDetailPage />)
 
     expect(screen.getByRole('heading', { level: 1, name: 'Laptop reimbursement' })).toBeInTheDocument()
     expect(screen.getByText('4500 BDT')).toBeInTheDocument()
     expect(screen.getByText('Software')).toBeInTheDocument()
     expect(screen.getByText('Star Tech')).toBeInTheDocument()
+    expect(screen.getByText('Description')).toBeInTheDocument()
     expect(screen.getByText('Replacement laptop for field work')).toBeInTheDocument()
-    expect(screen.getByText('Budget owner')).toBeInTheDocument()
-    expect(screen.getByText('Finance')).toBeInTheDocument()
-    expect(screen.getByText('Project code')).toBeInTheDocument()
-    expect(screen.getByText('OPS-2026')).toBeInTheDocument()
+    expect(screen.queryByText('Quantity')).not.toBeInTheDocument()
+    expect(screen.queryByText('Item value')).not.toBeInTheDocument()
+    expect(screen.queryByText('Price')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Custom fields' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Budget owner')).not.toBeInTheDocument()
+    expect(screen.queryByText('Project code')).not.toBeInTheDocument()
     expect(container.textContent).not.toContain('customFieldsJson')
     expect(container.textContent).not.toContain('{"budgetOwner"')
     expect(container.textContent).not.toContain('"nested"')
@@ -270,10 +273,47 @@ describe('ExpenseDetailPage', () => {
     expect(within(workflow).getByText('Current responsibility')).toBeInTheDocument()
     expect(within(workflow).getAllByText(/Line Manager/).length).toBeGreaterThan(0)
     expect(within(workflow).getAllByText(/manager@example.com/).length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: /full workflow detail/i })).toHaveClass(
+      'bg-sky-600',
+      'text-white',
+    )
     expect(screen.getByRole('link', { name: /full workflow detail/i })).toHaveAttribute(
       'href',
       '/workflow-instances/$instanceId',
     )
+  })
+
+  it('shows request creator and requester after the description with names and emails', () => {
+    expenseResponse = {
+      ...baseExpense,
+      requester: {
+        id: 'requester-1',
+        name: 'Expense Requester',
+        email: 'requester@example.com',
+      },
+      createdById: 'creator-1',
+      createdBy: {
+        id: 'creator-1',
+        name: 'Expense Creator',
+        email: 'creator@example.com',
+      },
+    }
+
+    render(<ExpenseDetailPage />)
+
+    const description = screen.getByText('Replacement laptop for field work')
+    const summary = description.closest('section')
+    if (!summary) {
+      throw new Error('Expected expense summary section to contain the description')
+    }
+
+    const summaryContent = summary.textContent ?? ''
+    expect(within(summary).getByText('Expense Creator (creator@example.com)')).toBeInTheDocument()
+    expect(within(summary).getByText('Expense Requester (requester@example.com)')).toBeInTheDocument()
+    expect(summaryContent.indexOf('Description')).toBeLessThan(summaryContent.indexOf('Request created by'))
+    expect(summaryContent.indexOf('Request created by')).toBeLessThan(summaryContent.indexOf('Requester'))
+    expect(summaryContent).not.toContain('requester-1')
+    expect(summaryContent).not.toContain('creator-1')
   })
 
   it('shows an empty state when no workflow was started', () => {
@@ -286,7 +326,7 @@ describe('ExpenseDetailPage', () => {
 
     render(<ExpenseDetailPage />)
 
-    expect(screen.getByText('No custom fields recorded.')).toBeInTheDocument()
+    expect(screen.queryByText('No custom fields recorded.')).not.toBeInTheDocument()
     expect(screen.getByText('No workflow has been started for this expense.')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /full workflow detail/i })).not.toBeInTheDocument()
   })

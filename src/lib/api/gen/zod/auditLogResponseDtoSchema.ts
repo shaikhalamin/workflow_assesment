@@ -7,16 +7,16 @@ import { z } from "zod/v4";
 
 export const auditLogResponseDtoSchema = z.object({
   id: z.string(),
-  actorUserId: z.nullable(z.object({})),
+  actorUserId: z.nullable(z.string()),
   action: z.string(),
   entityType: z.string(),
   entityId: z.string(),
-  workflowInstanceId: z.nullable(z.object({})),
-  workflowStepId: z.nullable(z.object({})),
-  oldStatus: z.nullable(z.object({})),
-  newStatus: z.nullable(z.object({})),
-  comment: z.nullable(z.object({})),
-  reason: z.nullable(z.object({})),
+  workflowInstanceId: z.nullable(z.string()),
+  workflowStepId: z.nullable(z.string()),
+  oldStatus: z.nullable(z.string()),
+  newStatus: z.nullable(z.string()),
+  comment: z.nullable(z.string()),
+  reason: z.nullable(z.string()),
   metadataJson: z.nullable(z.object({})),
   createdAt: z.string(),
 });

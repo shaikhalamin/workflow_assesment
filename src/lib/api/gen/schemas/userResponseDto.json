@@ -8,29 +8,30 @@
     "name": { "type": "string", "example": "Demo Employee" },
     "email": { "type": "string", "example": "employee@fiberathome.net" },
     "employeeCode": {
-      "type": "object",
+      "type": "string",
       "example": "EMP-001",
       "nullable": true
     },
-    "employeeGrade": { "type": "object", "example": "M2", "nullable": true },
+    "employeeGrade": { "type": "string", "example": "M2", "nullable": true },
     "designation": {
-      "type": "object",
+      "type": "string",
       "example": "Software Engineer",
       "nullable": true
     },
     "departmentId": {
-      "type": "object",
+      "type": "string",
       "example": "61f1d2de-5733-4830-a97c-cb1899482850",
       "nullable": true
     },
     "managerId": {
-      "type": "object",
+      "type": "string",
       "example": "e96cf99d-c871-4f29-a7b6-1d2246ddc542",
       "nullable": true
     },
     "isActive": { "type": "boolean", "example": true },
     "lastLoginAt": {
-      "type": "object",
+      "type": "string",
+      "format": "date-time",
       "example": "2026-06-10T09:30:00.000Z",
       "nullable": true
     },

@@ -49,13 +49,13 @@
               "CUSTOM_FIELD_USER"
             ]
           },
-          "assigneeRoleSlug": { "type": "object", "example": "finance-admin" },
+          "assigneeRoleSlug": { "type": "string", "example": "finance-admin" },
           "assigneeUserId": {
-            "type": "object",
+            "type": "string",
             "example": "71cb34da-1809-4c72-b132-2b9860be8936"
           },
           "assigneeFieldPath": {
-            "type": "object",
+            "type": "string",
             "example": "customFields.budgetOwnerId"
           },
           "isRequired": { "type": "boolean", "default": true },
@@ -63,7 +63,7 @@
           "requiresAttachment": { "type": "boolean", "default": false },
           "canReject": { "type": "boolean", "default": true },
           "canReassign": { "type": "boolean", "default": false },
-          "slaHours": { "type": "object", "minimum": 1, "example": 24 },
+          "slaHours": { "type": "number", "minimum": 1, "example": 24 },
           "escalationAssigneeType": {
             "type": "string",
             "enum": [
@@ -75,11 +75,11 @@
             ]
           },
           "escalationAssigneeRoleSlug": {
-            "type": "object",
+            "type": "string",
             "example": "department-head"
           },
           "escalationAssigneeUserId": {
-            "type": "object",
+            "type": "string",
             "example": "71cb34da-1809-4c72-b132-2b9860be8936"
           }
         },

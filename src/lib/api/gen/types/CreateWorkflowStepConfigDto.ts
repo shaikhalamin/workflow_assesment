@@ -44,17 +44,17 @@ export type CreateWorkflowStepConfigDto = {
    */
   assigneeType: CreateWorkflowStepConfigDtoAssigneeTypeEnum;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  assigneeRoleSlug?: object;
+  assigneeRoleSlug?: string;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  assigneeUserId?: object;
+  assigneeUserId?: string;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  assigneeFieldPath?: object;
+  assigneeFieldPath?: string;
   /**
    * @default true
    * @type boolean | undefined
@@ -82,19 +82,19 @@ export type CreateWorkflowStepConfigDto = {
   canReassign?: boolean;
   /**
    * @minLength 1
-   * @type object | undefined
+   * @type number | undefined
    */
-  slaHours?: object;
+  slaHours?: number;
   /**
    * @type string | undefined
    */
   escalationAssigneeType?: CreateWorkflowStepConfigDtoEscalationAssigneeTypeEnum;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  escalationAssigneeRoleSlug?: object;
+  escalationAssigneeRoleSlug?: string;
   /**
-   * @type object | undefined
+   * @type string | undefined
    */
-  escalationAssigneeUserId?: object;
+  escalationAssigneeUserId?: string;
 };

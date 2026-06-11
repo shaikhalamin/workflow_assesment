@@ -1,14 +1,18 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { AuthUserDto } from '@/lib/api/gen'
 import { useAuthStore } from '@/stores/auth-store'
 
-import { ExpensesPage, PaymentsPage, TasksPage } from './workspace-pages'
+import { ExpensesPage, LeavesPage, PaymentsPage, TasksPage } from './workspace-pages'
 
 const pendingTasksState = vi.hoisted((): { pendingTasks: unknown[] } => ({
   pendingTasks: [],
+}))
+const submitLeave = vi.hoisted(() => vi.fn())
+const submitLeaveState = vi.hoisted((): { error: unknown } => ({
+  error: null,
 }))
 
 vi.mock('@tanstack/react-router', () => ({
@@ -75,8 +79,27 @@ vi.mock('@/lib/api/gen', () => ({
     mutate: vi.fn(),
   }),
   useLeavesControllerFindOne: () => ({ data: undefined, error: null }),
-  useLeavesControllerList: () => ({ data: { data: [] }, error: null }),
-  useLeavesControllerSubmit: () => ({ mutate: vi.fn() }),
+  useLeavesControllerList: () => ({
+    data: {
+      data: [
+        {
+          id: 'leave-1',
+          leaveType: 'ANNUAL',
+          leaveDays: 2,
+          startDate: '2026-06-10',
+          endDate: '2026-06-11',
+          status: 'DRAFT',
+        },
+      ],
+    },
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useLeavesControllerSubmit: () => ({
+    error: submitLeaveState.error,
+    isPending: false,
+    mutate: submitLeave,
+  }),
   usePaymentsControllerList: () => ({
     data: {
       data: [
@@ -139,10 +162,20 @@ const readOnlyPaymentUser: AuthUserDto = {
   permissions: ['payments.read'],
 }
 
+const writableLeaveUser: AuthUserDto = {
+  id: 'employee-1',
+  name: 'Employee User',
+  email: 'employee@example.com',
+  roles: ['employee'],
+  permissions: ['leaves.read', 'leaves.write'],
+}
+
 describe('workspace page permissions', () => {
   beforeEach(() => {
     localStorage.clear()
     pendingTasksState.pendingTasks = []
+    submitLeave.mockClear()
+    submitLeaveState.error = null
   })
 
   it('hides expense write actions from users with read-only expense access', () => {
@@ -172,6 +205,52 @@ describe('workspace page permissions', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('matches expense list styling for leave open and submit actions', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableLeaveUser,
+    })
+
+    render(<LeavesPage />)
+
+    expect(screen.getByText('ANNUAL')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /open/i })).toHaveClass(
+      'border-sky-200',
+      'bg-sky-50',
+      'text-sky-700',
+    )
+    expect(screen.getByRole('button', { name: /submit/i })).toHaveClass(
+      'border-emerald-600',
+      'bg-emerald-600',
+      'text-white',
+    )
+  })
+
+  it('shows leave submit failures on the list page', () => {
+    submitLeaveState.error = new Error('Only requester can submit leave')
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableLeaveUser,
+    })
+
+    render(<LeavesPage />)
+
+    expect(screen.getByText('Only requester can submit leave')).toBeInTheDocument()
+  })
+
+  it('submits a draft leave from the list row', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableLeaveUser,
+    })
+
+    render(<LeavesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }))
+
+    expect(submitLeave).toHaveBeenCalledWith({ id: 'leave-1' })
+  })
+
   it('shows a workflow details link for pending approvals', () => {
     pendingTasksState.pendingTasks = [
       {
@@ -184,12 +263,31 @@ describe('workspace page permissions', () => {
         assigneeType: 'USER',
         status: 'ACTIVE',
         activatedAt: '2026-06-11T08:00:00.000Z',
+        request: {
+          title: 'Laptop charger reimbursement',
+          type: 'Expense',
+          requesterId: 'employee-1',
+          requester: {
+            id: 'employee-1',
+            name: 'Employee User',
+            email: 'employee@example.com',
+          },
+          amount: 4500,
+          currency: 'BDT',
+          leaveDays: null,
+          createdAt: '2026-06-11T07:30:00.000Z',
+        },
       },
     ]
 
     render(<TasksPage />)
 
     expect(screen.getByText('Manager approval')).toBeInTheDocument()
+    expect(screen.getByText('Laptop charger reimbursement')).toBeInTheDocument()
+    expect(screen.getByText('Expense')).toBeInTheDocument()
+    expect(screen.getByText(/Employee User/)).toBeInTheDocument()
+    expect(screen.getByText('BDT 4,500')).toBeInTheDocument()
+    expect(screen.getAllByText(/Jun 11, 2026/).length).toBeGreaterThanOrEqual(2)
     expect(
       screen.getByRole('link', { name: /view details/i }),
     ).toBeInTheDocument()

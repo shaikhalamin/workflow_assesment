@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { WorkflowUserResponseDto } from "./WorkflowUserResponseDto.ts";
+
 export type WorkflowActionResponseDtoActionEnum =
   | "TRIGGERED"
   | "STEP_ACTIVATED"
@@ -23,25 +25,29 @@ export type WorkflowActionResponseDto = {
    */
   workflowInstanceId: string;
   /**
-   * @type object
+   * @type string
    */
-  workflowStepId: object | null;
+  workflowStepId: string | null;
   /**
    * @type string
    */
   action: WorkflowActionResponseDtoActionEnum;
   /**
-   * @type object
+   * @type string
    */
-  actorUserId: object | null;
+  actorUserId: string | null;
   /**
    * @type object
    */
-  comment: object | null;
+  actorUser: WorkflowUserResponseDto | null;
   /**
-   * @type object
+   * @type string
    */
-  reason: object | null;
+  comment: string | null;
+  /**
+   * @type string
+   */
+  reason: string | null;
   /**
    * @type object
    */

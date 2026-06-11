@@ -17,33 +17,33 @@ export type UserResponseDto = {
    */
   email: string;
   /**
-   * @type object
+   * @type string
    */
-  employeeCode: object | null;
+  employeeCode: string | null;
   /**
-   * @type object
+   * @type string
    */
-  employeeGrade: object | null;
+  employeeGrade: string | null;
   /**
-   * @type object
+   * @type string
    */
-  designation: object | null;
+  designation: string | null;
   /**
-   * @type object
+   * @type string
    */
-  departmentId: object | null;
+  departmentId: string | null;
   /**
-   * @type object
+   * @type string
    */
-  managerId: object | null;
+  managerId: string | null;
   /**
    * @type boolean
    */
   isActive: boolean;
   /**
-   * @type object
+   * @type string, date-time
    */
-  lastLoginAt: object | null;
+  lastLoginAt: string | null;
   /**
    * @type string
    */

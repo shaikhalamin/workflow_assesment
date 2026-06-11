@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { WorkflowUserResponseDto } from "./WorkflowUserResponseDto.ts";
+
 export type ExpenseResponseDtoStatusEnum =
   | "DRAFT"
   | "SUBMITTED"
@@ -25,15 +27,27 @@ export type ExpenseResponseDto = {
   /**
    * @type object
    */
-  departmentId: object | null;
+  requester: WorkflowUserResponseDto | null;
+  /**
+   * @type string
+   */
+  createdById: string | null;
+  /**
+   * @type object
+   */
+  createdBy: WorkflowUserResponseDto | null;
+  /**
+   * @type string
+   */
+  departmentId: string | null;
   /**
    * @type string
    */
   title: string;
   /**
-   * @type object
+   * @type string
    */
-  description: object | null;
+  description: string | null;
   /**
    * @type string
    */
@@ -47,53 +61,53 @@ export type ExpenseResponseDto = {
    */
   category: string;
   /**
-   * @type object
+   * @type string
    */
-  vendor: object | null;
+  vendor: string | null;
   /**
-   * @type object
+   * @type string
    */
-  itemValue: object | null;
+  itemValue: string | null;
   /**
-   * @type object
+   * @type string
    */
-  price: object | null;
+  price: string | null;
   /**
-   * @type object
+   * @type string
    */
-  quantity: object | null;
+  quantity: string | null;
   /**
    * @type string
    */
   status: ExpenseResponseDtoStatusEnum;
   /**
-   * @type object
+   * @type string
    */
-  workflowInstanceId: object | null;
+  workflowInstanceId: string | null;
   /**
-   * @type object
+   * @type string
    */
-  rejectionReason: object | null;
+  rejectionReason: string | null;
   /**
    * @type object
    */
   customFieldsJson: object | null;
   /**
-   * @type object
+   * @type string, date-time
    */
-  submittedAt: object | null;
+  submittedAt: string | null;
   /**
-   * @type object
+   * @type string, date-time
    */
-  approvedAt: object | null;
+  approvedAt: string | null;
   /**
-   * @type object
+   * @type string, date-time
    */
-  rejectedAt: object | null;
+  rejectedAt: string | null;
   /**
-   * @type object
+   * @type string, date-time
    */
-  paidAt: object | null;
+  paidAt: string | null;
   /**
    * @type string
    */

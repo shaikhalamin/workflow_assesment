@@ -3,12 +3,13 @@
  * Do not edit manually.
  */
 
+import { workflowUserResponseDtoSchema } from "./workflowUserResponseDtoSchema.ts";
 import { z } from "zod/v4";
 
 export const workflowActionResponseDtoSchema = z.object({
   id: z.string(),
   workflowInstanceId: z.string(),
-  workflowStepId: z.nullable(z.object({})),
+  workflowStepId: z.nullable(z.string()),
   action: z.enum([
     "TRIGGERED",
     "STEP_ACTIVATED",
@@ -19,9 +20,12 @@ export const workflowActionResponseDtoSchema = z.object({
     "CANCELLED",
     "FAILED",
   ]),
-  actorUserId: z.nullable(z.object({})),
-  comment: z.nullable(z.object({})),
-  reason: z.nullable(z.object({})),
+  actorUserId: z.nullable(z.string()),
+  get actorUser() {
+    return workflowUserResponseDtoSchema.nullable();
+  },
+  comment: z.nullable(z.string()),
+  reason: z.nullable(z.string()),
   metadataJson: z.nullable(z.object({})),
   createdAt: z.string(),
 });

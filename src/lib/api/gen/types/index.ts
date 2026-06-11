@@ -80,6 +80,7 @@ export type {
   WorkflowInstanceResponseDtoStatusEnum,
 } from "./WorkflowInstanceResponseDto.ts";
 export type { WorkflowOutcomeConfigResponseDto } from "./WorkflowOutcomeConfigResponseDto.ts";
+export type { WorkflowRequestSummaryResponseDto } from "./WorkflowRequestSummaryResponseDto.ts";
 export type {
   WorkflowStepResponseDto,
   WorkflowStepResponseDtoAssigneeTypeEnum,
@@ -91,6 +92,7 @@ export type {
   WorkflowTemplateResponseDtoStatusEnum,
 } from "./WorkflowTemplateResponseDto.ts";
 export type { WorkflowTriggerConditionResponseDto } from "./WorkflowTriggerConditionResponseDto.ts";
+export type { WorkflowUserResponseDto } from "./WorkflowUserResponseDto.ts";
 export type { WorkflowWizardDto } from "./WorkflowWizardDto.ts";
 export type {
   AppControllerGetHello200,

@@ -9,9 +9,9 @@ export type AuditLogResponseDto = {
    */
   id: string;
   /**
-   * @type object
+   * @type string
    */
-  actorUserId: object | null;
+  actorUserId: string | null;
   /**
    * @type string
    */
@@ -25,29 +25,29 @@ export type AuditLogResponseDto = {
    */
   entityId: string;
   /**
-   * @type object
+   * @type string
    */
-  workflowInstanceId: object | null;
+  workflowInstanceId: string | null;
   /**
-   * @type object
+   * @type string
    */
-  workflowStepId: object | null;
+  workflowStepId: string | null;
   /**
-   * @type object
+   * @type string
    */
-  oldStatus: object | null;
+  oldStatus: string | null;
   /**
-   * @type object
+   * @type string
    */
-  newStatus: object | null;
+  newStatus: string | null;
   /**
-   * @type object
+   * @type string
    */
-  comment: object | null;
+  comment: string | null;
   /**
-   * @type object
+   * @type string
    */
-  reason: object | null;
+  reason: string | null;
   /**
    * @type object
    */

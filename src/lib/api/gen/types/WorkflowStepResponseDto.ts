@@ -4,6 +4,8 @@
  */
 
 import type { WorkflowActionResponseDto } from "./WorkflowActionResponseDto.ts";
+import type { WorkflowRequestSummaryResponseDto } from "./WorkflowRequestSummaryResponseDto.ts";
+import type { WorkflowUserResponseDto } from "./WorkflowUserResponseDto.ts";
 
 export type WorkflowStepResponseDtoStepTypeEnum =
   | "REVIEW"
@@ -37,6 +39,10 @@ export type WorkflowStepResponseDto = {
    */
   workflowInstanceId: string;
   /**
+   * @type object
+   */
+  request: WorkflowRequestSummaryResponseDto | null;
+  /**
    * @type number
    */
   stepOrder: number;
@@ -49,13 +55,17 @@ export type WorkflowStepResponseDto = {
    */
   stepType: WorkflowStepResponseDtoStepTypeEnum;
   /**
-   * @type object
+   * @type string
    */
-  assignedUserId: object | null;
+  assignedUserId: string | null;
   /**
    * @type object
    */
-  assignedRoleSlug: object | null;
+  assignedUser: WorkflowUserResponseDto | null;
+  /**
+   * @type string
+   */
+  assignedRoleSlug: string | null;
   /**
    * @type string
    */
@@ -65,25 +75,29 @@ export type WorkflowStepResponseDto = {
    */
   status: WorkflowStepResponseDtoStatusEnum;
   /**
-   * @type object
+   * @type string, date-time
    */
-  activatedAt: object | null;
+  activatedAt: string | null;
+  /**
+   * @type string, date-time
+   */
+  actedAt: string | null;
+  /**
+   * @type string
+   */
+  actionByUserId: string | null;
   /**
    * @type object
    */
-  actedAt: object | null;
+  actionByUser: WorkflowUserResponseDto | null;
   /**
-   * @type object
+   * @type string
    */
-  actionByUserId: object | null;
+  comment: string | null;
   /**
-   * @type object
+   * @type string
    */
-  comment: object | null;
-  /**
-   * @type object
-   */
-  rejectionReason: object | null;
+  rejectionReason: string | null;
   /**
    * @type array
    */

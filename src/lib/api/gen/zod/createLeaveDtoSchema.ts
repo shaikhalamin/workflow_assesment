@@ -10,8 +10,8 @@ export const createLeaveDtoSchema = z.object({
   leaveDays: z.number().min(1),
   startDate: z.string(),
   endDate: z.string(),
-  reason: z.optional(z.object({})),
-  employeeGrade: z.optional(z.object({})),
-  departmentId: z.optional(z.object({})),
+  reason: z.optional(z.string()),
+  employeeGrade: z.optional(z.string()),
+  departmentId: z.optional(z.string()),
   customFieldsJson: z.optional(z.object({})),
 });

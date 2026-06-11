@@ -4,11 +4,16 @@
  */
 
 import { workflowActionResponseDtoSchema } from "./workflowActionResponseDtoSchema.ts";
+import { workflowRequestSummaryResponseDtoSchema } from "./workflowRequestSummaryResponseDtoSchema.ts";
+import { workflowUserResponseDtoSchema } from "./workflowUserResponseDtoSchema.ts";
 import { z } from "zod/v4";
 
 export const workflowStepResponseDtoSchema = z.object({
   id: z.string(),
   workflowInstanceId: z.string(),
+  get request() {
+    return workflowRequestSummaryResponseDtoSchema.nullable();
+  },
   stepOrder: z.number(),
   stepName: z.string(),
   stepType: z.enum([
@@ -19,8 +24,11 @@ export const workflowStepResponseDtoSchema = z.object({
     "MANAGEMENT_APPROVAL",
     "FINAL_VERIFICATION",
   ]),
-  assignedUserId: z.nullable(z.object({})),
-  assignedRoleSlug: z.nullable(z.object({})),
+  assignedUserId: z.nullable(z.string()),
+  get assignedUser() {
+    return workflowUserResponseDtoSchema.nullable();
+  },
+  assignedRoleSlug: z.nullable(z.string()),
   assigneeType: z.enum([
     "ROLE",
     "USER",
@@ -29,11 +37,14 @@ export const workflowStepResponseDtoSchema = z.object({
     "CUSTOM_FIELD_USER",
   ]),
   status: z.enum(["WAITING", "ACTIVE", "APPROVED", "REJECTED", "SKIPPED"]),
-  activatedAt: z.nullable(z.object({})),
-  actedAt: z.nullable(z.object({})),
-  actionByUserId: z.nullable(z.object({})),
-  comment: z.nullable(z.object({})),
-  rejectionReason: z.nullable(z.object({})),
+  activatedAt: z.nullable(z.iso.datetime()),
+  actedAt: z.nullable(z.iso.datetime()),
+  actionByUserId: z.nullable(z.string()),
+  get actionByUser() {
+    return workflowUserResponseDtoSchema.nullable();
+  },
+  comment: z.nullable(z.string()),
+  rejectionReason: z.nullable(z.string()),
   get actions() {
     return z.array(workflowActionResponseDtoSchema);
   },

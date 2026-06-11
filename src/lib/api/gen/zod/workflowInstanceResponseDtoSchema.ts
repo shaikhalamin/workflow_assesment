@@ -16,7 +16,7 @@ export const workflowInstanceResponseDtoSchema = z.object({
   entityType: z.string(),
   entityId: z.string(),
   requesterId: z.string(),
-  departmentId: z.nullable(z.object({})),
+  departmentId: z.nullable(z.string()),
   status: z.enum([
     "PENDING",
     "ACTIVE",
@@ -26,9 +26,9 @@ export const workflowInstanceResponseDtoSchema = z.object({
     "FAILED",
   ]),
   metadataJson: z.nullable(z.object({})),
-  startedAt: z.nullable(z.object({})),
-  completedAt: z.nullable(z.object({})),
-  rejectedAt: z.nullable(z.object({})),
+  startedAt: z.nullable(z.iso.datetime()),
+  completedAt: z.nullable(z.iso.datetime()),
+  rejectedAt: z.nullable(z.iso.datetime()),
   get steps() {
     return z.array(workflowStepResponseDtoSchema);
   },

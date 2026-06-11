@@ -52,11 +52,13 @@ import type {
   CreateExpenseDto,
   CreateLeaveDto,
   ExpenseResponseDto,
+  LeaveResponseDto,
   UserResponseDto,
   WorkflowApprovalRuleResponseDto,
   WorkflowApprovalStepConfigResponseDto,
   WorkflowActionResponseDto,
   WorkflowInstanceResponseDto,
+  WorkflowRequestSummaryResponseDto,
   WorkflowStepResponseDto,
   WorkflowTemplateResponseDto,
 } from '@/lib/api/gen'
@@ -143,8 +145,60 @@ function userIdentityFromObjectField(value: unknown) {
   return undefined
 }
 
-function numberFromObjectField(value: unknown) {
-  return typeof value === 'number' ? value : undefined
+function isWorkflowRequestSummary(
+  value: unknown,
+): value is WorkflowRequestSummaryResponseDto {
+  if (!isRecord(value)) return false
+
+  const requester = value.requester
+  const hasRequester =
+    requester === null ||
+    (isRecord(requester) &&
+      typeof requester.id === 'string' &&
+      typeof requester.name === 'string' &&
+      typeof requester.email === 'string')
+
+  return (
+    typeof value.title === 'string' &&
+    typeof value.type === 'string' &&
+    typeof value.requesterId === 'string' &&
+    hasRequester &&
+    (typeof value.amount === 'number' || value.amount === null) &&
+    (typeof value.currency === 'string' || value.currency === null) &&
+    (typeof value.leaveDays === 'number' || value.leaveDays === null) &&
+    typeof value.createdAt === 'string'
+  )
+}
+
+function requestSummaryFromRow(
+  row: Row | WorkflowStepResponseDto,
+): WorkflowRequestSummaryResponseDto | null {
+  return isWorkflowRequestSummary(row.request) ? row.request : null
+}
+
+function requestAmountOrDaysLabel(
+  request: WorkflowRequestSummaryResponseDto | null,
+) {
+  if (!request) return '-'
+  if (request.amount !== null) {
+    const formattedAmount = new Intl.NumberFormat('en', {
+      maximumFractionDigits: 2,
+    }).format(request.amount)
+    return request.currency
+      ? `${request.currency} ${formattedAmount}`
+      : formattedAmount
+  }
+  if (request.leaveDays !== null) {
+    return `${request.leaveDays} ${request.leaveDays === 1 ? 'day' : 'days'}`
+  }
+  return '-'
+}
+
+function requesterLabel(request: WorkflowRequestSummaryResponseDto | null) {
+  if (!request) return '-'
+  return request.requester
+    ? `${request.requester.name} (${request.requester.email})`
+    : request.requesterId
 }
 
 function conditionValueFromUnknown(
@@ -311,6 +365,11 @@ function workflowIdFromExpense(expense: ExpenseResponseDto) {
   return workflowId ?? undefined
 }
 
+function workflowIdFromLeave(leave: LeaveResponseDto) {
+  const workflowId = stringFromObjectField(leave.workflowInstanceId)
+  return workflowId ?? undefined
+}
+
 function formatOptionalDate(value: unknown) {
   return formatDate(dateFromObjectField(value))
 }
@@ -350,7 +409,7 @@ function describeRuntimeAssignee(
   const assignedUserReference = stepWithUsers.assignedUser ?? step.assignedUserId
 
   if (step.assigneeType === 'ROLE') {
-    const role = stringFromObjectField(step.assignedRoleSlug)
+    const role = step.assignedRoleSlug
     if (!role) return 'Role assignment pending'
 
     const assignedUser = describeUserReference(
@@ -417,7 +476,7 @@ function canActOnStep(
   }
 
   if (step.assigneeType === 'ROLE') {
-    const role = stringFromObjectField(step.assignedRoleSlug)
+    const role = step.assignedRoleSlug
     return Boolean(role && userRoles.includes(role))
   }
 
@@ -469,12 +528,12 @@ function describeConditionGroup(group: DetailConditionGroup | undefined) {
 
 function describeStepAssignee(step: WorkflowApprovalStepConfigResponseDto) {
   if (step.assigneeType === 'ROLE') {
-    const role = stringFromObjectField(step.assigneeRoleSlug)
+    const role = step.assigneeRoleSlug
     return role ? `Role: ${formatRoleLabel(role)}` : 'Needs assignment'
   }
 
   if (step.assigneeType === 'USER') {
-    const userId = stringFromObjectField(step.assigneeUserId)
+    const userId = step.assigneeUserId
     return userId ? `User ID: ${userId}` : 'Needs assignment'
   }
 
@@ -486,7 +545,7 @@ function describeStepAssignee(step: WorkflowApprovalStepConfigResponseDto) {
     return 'Department head'
   }
 
-  const fieldPath = stringFromObjectField(step.assigneeFieldPath)
+  const fieldPath = step.assigneeFieldPath
   return fieldPath ? `User from event field: ${fieldPath}` : 'Needs assignment'
 }
 
@@ -609,7 +668,12 @@ export function DashboardPage() {
   const pendingRows = (unwrapData(pending.data) as WorkflowStepResponseDto[] | undefined) ?? []
   const filteredPendingRows = pendingRows.filter((row) => {
     const matchesStatus = statusFilter === 'all' || row.status === statusFilter
+    const request = row.request
     const searchable = [
+      request?.title,
+      request?.type,
+      requesterLabel(request),
+      requestAmountOrDaysLabel(request),
       row.stepName,
       row.stepType,
       row.assigneeType,
@@ -2275,7 +2339,7 @@ function ApprovalStepTimeline({
       {steps.map((step, index) => {
         const flags = stepFlags(step)
         const isLastStep = index === steps.length - 1
-        const slaHours = numberFromObjectField(step.slaHours)
+        const slaHours = step.slaHours
 
         return (
           <li key={step.id} className="grid grid-cols-[32px_1fr] gap-3">
@@ -2605,8 +2669,8 @@ function RuntimeStepTimeline({
                   {runtimeStepStatusText[step.status]}
                 </p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                  <SummaryValue label="Activated" value={formatOptionalDate(step.activatedAt)} />
-                  <SummaryValue label="Acted" value={formatOptionalDate(step.actedAt)} />
+                  <SummaryValue label="Activated" value={formatDate(step.activatedAt)} />
+                  <SummaryValue label="Acted" value={formatDate(step.actedAt)} />
                   <SummaryValue
                     label="Actor"
                     value={formatValue(
@@ -2623,14 +2687,14 @@ function RuntimeStepTimeline({
                   />
                   <SummaryValue label="Assignment rule" value={humanizeKey(step.assigneeType)} />
                 </div>
-                {readableValue(step.comment) ? (
+                {step.comment ? (
                   <p className="mt-3 text-sm text-[var(--ink-2)]">
-                    Comment: {readableValue(step.comment)}
+                    Comment: {step.comment}
                   </p>
                 ) : null}
-                {readableValue(step.rejectionReason) ? (
+                {step.rejectionReason ? (
                   <p className="mt-3 text-sm text-red-700">
-                    Rejection reason: {readableValue(step.rejectionReason)}
+                    Rejection reason: {step.rejectionReason}
                   </p>
                 ) : null}
                 <StepActionHistory
@@ -2686,7 +2750,7 @@ function StepActionHistory({
               )}
             </span>
             <span>{formatDate(action.createdAt)}</span>
-            <span>{readableValue(action.comment) ?? readableValue(action.reason) ?? '-'}</span>
+            <span>{action.comment ?? action.reason ?? '-'}</span>
           </div>
         )
       })}
@@ -2818,11 +2882,11 @@ function WorkflowInstanceSummary({
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryValue label="Entity" value={`${instance.entityType} ${instance.entityId}`} />
-        <SummaryValue label="Started" value={formatOptionalDate(instance.startedAt)} />
-        <SummaryValue label="Completed" value={formatOptionalDate(instance.completedAt)} />
-        <SummaryValue label="Rejected" value={formatOptionalDate(instance.rejectedAt)} />
+        <SummaryValue label="Started" value={formatDate(instance.startedAt)} />
+        <SummaryValue label="Completed" value={formatDate(instance.completedAt)} />
+        <SummaryValue label="Rejected" value={formatDate(instance.rejectedAt)} />
         <SummaryValue label="Requester" value={instance.requesterId} />
-        <SummaryValue label="Department" value={formatValue(readableValue(instance.departmentId))} />
+        <SummaryValue label="Department" value={formatValue(instance.departmentId)} />
       </div>
       <ReadableRowsSection
         title="Metadata"
@@ -2876,7 +2940,7 @@ function WorkflowActionHistory({
                       )}
                     </td>
                     <td className="px-4 py-3 text-[13px]">
-                      {readableValue(action.comment) ?? readableValue(action.reason) ?? '-'}
+                      {action.comment ?? action.reason ?? '-'}
                     </td>
                     <td className="px-4 py-3 text-[13px]">{formatDate(action.createdAt)}</td>
                   </tr>
@@ -2935,8 +2999,38 @@ function TaskTable({
   const approve = useWorkflowRuntimeControllerApprove({ mutation: { onSuccess: () => void queryClient.invalidateQueries() } })
   const reject = useWorkflowRuntimeControllerReject({ mutation: { onSuccess: () => void queryClient.invalidateQueries() } })
   const columns: ColumnDef<Row | WorkflowStepResponseDto>[] = [
+    {
+      header: 'Request',
+      cell: ({ row }) => {
+        const request = requestSummaryFromRow(row.original)
+        return request?.title ?? '-'
+      },
+    },
+    {
+      header: 'Request type',
+      cell: ({ row }) => {
+        const request = requestSummaryFromRow(row.original)
+        return request?.type ?? '-'
+      },
+    },
+    {
+      header: 'Requested by',
+      cell: ({ row }) => requesterLabel(requestSummaryFromRow(row.original)),
+    },
+    {
+      header: 'Amount / Days',
+      cell: ({ row }) =>
+        requestAmountOrDaysLabel(requestSummaryFromRow(row.original)),
+    },
+    {
+      header: 'Created',
+      cell: ({ row }) => {
+        const request = requestSummaryFromRow(row.original)
+        return formatDate(request?.createdAt)
+      },
+    },
     { header: 'Step', accessorKey: 'stepName' },
-    { header: 'Type', accessorKey: 'stepType' },
+    { header: 'Step type', accessorKey: 'stepType' },
     {
       header: 'Assignee',
       cell: ({ row }) => {
@@ -2949,7 +3043,10 @@ function TaskTable({
       },
     },
     { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
-    { header: 'Activated', cell: ({ row }) => formatDate(row.original.activatedAt) },
+    {
+      header: 'Activated',
+      cell: ({ row }) => formatDate(row.original.activatedAt),
+    },
     {
       header: 'Details',
       cell: ({ row }) => {
@@ -3177,7 +3274,10 @@ export function ExpenseDetailPage() {
         kicker="Expense detail"
         action={
           workflowId ? (
-            <Button type="button" variant="secondary">
+            <Button
+              className="border-sky-700 bg-sky-600 text-white shadow-sm hover:bg-sky-700"
+              type="button"
+            >
               <Link
                 to="/workflow-instances/$instanceId"
                 params={{ instanceId: workflowId }}
@@ -3192,7 +3292,6 @@ export function ExpenseDetailPage() {
       {expense ? (
         <div className="space-y-5">
           <ExpenseSummary expense={expense} />
-          <ExpenseCustomFields value={expense.customFieldsJson} />
           {workflowId ? (
             workflow ? (
               <WorkflowProgressSection instance={workflow} showActions />
@@ -3210,6 +3309,9 @@ export function ExpenseDetailPage() {
 }
 
 function ExpenseSummary({ expense }: { expense: ExpenseResponseDto }) {
+  const requester = describeUserReference([], expense.requester ?? expense.requesterId)
+  const createdBy = describeUserReference([], expense.createdBy ?? expense.createdById)
+
   return (
     <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
@@ -3221,9 +3323,6 @@ function ExpenseSummary({ expense }: { expense: ExpenseResponseDto }) {
       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryValue label="Amount" value={`${expense.amount} ${expense.currency}`} />
         <SummaryValue label="Vendor" value={formatValue(readableValue(expense.vendor))} />
-        <SummaryValue label="Quantity" value={formatValue(readableValue(expense.quantity))} />
-        <SummaryValue label="Item value" value={formatValue(readableValue(expense.itemValue))} />
-        <SummaryValue label="Price" value={formatValue(readableValue(expense.price))} />
         <SummaryValue label="Submitted" value={formatOptionalDate(expense.submittedAt)} />
         <SummaryValue label="Approved" value={formatOptionalDate(expense.approvedAt)} />
         <SummaryValue label="Rejected" value={formatOptionalDate(expense.rejectedAt)} />
@@ -3233,28 +3332,21 @@ function ExpenseSummary({ expense }: { expense: ExpenseResponseDto }) {
       </div>
       {readableValue(expense.description) ? (
         <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3 text-sm leading-6 text-[var(--ink-2)]">
-          {readableValue(expense.description)}
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+            Description
+          </p>
+          <p className="mt-1">{readableValue(expense.description)}</p>
         </div>
       ) : null}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Request created by" value={formatValue(createdBy)} />
+        <SummaryValue label="Requester" value={formatValue(requester)} />
+      </div>
       {readableValue(expense.rejectionReason) ? (
         <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-800">
           Rejection reason: {readableValue(expense.rejectionReason)}
         </div>
       ) : null}
-    </section>
-  )
-}
-
-function ExpenseCustomFields({ value }: { value: unknown }) {
-  const rows = readableRowsFromRecord(value)
-  return (
-    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
-      <SectionHeading label="Expense fields" title="Custom fields" />
-      <ReadableRowsSection
-        title="Custom fields"
-        emptyMessage="No custom fields recorded."
-        rows={rows}
-      />
     </section>
   )
 }
@@ -3269,7 +3361,6 @@ function ExpenseTechnicalReference({
       <SectionHeading label="Technical metadata" title="Reference" />
       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryValue label="Expense ID" value={expense.id} />
-        <SummaryValue label="Requester" value={expense.requesterId} />
         <SummaryValue label="Department" value={formatValue(readableValue(expense.departmentId))} />
         <SummaryValue label="Workflow ID" value={formatValue(workflowIdFromExpense(expense))} />
       </div>
@@ -3300,7 +3391,7 @@ export function LeavesPage() {
           ) : undefined
         }
       />
-      <ErrorNotice error={query.error} />
+      <ErrorNotice error={query.error ?? submit.error} />
       <DataTable
         data={rows}
         columns={[
@@ -3308,7 +3399,32 @@ export function LeavesPage() {
           { header: 'Days', accessorKey: 'leaveDays' },
           { header: 'Period', cell: ({ row }) => `${formatValue(row.original.startDate)} - ${formatValue(row.original.endDate)}` },
           { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
-          { header: 'Actions', cell: ({ row }) => <div className="flex gap-2"><Link className="font-medium text-[var(--primary)]" to="/leaves/$leaveId" params={{ leaveId: String(row.original.id) }}>Open</Link>{canWriteLeaves ? <Button size="sm" variant="secondary" type="button" onClick={() => submit.mutate({ id: String(row.original.id) })}><Send className="h-4 w-4" /> Submit</Button> : null}</div> },
+          {
+            header: 'Actions',
+            cell: ({ row }) => (
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+                  to="/leaves/$leaveId"
+                  params={{ leaveId: String(row.original.id) }}
+                >
+                  <Eye className="h-4 w-4" />
+                  Open
+                </Link>
+                {canWriteLeaves ? (
+                  <Button
+                    className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+                    size="sm"
+                    type="button"
+                    onClick={() => submit.mutate({ id: String(row.original.id) })}
+                  >
+                    <Send className="h-4 w-4" />
+                    Submit
+                  </Button>
+                ) : null}
+              </div>
+            ),
+          },
         ]}
       />
     </>
@@ -3324,7 +3440,7 @@ export function LeaveCreatePage() {
     leaveDays: form.leaveDays,
     startDate: form.startDate,
     endDate: form.endDate,
-    reason: form.reason ? { text: form.reason } : undefined,
+    reason: form.reason || undefined,
   }
 
   return (
@@ -3391,8 +3507,113 @@ export function LeaveCreatePage() {
 export function LeaveDetailPage() {
   const { leaveId } = useParams({ strict: false }) as { leaveId: string }
   const query = useLeavesControllerFindOne({ id: leaveId })
-  const leave = unwrapData(query.data) as Row | undefined
-  return <DetailPage title={`Leave ${leaveId}`} error={query.error} value={leave} workflowId={String(leave?.workflowInstanceId ?? '')} />
+  const leave = unwrapData(query.data) as LeaveResponseDto | undefined
+  const workflowId = leave ? workflowIdFromLeave(leave) : undefined
+  const workflowQuery = useWorkflowRuntimeControllerFindOne({ id: workflowId })
+  const workflow = workflowId
+    ? (unwrapData(workflowQuery.data) as WorkflowInstanceResponseDto | undefined)
+    : undefined
+
+  return (
+    <>
+      <PageHeader
+        title={leave ? `Leave ${leave.leaveType}` : `Leave ${leaveId}`}
+        kicker="Leave detail"
+        action={
+          workflowId ? (
+            <Button
+              className="border-sky-700 bg-sky-600 text-white shadow-sm hover:bg-sky-700"
+              type="button"
+            >
+              <Link
+                to="/workflow-instances/$instanceId"
+                params={{ instanceId: workflowId }}
+              >
+                Full workflow detail
+              </Link>
+            </Button>
+          ) : null
+        }
+      />
+      <ErrorNotice error={query.error ?? workflowQuery.error} />
+      {leave ? (
+        <div className="space-y-5">
+          <LeaveSummary leave={leave} />
+          {workflowId ? (
+            workflow ? (
+              <WorkflowProgressSection instance={workflow} showActions />
+            ) : (
+              <EmptyState message="Workflow detail is not available yet." />
+            )
+          ) : (
+            <EmptyState message="No workflow has been started for this leave request." />
+          )}
+          <LeaveTechnicalReference leave={leave} />
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+function LeaveSummary({ leave }: { leave: LeaveResponseDto }) {
+  const requester = describeUserReference([], leave.requester ?? leave.requesterId)
+  const createdBy = describeUserReference([], leave.createdBy ?? leave.createdById)
+  const leaveDayLabel = leave.leaveDays === 1 ? 'day' : 'days'
+
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge>{leave.status}</Badge>
+        <Badge className="bg-[var(--surface-2)] text-[var(--ink-3)]">
+          {leave.leaveType}
+        </Badge>
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Duration" value={`${leave.leaveDays} ${leaveDayLabel}`} />
+        <SummaryValue label="Period" value={`${leave.startDate} - ${leave.endDate}`} />
+        <SummaryValue label="Employee grade" value={formatValue(leave.employeeGrade)} />
+        <SummaryValue label="Submitted" value={formatOptionalDate(leave.submittedAt)} />
+        <SummaryValue label="Approved" value={formatOptionalDate(leave.approvedAt)} />
+        <SummaryValue label="Rejected" value={formatOptionalDate(leave.rejectedAt)} />
+        <SummaryValue label="Created" value={formatDate(leave.createdAt)} />
+        <SummaryValue label="Updated" value={formatDate(leave.updatedAt)} />
+      </div>
+      {leave.reason ? (
+        <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3 text-sm leading-6 text-[var(--ink-2)]">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+            Reason
+          </p>
+          <p className="mt-1">{leave.reason}</p>
+        </div>
+      ) : null}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Request created by" value={formatValue(createdBy)} />
+        <SummaryValue label="Requester" value={formatValue(requester)} />
+      </div>
+      {leave.rejectionReason ? (
+        <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-800">
+          Rejection reason: {leave.rejectionReason}
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
+function LeaveTechnicalReference({
+  leave,
+}: {
+  leave: LeaveResponseDto
+}) {
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <SectionHeading label="Technical metadata" title="Reference" />
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Leave ID" value={leave.id} />
+        <SummaryValue label="Department" value={formatValue(leave.departmentId)} />
+        <SummaryValue label="Workflow ID" value={formatValue(workflowIdFromLeave(leave))} />
+      </div>
+    </section>
+  )
 }
 
 export function PaymentsPage() {
@@ -3488,29 +3709,6 @@ export function EventSchemasPage() {
         ]}
       />
     </>
-  )
-}
-
-function DetailPage({ title, error, value, workflowId }: { title: string; error: unknown; value?: Row; workflowId?: string }) {
-  return (
-    <>
-      <PageHeader title={title} action={workflowId ? <Button type="button" variant="secondary"><Link to="/workflow-instances/$instanceId" params={{ instanceId: workflowId }}>Workflow history</Link></Button> : null} />
-      <ErrorNotice error={error} />
-      {value ? <ObjectPanel value={value} /> : null}
-    </>
-  )
-}
-
-function ObjectPanel({ value }: { value: Row }) {
-  return (
-    <div className="grid gap-3 rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm md:grid-cols-2">
-      {Object.entries(value).map(([key, item]) => (
-        <div key={key} className="min-w-0 border-b border-[var(--border)] pb-2">
-          <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{key}</p>
-          <p className="mt-1 break-words text-sm">{formatValue(item)}</p>
-        </div>
-      ))}
-    </div>
   )
 }
 

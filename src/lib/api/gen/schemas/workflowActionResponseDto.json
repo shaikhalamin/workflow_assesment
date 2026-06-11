@@ -10,7 +10,7 @@
       "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2"
     },
     "workflowStepId": {
-      "type": "object",
+      "type": "string",
       "example": "e7c883f6-90e7-465e-8abc-4c7f8e5e7d4a",
       "nullable": true
     },
@@ -29,17 +29,36 @@
       "example": "APPROVED"
     },
     "actorUserId": {
-      "type": "object",
+      "type": "string",
       "example": "71cb34da-1809-4c72-b132-2b9860be8936",
       "nullable": true
     },
-    "comment": {
+    "actorUser": {
+      "nullable": true,
       "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+            },
+            "name": { "type": "string", "example": "Finance Approver" },
+            "email": { "type": "string", "example": "finance@example.com" }
+          },
+          "required": ["id", "name", "email"],
+          "x-readme-ref-name": "WorkflowUserResponseDto"
+        }
+      ]
+    },
+    "comment": {
+      "type": "string",
       "example": "Approved after checking documents",
       "nullable": true
     },
     "reason": {
-      "type": "object",
+      "type": "string",
       "example": "Budget verified",
       "nullable": true
     },
@@ -56,6 +75,7 @@
     "workflowStepId",
     "action",
     "actorUserId",
+    "actorUser",
     "comment",
     "reason",
     "metadataJson",

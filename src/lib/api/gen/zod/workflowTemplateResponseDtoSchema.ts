@@ -11,16 +11,16 @@ import { z } from "zod/v4";
 export const workflowTemplateResponseDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
-  description: z.nullable(z.object({})),
+  description: z.nullable(z.string()),
   moduleName: z.string(),
   eventName: z.string(),
   entityType: z.string(),
   status: z.enum(["DRAFT", "PUBLISHED", "INACTIVE", "ARCHIVED"]),
   priority: z.number(),
-  effectiveFrom: z.nullable(z.object({})),
-  effectiveTo: z.nullable(z.object({})),
+  effectiveFrom: z.nullable(z.iso.datetime()),
+  effectiveTo: z.nullable(z.iso.datetime()),
   allowResubmission: z.boolean(),
-  createdById: z.nullable(z.object({})),
+  createdById: z.nullable(z.string()),
   get triggerCondition() {
     return workflowTriggerConditionResponseDtoSchema.nullable();
   },

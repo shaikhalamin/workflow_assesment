@@ -6,8 +6,51 @@
       "type": "string",
       "example": "71cb34da-1809-4c72-b132-2b9860be8936"
     },
-    "departmentId": {
+    "requester": {
+      "nullable": true,
       "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+            },
+            "name": { "type": "string", "example": "Finance Approver" },
+            "email": { "type": "string", "example": "finance@example.com" }
+          },
+          "required": ["id", "name", "email"],
+          "x-readme-ref-name": "WorkflowUserResponseDto"
+        }
+      ]
+    },
+    "createdById": {
+      "type": "string",
+      "example": "f33b2ef8-0c6d-4d22-b9c7-8592cb4e5037",
+      "nullable": true
+    },
+    "createdBy": {
+      "nullable": true,
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+            },
+            "name": { "type": "string", "example": "Finance Approver" },
+            "email": { "type": "string", "example": "finance@example.com" }
+          },
+          "required": ["id", "name", "email"],
+          "x-readme-ref-name": "WorkflowUserResponseDto"
+        }
+      ]
+    },
+    "departmentId": {
+      "type": "string",
       "example": "61f1d2de-5733-4830-a97c-cb1899482850",
       "nullable": true
     },
@@ -15,8 +58,8 @@
     "leaveDays": { "type": "number", "example": 2 },
     "startDate": { "type": "string", "example": "2026-06-10" },
     "endDate": { "type": "string", "example": "2026-06-11" },
-    "reason": { "type": "object", "example": "Family event", "nullable": true },
-    "employeeGrade": { "type": "object", "example": "M2", "nullable": true },
+    "reason": { "type": "string", "example": "Family event", "nullable": true },
+    "employeeGrade": { "type": "string", "example": "M2", "nullable": true },
     "status": {
       "type": "string",
       "enum": [
@@ -30,12 +73,12 @@
       "example": "DRAFT"
     },
     "workflowInstanceId": {
-      "type": "object",
+      "type": "string",
       "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2",
       "nullable": true
     },
     "rejectionReason": {
-      "type": "object",
+      "type": "string",
       "example": "Insufficient balance",
       "nullable": true
     },
@@ -50,17 +93,17 @@
       "nullable": true
     },
     "submittedAt": {
-      "type": "object",
+      "type": "string",
       "example": "2026-06-10T10:15:00.000Z",
       "nullable": true
     },
     "approvedAt": {
-      "type": "object",
+      "type": "string",
       "example": "2026-06-10T12:15:00.000Z",
       "nullable": true
     },
     "rejectedAt": {
-      "type": "object",
+      "type": "string",
       "example": "2026-06-10T12:15:00.000Z",
       "nullable": true
     },
@@ -70,6 +113,9 @@
   "required": [
     "id",
     "requesterId",
+    "requester",
+    "createdById",
+    "createdBy",
     "departmentId",
     "leaveType",
     "leaveDays",
