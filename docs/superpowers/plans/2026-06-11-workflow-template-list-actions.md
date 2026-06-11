@@ -26,13 +26,13 @@
 ### Task 2: Frontend List Actions
 
 **Files:**
-- Modify: `/home/shaikh/assesments/fiber_at_home/workflow_fe/src/pages/workspace-pages.tsx`
-- Test: `/home/shaikh/assesments/fiber_at_home/workflow_fe/src/pages/workspace-pages.workflow-template-list.test.tsx`
+- Modify: `/home/shaikh/assesments/fiber_at_home/workflow_fe/src/pages/index.tsx`
+- Test: `/home/shaikh/assesments/fiber_at_home/workflow_fe/src/pages/workflow-template-list.test.tsx`
 
 - [ ] Write failing Vitest coverage for no Duplicate button, `View Details`, hidden Publish on `PUBLISHED`, destructive Deactivate, and warning/disabled state when `workflowInstanceCount > 0`.
-- [ ] Run `npm test -- src/pages/workspace-pages.workflow-template-list.test.tsx` and verify the new tests fail for missing UI behavior.
+- [ ] Run `npm test -- src/pages/workflow-template-list.test.tsx` and verify the new tests fail for missing UI behavior.
 - [ ] Update `WorkflowTemplatesPage` action rendering with no duplicate mutation/button, a labeled detail link, conditional Publish, and destructive disabled Deactivate with warning.
-- [ ] Run `npm test -- src/pages/workspace-pages.workflow-template-list.test.tsx` and verify the list tests pass.
+- [ ] Run `npm test -- src/pages/workflow-template-list.test.tsx` and verify the list tests pass.
 
 ### Task 3: API Client Verification
 

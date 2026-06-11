@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AuthUserDto } from '@/lib/api/gen'
 import { useAuthStore } from '@/stores/auth-store'
 
-import { WorkflowInstanceDetailPage } from './workspace-pages'
+import { WorkflowInstanceDetailPage } from './index'
 
 let approveStep = vi.fn()
 let rejectStep = vi.fn()

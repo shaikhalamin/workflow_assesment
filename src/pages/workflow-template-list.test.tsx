@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { WorkflowTemplatesPage } from './workspace-pages'
+import { WorkflowTemplatesPage } from './index'
 
 let workflowTemplateRows: Array<Record<string, unknown>> = []
 

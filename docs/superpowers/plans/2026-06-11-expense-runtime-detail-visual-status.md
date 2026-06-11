@@ -4,7 +4,7 @@
 
 **Goal:** Replace raw object rendering on expense detail and workflow runtime detail with compact readable workflow status, responsibility, step history, and assigned approver actions.
 
-**Architecture:** Keep the change inside `src/pages/workspace-pages.tsx` because the existing workspace pages and detail helpers already live there, and the spec explicitly asks for the existing page structure. Add small local narrowing helpers for generated `object | null` fields, then render business sections with the existing `PageHeader`, `SectionHeading`, `SummaryValue`, `EmptyState`, `Badge`, `Button`, `FormInput`, and `FormTextarea` patterns. Add focused Vitest/Testing Library page tests with mocked generated API hooks and auth store state.
+**Architecture:** Keep the change inside `src/pages/index.tsx` because the existing page views and detail helpers already live there, and the spec explicitly asks for the existing page structure. Add small local narrowing helpers for generated `object | null` fields, then render business sections with the existing `PageHeader`, `SectionHeading`, `SummaryValue`, `EmptyState`, `Badge`, `Button`, `FormInput`, and `FormTextarea` patterns. Add focused Vitest/Testing Library page tests with mocked generated API hooks and auth store state.
 
 **Tech Stack:** React 19, TypeScript, TanStack Router, TanStack Query generated hooks, Zustand auth store, Vitest, Testing Library, Tailwind utility classes, existing app CSS variables.
 
@@ -12,23 +12,23 @@
 
 ## File Structure
 
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
   - Add type imports for `ExpenseResponseDto`, `WorkflowActionResponseDto`, and `WorkflowInstanceResponseDto`.
   - Add local helper functions near the existing detail helpers for primitive extraction, readable metadata rows, runtime assignee text, responsibility summaries, step status copy, and action permission checks.
   - Replace `WorkflowInstanceDetailPage` raw `ObjectPanel` rendering with workflow-first summary, current responsibility, ordered timeline, assigned action panel, readable action history, audit table, and technical reference.
   - Replace `ExpenseDetailPage` raw `DetailPage` usage with expense summary, custom fields, embedded workflow progress, optional full workflow link, and technical reference.
   - Keep `DetailPage` and `ObjectPanel` unchanged for `LeaveDetailPage`.
-- Create: `src/pages/workspace-pages.workflow-runtime-detail.test.tsx`
+- Create: `src/pages/workflow-runtime-detail.test.tsx`
   - Mock router/query/API hooks.
   - Assert ordered runtime steps, active and next responsibility, assigned user/role action access, unassigned hiding, mutation payloads, and absence of raw nested JSON.
-- Create: `src/pages/workspace-pages.expense-detail.test.tsx`
+- Create: `src/pages/expense-detail.test.tsx`
   - Mock router/query/API hooks.
   - Assert business expense fields, custom fields, embedded workflow progress when `workflowInstanceId` exists, no-workflow empty state, and absence of raw nested JSON.
 
 ## Task 1: Add Failing Workflow Runtime Detail Tests
 
 **Files:**
-- Create: `src/pages/workspace-pages.workflow-runtime-detail.test.tsx`
+- Create: `src/pages/workflow-runtime-detail.test.tsx`
 
 - [ ] **Step 1: Create the runtime detail test file**
 
@@ -40,7 +40,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AuthUserDto } from '@/lib/api/gen'
 import { useAuthStore } from '@/stores/auth-store'
 
-import { WorkflowInstanceDetailPage } from './workspace-pages'
+import { WorkflowInstanceDetailPage } from './index'
 
 let approveStep = vi.fn()
 let rejectStep = vi.fn()
@@ -395,21 +395,21 @@ describe('WorkflowInstanceDetailPage', () => {
 
 - [ ] **Step 2: Run the new runtime tests and verify they fail**
 
-Run: `npm test -- src/pages/workspace-pages.workflow-runtime-detail.test.tsx`
+Run: `npm test -- src/pages/workflow-runtime-detail.test.tsx`
 
 Expected: FAIL because `WorkflowInstanceDetailPage` still renders `ObjectPanel`, does not expose the workflow progress region, and does not show the detail-page approval panel.
 
 - [ ] **Step 3: Commit the failing tests**
 
 ```bash
-git add src/pages/workspace-pages.workflow-runtime-detail.test.tsx
+git add src/pages/workflow-runtime-detail.test.tsx
 git commit -m "test: cover workflow runtime detail status view"
 ```
 
 ## Task 2: Add Failing Expense Detail Tests
 
 **Files:**
-- Create: `src/pages/workspace-pages.expense-detail.test.tsx`
+- Create: `src/pages/expense-detail.test.tsx`
 
 - [ ] **Step 1: Create the expense detail test file**
 
@@ -418,7 +418,7 @@ import { render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ExpenseDetailPage } from './workspace-pages'
+import { ExpenseDetailPage } from './index'
 
 let expenseResponse: unknown | undefined
 let workflowResponse: unknown | undefined
@@ -664,21 +664,21 @@ describe('ExpenseDetailPage', () => {
 
 - [ ] **Step 2: Run the new expense tests and verify they fail**
 
-Run: `npm test -- src/pages/workspace-pages.expense-detail.test.tsx`
+Run: `npm test -- src/pages/expense-detail.test.tsx`
 
 Expected: FAIL because `ExpenseDetailPage` still renders `DetailPage`/`ObjectPanel`, does not render a custom fields section, and does not embed workflow progress.
 
 - [ ] **Step 3: Commit the failing tests**
 
 ```bash
-git add src/pages/workspace-pages.expense-detail.test.tsx
+git add src/pages/expense-detail.test.tsx
 git commit -m "test: cover expense detail workflow view"
 ```
 
 ## Task 3: Add Runtime Detail Helpers
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 
 - [ ] **Step 1: Extend generated type imports**
 
@@ -815,14 +815,14 @@ Expected: PASS for the new helpers. If it fails because `WorkflowStepResponseDto
 - [ ] **Step 4: Commit helper setup**
 
 ```bash
-git add src/pages/workspace-pages.tsx
+git add src/pages/index.tsx
 git commit -m "feat: add workflow detail formatting helpers"
 ```
 
 ## Task 4: Implement Shared Workflow Progress UI and Action Panel
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 
 - [ ] **Step 1: Add workflow progress components before `WorkflowInstanceDetailPage`**
 
@@ -1088,21 +1088,21 @@ function WorkflowDecisionPanel({
 
 - [ ] **Step 3: Run the runtime tests**
 
-Run: `npm test -- src/pages/workspace-pages.workflow-runtime-detail.test.tsx`
+Run: `npm test -- src/pages/workflow-runtime-detail.test.tsx`
 
 Expected: Still FAIL until `WorkflowInstanceDetailPage` uses `WorkflowProgressSection`, but TypeScript should compile for the added components.
 
 - [ ] **Step 4: Commit shared runtime UI**
 
 ```bash
-git add src/pages/workspace-pages.tsx
+git add src/pages/index.tsx
 git commit -m "feat: add workflow progress detail components"
 ```
 
 ## Task 5: Replace Workflow Runtime Detail Rendering
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 
 - [ ] **Step 1: Replace `WorkflowInstanceDetailPage` with typed runtime rendering**
 
@@ -1241,21 +1241,21 @@ function WorkflowTechnicalReference({
 
 - [ ] **Step 3: Run the focused runtime tests**
 
-Run: `npm test -- src/pages/workspace-pages.workflow-runtime-detail.test.tsx`
+Run: `npm test -- src/pages/workflow-runtime-detail.test.tsx`
 
 Expected: PASS.
 
 - [ ] **Step 4: Commit runtime detail replacement**
 
 ```bash
-git add src/pages/workspace-pages.tsx
+git add src/pages/index.tsx
 git commit -m "feat: replace runtime detail raw rendering"
 ```
 
 ## Task 6: Replace Expense Detail Rendering
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 
 - [ ] **Step 1: Replace `ExpenseDetailPage`**
 
@@ -1413,14 +1413,14 @@ function ReadableRowsSection({
 
 - [ ] **Step 4: Run the focused expense tests**
 
-Run: `npm test -- src/pages/workspace-pages.expense-detail.test.tsx`
+Run: `npm test -- src/pages/expense-detail.test.tsx`
 
 Expected: PASS.
 
 - [ ] **Step 5: Commit expense detail replacement**
 
 ```bash
-git add src/pages/workspace-pages.tsx
+git add src/pages/index.tsx
 git commit -m "feat: replace expense detail raw rendering"
 ```
 
@@ -1431,13 +1431,13 @@ git commit -m "feat: replace expense detail raw rendering"
 
 - [ ] **Step 1: Run focused detail tests**
 
-Run: `npm test -- src/pages/workspace-pages.workflow-runtime-detail.test.tsx src/pages/workspace-pages.expense-detail.test.tsx`
+Run: `npm test -- src/pages/workflow-runtime-detail.test.tsx src/pages/expense-detail.test.tsx`
 
 Expected: PASS.
 
 - [ ] **Step 2: Run related existing detail tests**
 
-Run: `npm test -- src/pages/workspace-pages.workflow-template-detail.test.tsx src/pages/workspace-pages.permissions.test.tsx src/pages/workspace-pages.expense-create.test.tsx`
+Run: `npm test -- src/pages/workflow-template-detail.test.tsx src/pages/permissions.test.tsx src/pages/expense-create.test.tsx`
 
 Expected: PASS. This confirms the existing workflow-template detail style, auth store use, expense create page, and unchanged list permissions still work.
 
@@ -1462,7 +1462,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit final verification fixes if any were required**
 
 ```bash
-git add src/pages/workspace-pages.tsx src/pages/workspace-pages.workflow-runtime-detail.test.tsx src/pages/workspace-pages.expense-detail.test.tsx
+git add src/pages/index.tsx src/pages/workflow-runtime-detail.test.tsx src/pages/expense-detail.test.tsx
 git commit -m "test: verify workflow detail pages"
 ```
 
@@ -1470,4 +1470,4 @@ git commit -m "test: verify workflow detail pages"
 
 - Spec coverage: The plan covers expense summary, custom fields, embedded workflow progress, runtime summary, ordered step timeline, current/next responsibility, approval/rejection panel permission rules, action history, audit table, technical references, generated DTO usage, readable `object` field handling, and the requested focused tests.
 - Placeholder scan: The tasks avoid forbidden placeholder wording. Each code-changing step includes concrete code or exact replacement content.
-- Type consistency: The plan uses generated DTO names already exported by `src/lib/api/gen/index.ts`, existing helper names from `workspace-pages.tsx`, and `WorkflowStepResponseDto` field names from the generated runtime type.
+- Type consistency: The plan uses generated DTO names already exported by `src/lib/api/gen/index.ts`, existing helper names from `tsx`, and `WorkflowStepResponseDto` field names from the generated runtime type.

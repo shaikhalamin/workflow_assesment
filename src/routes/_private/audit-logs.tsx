@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { AuditLogsPage } from '@/pages/workspace-pages'
+import { AuditLogsPage } from '@/pages'
 
 export const Route = createFileRoute('/_private/audit-logs')({
   component: AuditLogsPage,

@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { LeaveDetailPage } from './workspace-pages'
+import { LeaveDetailPage } from './index'
 
 let leaveResponse: unknown | undefined
 let workflowResponse: unknown | undefined

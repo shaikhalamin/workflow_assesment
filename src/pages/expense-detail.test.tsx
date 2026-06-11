@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ExpenseDetailPage } from './workspace-pages'
+import { ExpenseDetailPage } from './index'
 
 let expenseResponse: unknown | undefined
 let workflowResponse: unknown | undefined

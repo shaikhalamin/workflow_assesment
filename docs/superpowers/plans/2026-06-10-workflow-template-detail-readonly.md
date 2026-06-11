@@ -4,7 +4,7 @@
 
 **Goal:** Replace `WorkflowTemplateDetailPage` raw object rendering with a compact read-only business explanation of trigger, rule paths, approval steps, outcomes, and low-priority technical metadata.
 
-**Architecture:** Keep the change local to `src/pages/workspace-pages.tsx` because the spec applies only to this page and the existing app keeps workspace page views in that file. Add small local narrowing/formatting helpers near the detail page to interpret generated `object` JSON fields without `any`, then render normal React/Tailwind cards and timelines using existing `Badge`, `PageHeader`, `formatDate`, `formatValue`, `formatRoleLabel`, and assignee language. Add one focused test file for the detail page with mocked API data.
+**Architecture:** Keep the change local to `src/pages/index.tsx` because the spec applies only to this page and the existing app keeps workspace page views in that file. Add small local narrowing/formatting helpers near the detail page to interpret generated `object` JSON fields without `any`, then render normal React/Tailwind cards and timelines using existing `Badge`, `PageHeader`, `formatDate`, `formatValue`, `formatRoleLabel`, and assignee language. Add one focused test file for the detail page with mocked API data.
 
 **Tech Stack:** React 19, TypeScript, TanStack Router/Query generated hooks, Vitest, Testing Library, Tailwind utility classes, existing app CSS variables.
 
@@ -12,12 +12,12 @@
 
 ## File Structure
 
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
   - Add type imports for workflow template/rule/step response DTOs.
   - Add local read-only detail helpers for condition groups, condition text, outcome action maps, step assignees, step flags, labels, and safe primitive extraction from generated `object` fields.
   - Replace `WorkflowTemplateDetailPage`'s `ObjectPanel` usage with the read-only business layout.
   - Keep `ObjectPanel` for other detail pages.
-- Create: `src/pages/workspace-pages.workflow-template-detail.test.tsx`
+- Create: `src/pages/workflow-template-detail.test.tsx`
   - Mock router/API hooks.
   - Render representative templates.
   - Assert plain-language trigger, sorted rules, readable assignees, business outcomes, and absence of raw nested JSON.
@@ -25,7 +25,7 @@
 ## Task 1: Add Failing Detail Page Tests
 
 **Files:**
-- Create: `src/pages/workspace-pages.workflow-template-detail.test.tsx`
+- Create: `src/pages/workflow-template-detail.test.tsx`
 
 - [ ] **Step 1: Create the test file**
 
@@ -34,7 +34,7 @@ import { render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { WorkflowTemplateDetailPage } from './workspace-pages'
+import { WorkflowTemplateDetailPage } from './index'
 
 let templateResponse: unknown | undefined
 
@@ -334,7 +334,7 @@ describe('WorkflowTemplateDetailPage', () => {
 Run:
 
 ```bash
-npm test -- src/pages/workspace-pages.workflow-template-detail.test.tsx
+npm test -- src/pages/workflow-template-detail.test.tsx
 ```
 
 Expected: FAIL because the current page renders `ObjectPanel` and does not show text such as `Runs when all trigger conditions match:`.
@@ -342,18 +342,18 @@ Expected: FAIL because the current page renders `ObjectPanel` and does not show 
 - [ ] **Step 3: Commit the failing test**
 
 ```bash
-git add src/pages/workspace-pages.workflow-template-detail.test.tsx
+git add src/pages/workflow-template-detail.test.tsx
 git commit -m "test: cover workflow template detail read-only view"
 ```
 
 ## Task 2: Add Local Detail Formatting Helpers
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 
 - [ ] **Step 1: Extend generated type imports**
 
-Change the existing generated type import near the top of `src/pages/workspace-pages.tsx` from:
+Change the existing generated type import near the top of `src/pages/index.tsx` from:
 
 ```tsx
 import type {
@@ -595,7 +595,7 @@ Expected: PASS for the helper-only change.
 ## Task 3: Replace the Detail Page with Read-Only Business Layout
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 
 - [ ] **Step 1: Replace `WorkflowTemplateDetailPage` implementation**
 
@@ -769,7 +769,7 @@ function EmptyState({ message }: { message: string }) {
 Run:
 
 ```bash
-npm test -- src/pages/workspace-pages.workflow-template-detail.test.tsx
+npm test -- src/pages/workflow-template-detail.test.tsx
 ```
 
 Expected: FAIL with missing component references until Task 4 adds `WorkflowTriggerSummary`, `WorkflowFlow`, `WorkflowRuleCard`, and `OutcomeCard`.
@@ -777,7 +777,7 @@ Expected: FAIL with missing component references until Task 4 adds `WorkflowTrig
 ## Task 4: Add Trigger, Flow, Rule, Step, and Outcome Components
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 
 - [ ] **Step 1: Add trigger and flow components after `EmptyState`**
 
@@ -1031,7 +1031,7 @@ function OutcomeCard({
 Run:
 
 ```bash
-npm test -- src/pages/workspace-pages.workflow-template-detail.test.tsx
+npm test -- src/pages/workflow-template-detail.test.tsx
 ```
 
 Expected: PASS.
@@ -1039,22 +1039,22 @@ Expected: PASS.
 - [ ] **Step 5: Commit the implementation**
 
 ```bash
-git add src/pages/workspace-pages.tsx
+git add src/pages/index.tsx
 git commit -m "feat: add read-only workflow template detail"
 ```
 
 ## Task 5: Final Verification and Small Fixes
 
 **Files:**
-- Modify if needed: `src/pages/workspace-pages.tsx`
-- Modify if needed: `src/pages/workspace-pages.workflow-template-detail.test.tsx`
+- Modify if needed: `src/pages/index.tsx`
+- Modify if needed: `src/pages/workflow-template-detail.test.tsx`
 
 - [ ] **Step 1: Run focused tests**
 
 Run:
 
 ```bash
-npm test -- src/pages/workspace-pages.workflow-template-detail.test.tsx src/pages/workspace-pages.workflow-builder.test.tsx src/features/workflows/workflow-builder.test.ts
+npm test -- src/pages/workflow-template-detail.test.tsx src/pages/workflow-builder.test.tsx src/features/workflows/workflow-builder.test.ts
 ```
 
 Expected: PASS.
@@ -1094,7 +1094,7 @@ Expected: PASS. Fix every ESLint issue in code; do not add inline disables or mo
 Run:
 
 ```bash
-git diff -- src/pages/workspace-pages.tsx src/pages/workspace-pages.workflow-template-detail.test.tsx
+git diff -- src/pages/index.tsx src/pages/workflow-template-detail.test.tsx
 ```
 
 Expected:
@@ -1108,7 +1108,7 @@ Expected:
 If Step 1 through Step 4 required changes, run:
 
 ```bash
-git add src/pages/workspace-pages.tsx src/pages/workspace-pages.workflow-template-detail.test.tsx
+git add src/pages/index.tsx src/pages/workflow-template-detail.test.tsx
 git commit -m "fix: tighten workflow template detail rendering"
 ```
 

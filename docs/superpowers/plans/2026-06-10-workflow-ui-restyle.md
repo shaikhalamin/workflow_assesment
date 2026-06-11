@@ -29,7 +29,7 @@ Do not import Inspectio code, stores, icon wrappers, auth funnel state, SSO flow
 - Modify `src/pages/auth-pages.tsx`: Keep `useAuthControllerLogin`, `useAuthControllerSignup`, `useAuthStore`, validation schemas, and navigation. Restyle `AuthPanel` and replace imports from `src/components/ui/form-controls` with `src/components/form`.
 - Modify `src/layouts/public-layout.tsx`: Keep the public route outlet. Branch the right-side visual treatment by pathname with `useLocation`; do not add a store.
 - Modify `src/layouts/private-layout.tsx`: Keep session checks, auth query, logout mutation, route list, and single-file layout. Restyle sidebar/topbar only.
-- Modify `src/pages/workspace-pages.tsx`: Restyle `DashboardPage`, `Metric`, `TaskTable`, `WorkflowBuilderPage`, `ExpenseCreatePage`, `LeaveCreatePage`, and the local create/new-form helpers. Import generated `CreateExpenseDto`, `CreateLeaveDto`, and `WorkflowStepResponseDto` types to remove `as never` casts on create payloads.
+- Modify `src/pages/index.tsx`: Restyle `DashboardPage`, `Metric`, `TaskTable`, `WorkflowBuilderPage`, `ExpenseCreatePage`, `LeaveCreatePage`, and the local create/new-form helpers. Import generated `CreateExpenseDto`, `CreateLeaveDto`, and `WorkflowStepResponseDto` types to remove `as never` casts on create payloads.
 - Modify `src/components/data-table.tsx`: Restyle shared table surfaces only if the dashboard still uses this shared component after Task 7. Do not change its public props unless the dashboard is converted to a local table.
 
 ## Task 1: Baseline And Global Tokens
@@ -752,10 +752,10 @@ git add src/layouts/private-layout.tsx
 git commit -m "style: restyle private app chrome"
 ```
 
-## Task 5: New-Form Shell In `workspace-pages`
+## Task 5: New-Form Shell In `index`
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 
 - [ ] **Step 1: Update imports**
 
@@ -910,14 +910,14 @@ Expected: All commands exit 0.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/pages/workspace-pages.tsx
+git add src/pages/index.tsx
 git commit -m "style: add workflow form shell"
 ```
 
 ## Task 6: Restyle Workflow Builder New Route
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 
 - [ ] **Step 1: Replace the workflow builder outer structure**
 
@@ -1051,14 +1051,14 @@ Expected: All commands exit 0. The workflow builder payload test must still pass
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/pages/workspace-pages.tsx
+git add src/pages/index.tsx
 git commit -m "style: restyle workflow builder form"
 ```
 
 ## Task 7: Restyle Expense And Leave New Routes
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 
 - [ ] **Step 1: Type expense state and payload**
 
@@ -1277,14 +1277,14 @@ Expected: `rg` prints no matches. All npm commands exit 0.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/pages/workspace-pages.tsx
+git add src/pages/index.tsx
 git commit -m "style: restyle request creation forms"
 ```
 
 ## Task 8: Dashboard And Pending Approvals Table
 
 **Files:**
-- Modify: `src/pages/workspace-pages.tsx`
+- Modify: `src/pages/index.tsx`
 - Modify: `src/components/data-table.tsx` only if the dashboard still renders through `DataTable`
 
 - [ ] **Step 1: Add dashboard filter state**
@@ -1480,7 +1480,7 @@ Expected: All commands exit 0.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/pages/workspace-pages.tsx src/components/data-table.tsx
+git add src/pages/index.tsx src/components/data-table.tsx
 git commit -m "style: restyle dashboard approval queue"
 ```
 
@@ -1545,7 +1545,7 @@ Expected:
 
 ```bash
 git status --short
-git add src/index.css src/components/form src/pages/auth-pages.tsx src/layouts/public-layout.tsx src/layouts/private-layout.tsx src/pages/workspace-pages.tsx src/components/data-table.tsx
+git add src/index.css src/components/form src/pages/auth-pages.tsx src/layouts/public-layout.tsx src/layouts/private-layout.tsx src/pages/index.tsx src/components/data-table.tsx
 git commit -m "style: apply workflow UI restyle"
 ```
 

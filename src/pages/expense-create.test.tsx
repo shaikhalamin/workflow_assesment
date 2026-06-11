@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { ExpenseCreatePage } from './workspace-pages'
+import { ExpenseCreatePage } from './index'
 
 const createExpense = vi.fn()
 

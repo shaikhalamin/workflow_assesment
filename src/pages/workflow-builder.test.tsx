@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useWorkflowBuilderStore } from '@/features/workflows/workflow-builder-store'
 
-import { WorkflowBuilderPage } from './workspace-pages'
+import { WorkflowBuilderPage } from './index'
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({

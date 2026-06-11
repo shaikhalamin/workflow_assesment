@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AuthUserDto } from '@/lib/api/gen'
 import { useAuthStore } from '@/stores/auth-store'
 
-import { ExpensesPage, LeavesPage, PaymentsPage, TasksPage } from './workspace-pages'
+import { ExpensesPage, LeavesPage, PaymentsPage, TasksPage } from './index'
 
 const pendingTasksState = vi.hoisted((): { pendingTasks: unknown[] } => ({
   pendingTasks: [],

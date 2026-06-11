@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { LeaveCreatePage } from './workspace-pages'
+import { LeaveCreatePage } from './index'
 
 const createLeave = vi.fn()
 

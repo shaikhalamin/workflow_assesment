@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { WorkflowTemplateDetailPage } from './workspace-pages'
+import { WorkflowTemplateDetailPage } from './index'
 
 let templateResponse: unknown | undefined
 
