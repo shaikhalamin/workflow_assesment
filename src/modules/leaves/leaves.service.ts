@@ -48,7 +48,7 @@ export class LeavesService {
         startDate: dto.startDate,
         endDate: dto.endDate,
         reason: dto.reason ?? null,
-        employeeGrade: dto.employeeGrade ?? null,
+        employeeGrade: dto.employeeGrade ?? actor.employeeGrade,
         status: LeaveRequestStatus.DRAFT,
         customFieldsJson: dto.customFieldsJson ?? null,
       }),

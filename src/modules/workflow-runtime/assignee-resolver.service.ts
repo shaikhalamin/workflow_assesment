@@ -2,6 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Department } from '../departments/entities/department.entity';
+import { Role } from '../rbac/entities/role.entity';
+import { UserRole } from '../rbac/entities/user-role.entity';
 import { User } from '../users/entities/user.entity';
 import { WorkflowApprovalStepConfig } from '../workflow-builder/entities/workflow-approval-step-config.entity';
 import { WorkflowAssigneeType } from '../workflow-builder/enums/workflow-builder.enums';
@@ -40,12 +42,21 @@ export class AssigneeResolverService {
       case WorkflowAssigneeType.USER:
         if (!step.assigneeUserId) break;
         return { assignedUserId: step.assigneeUserId, assignedRoleSlug: null };
-      case WorkflowAssigneeType.ROLE:
+      case WorkflowAssigneeType.ROLE: {
         if (!step.assigneeRoleSlug) break;
+        const user = await this.findFirstActiveUserForRole(
+          step.assigneeRoleSlug,
+        );
+        if (!user) {
+          throw new BadRequestException(
+            `No active user found for role ${step.assigneeRoleSlug}`,
+          );
+        }
         return {
-          assignedUserId: null,
+          assignedUserId: user.id,
           assignedRoleSlug: step.assigneeRoleSlug,
         };
+      }
       case WorkflowAssigneeType.REQUESTER_MANAGER: {
         const requester = await this.usersRepository.findOneBy({
           id: context.requesterId,
@@ -96,5 +107,16 @@ export class AssigneeResolverService {
       }
       return undefined;
     }, data);
+  }
+
+  private findFirstActiveUserForRole(roleSlug: string): Promise<User | null> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .innerJoin(UserRole, 'userRole', 'userRole.userId = user.id')
+      .innerJoin(Role, 'role', 'role.id = userRole.roleId')
+      .where('role.slug = :roleSlug', { roleSlug })
+      .andWhere('user.isActive = :isActive', { isActive: true })
+      .orderBy('user.name', 'ASC')
+      .getOne();
   }
 }

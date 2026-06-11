@@ -19,6 +19,7 @@ export interface UserWithAccess {
   name: string;
   email: string;
   passwordHash: string;
+  employeeGrade: string | null;
   isActive: boolean;
   roles: string[];
   permissions: string[];
@@ -35,6 +36,7 @@ interface UserAccessRow {
   name: string;
   email: string;
   passwordHash: string;
+  employeeGrade: string | null;
   isActive: boolean;
   roleSlug: string | null;
   permissionSlug: string | null;
@@ -144,6 +146,7 @@ export class UsersService {
       .addSelect('user.name', 'name')
       .addSelect('user.email', 'email')
       .addSelect('user.passwordHash', 'passwordHash')
+      .addSelect('user.employeeGrade', 'employeeGrade')
       .addSelect('user.isActive', 'isActive')
       .addSelect('role.slug', 'roleSlug')
       .addSelect('permission.slug', 'permissionSlug')
@@ -171,6 +174,7 @@ export class UsersService {
       name: user.name,
       email: user.email,
       passwordHash: user.passwordHash,
+      employeeGrade: user.employeeGrade,
       isActive: user.isActive,
       roles: [...new Set(rows.map((row) => row.roleSlug).filter(isString))],
       permissions: [

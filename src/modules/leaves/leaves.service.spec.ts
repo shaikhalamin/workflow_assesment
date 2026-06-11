@@ -58,6 +58,57 @@ describe('LeavesService', () => {
     );
   });
 
+  it('defaults employee grade from the requester when creating a leave request', async () => {
+    const savedLeave = {
+      id: 'leave-1',
+      requesterId: 'requester-1',
+      createdById: 'requester-1',
+      departmentId: null,
+      leaveType: 'ANNUAL',
+      leaveDays: 2,
+      startDate: '2026-06-10',
+      endDate: '2026-06-11',
+      reason: null,
+      employeeGrade: 'G5',
+      status: LeaveRequestStatus.DRAFT,
+      workflowInstanceId: null,
+      rejectionReason: null,
+      approvedPeriodJson: null,
+      customFieldsJson: null,
+      submittedAt: null,
+      approvedAt: null,
+      rejectedAt: null,
+      createdAt: new Date('2026-06-10T09:30:00.000Z'),
+      updatedAt: new Date('2026-06-10T09:30:00.000Z'),
+    };
+    const repo = {
+      create: jest.fn((value: unknown) => value),
+      save: jest.fn().mockResolvedValue(savedLeave),
+      findOne: jest.fn().mockResolvedValue({
+        ...savedLeave,
+        requester: null,
+        createdBy: null,
+      }),
+    };
+    const service = new LeavesService(repo as never, {} as never, {} as never);
+
+    await service.create(
+      {
+        leaveType: 'ANNUAL',
+        leaveDays: 2,
+        startDate: '2026-06-10',
+        endDate: '2026-06-11',
+      },
+      { userId: 'requester-1', roles: [], employeeGrade: 'G5' } as never,
+    );
+
+    expect(repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        employeeGrade: 'G5',
+      }),
+    );
+  });
+
   it('loads requester and creator relations for leave detail responses', async () => {
     const requester = {
       id: 'requester-1',

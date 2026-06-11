@@ -13,11 +13,13 @@ describe('workflow utils', () => {
         id: 'user-1',
         name: 'Requester',
         email: 'requester@example.com',
+        designation: 'Sales Executive',
       }),
     ).toEqual({
       id: 'user-1',
       name: 'Requester',
       email: 'requester@example.com',
+      designation: 'Sales Executive',
     });
   });
 

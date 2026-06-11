@@ -92,6 +92,20 @@ describe('SeedService', () => {
     ]);
   });
 
+  it('assigns sample employee metadata and a default manager', () => {
+    for (const user of SeedService.userSeeds) {
+      expect(user.employeeGrade).toEqual(expect.any(String));
+      expect(user.departmentSlug).toEqual(expect.any(String));
+      expect(user.departmentSlug).not.toBe('');
+
+      if (user.name === 'Manager User') {
+        expect(user.managerEmail).toBeUndefined();
+      } else {
+        expect(user.managerEmail).toBe('manager@example.com');
+      }
+    }
+  });
+
   it('does not delete existing data or seed workflow definitions on development startup', async () => {
     process.env.NODE_ENV = 'development';
     const departmentsRepository = createMockRepository<Department>('dept');

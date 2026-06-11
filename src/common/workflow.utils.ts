@@ -2,6 +2,7 @@ export type WorkflowUserLike = {
   id: string;
   name: string;
   email: string;
+  designation: string | null;
 };
 
 export type WorkflowRequestWithStatus<TStatus extends string> = {
@@ -18,6 +19,7 @@ export function toWorkflowUserResponse(
     id: user.id,
     name: user.name,
     email: user.email,
+    designation: user.designation,
   };
 }
 

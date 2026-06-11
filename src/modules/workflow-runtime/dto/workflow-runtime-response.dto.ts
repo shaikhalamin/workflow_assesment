@@ -18,6 +18,9 @@ export class WorkflowUserResponseDto {
 
   @ApiProperty({ example: 'finance@example.com' })
   email!: string;
+
+  @ApiProperty({ type: String, example: 'Finance Approver', nullable: true })
+  designation!: string | null;
 }
 
 export class WorkflowActionResponseDto {
@@ -207,6 +210,9 @@ export class WorkflowInstanceResponseDto {
 
   @ApiProperty({ example: '71cb34da-1809-4c72-b132-2b9860be8936' })
   requesterId!: string;
+
+  @ApiProperty({ type: WorkflowUserResponseDto, nullable: true })
+  requester!: WorkflowUserResponseDto | null;
 
   @ApiProperty({
     type: String,

@@ -8,6 +8,7 @@ describe('JwtStrategy', () => {
     name: 'Employee User',
     email: 'employee@example.com',
     passwordHash: 'hash',
+    employeeGrade: 'G5',
     isActive: true,
     roles: ['employee'],
     permissions: ['auth.profile.read'],
@@ -26,6 +27,7 @@ describe('JwtStrategy', () => {
     await expect(strategy.validate({ sub: user.id })).resolves.toEqual({
       userId: user.id,
       email: user.email,
+      employeeGrade: user.employeeGrade,
       roles: user.roles,
       permissions: user.permissions,
       sid: null,

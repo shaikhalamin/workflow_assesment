@@ -17,6 +17,7 @@ describe('WorkflowRuntimeService', () => {
       id: 'requester-1',
       name: 'Expense Requester',
       email: 'requester@example.com',
+      designation: null,
     };
     const queryBuilder = {
       innerJoinAndSelect: jest.fn(),
@@ -232,10 +233,18 @@ describe('WorkflowRuntimeService', () => {
 
   it('loads workflow instance user relations for approver display', async () => {
     const createdAt = new Date('2026-06-11T08:00:00.000Z');
+    const requester = {
+      id: 'requester-1',
+      name: 'Expense Requester',
+      email: 'requester@example.com',
+      designation: 'Analyst',
+      employeeCode: 'REQ-1',
+    };
     const manager = {
       id: 'manager-1',
       name: 'Line Manager',
       email: 'manager@example.com',
+      designation: 'Manager',
       employeeCode: 'MGR-1',
     };
     const instancesRepository = {
@@ -248,6 +257,7 @@ describe('WorkflowRuntimeService', () => {
         entityType: 'Expense',
         entityId: 'expense-1',
         requesterId: 'requester-1',
+        requester,
         departmentId: null,
         status: WorkflowInstanceStatus.ACTIVE,
         metadataJson: null,
@@ -328,6 +338,7 @@ describe('WorkflowRuntimeService', () => {
       where: { id: 'workflow-1' },
       relations: {
         actions: { actorUser: true },
+        requester: true,
         steps: {
           actionByUser: true,
           actions: { actorUser: true },
@@ -335,25 +346,35 @@ describe('WorkflowRuntimeService', () => {
         },
       },
     });
+    expect(response.requester).toEqual({
+      id: 'requester-1',
+      name: 'Expense Requester',
+      email: 'requester@example.com',
+      designation: 'Analyst',
+    });
     expect(response.steps[0]?.assignedUser).toEqual({
       id: 'manager-1',
       name: 'Line Manager',
       email: 'manager@example.com',
+      designation: 'Manager',
     });
     expect(response.steps[0]?.actionByUser).toEqual({
       id: 'manager-1',
       name: 'Line Manager',
       email: 'manager@example.com',
+      designation: 'Manager',
     });
     expect(response.steps[0]?.actions[0]?.actorUser).toEqual({
       id: 'manager-1',
       name: 'Line Manager',
       email: 'manager@example.com',
+      designation: 'Manager',
     });
     expect(response.actions[0]?.actorUser).toEqual({
       id: 'manager-1',
       name: 'Line Manager',
       email: 'manager@example.com',
+      designation: 'Manager',
     });
   });
 

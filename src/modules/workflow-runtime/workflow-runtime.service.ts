@@ -221,6 +221,7 @@ export class WorkflowRuntimeService {
       where: { id },
       relations: {
         actions: { actorUser: true },
+        requester: true,
         steps: {
           actionByUser: true,
           actions: { actorUser: true },
@@ -572,6 +573,7 @@ export class WorkflowRuntimeService {
       entityType: instance.entityType,
       entityId: instance.entityId,
       requesterId: instance.requesterId,
+      requester: toWorkflowUserResponse(instance.requester),
       departmentId: instance.departmentId,
       status: instance.status,
       metadataJson: instance.metadataJson,

@@ -273,8 +273,10 @@ export class SeedService implements OnApplicationBootstrap {
       name: 'Admin User',
       email: 'admin@example.com',
       employeeCode: 'EMP-ADMIN',
+      employeeGrade: 'G8',
       designation: 'System Administrator',
       departmentSlug: 'finance',
+      managerEmail: 'manager@example.com',
       roles: ['admin'],
     },
     {
@@ -300,48 +302,60 @@ export class SeedService implements OnApplicationBootstrap {
       name: 'Accounts Officer',
       email: 'accounts@example.com',
       employeeCode: 'EMP-003',
+      employeeGrade: 'G4',
       designation: 'Accounts Officer',
       departmentSlug: 'accounts',
+      managerEmail: 'manager@example.com',
       roles: ['accounts-officer'],
     },
     {
       name: 'Finance Admin',
       email: 'finance@example.com',
       employeeCode: 'EMP-004',
+      employeeGrade: 'G6',
       designation: 'Finance Admin',
       departmentSlug: 'finance',
+      managerEmail: 'manager@example.com',
       roles: ['finance-admin'],
     },
     {
       name: 'HR Officer',
       email: 'hr.officer@example.com',
       employeeCode: 'EMP-005',
+      employeeGrade: 'G4',
       designation: 'HR Officer',
       departmentSlug: 'hr',
+      managerEmail: 'manager@example.com',
       roles: ['hr-officer'],
     },
     {
       name: 'HR Manager',
       email: 'hr.manager@example.com',
       employeeCode: 'EMP-006',
+      employeeGrade: 'G7',
       designation: 'HR Manager',
       departmentSlug: 'hr',
+      managerEmail: 'manager@example.com',
       roles: ['hr-manager'],
     },
     {
       name: 'CFO User',
       email: 'cfo@example.com',
       employeeCode: 'EMP-007',
+      employeeGrade: 'G9',
       designation: 'Chief Financial Officer',
       departmentSlug: 'finance',
+      managerEmail: 'manager@example.com',
       roles: ['cfo'],
     },
     {
       name: 'Payroll Officer',
       email: 'payroll@example.com',
       employeeCode: 'EMP-008',
+      employeeGrade: 'G4',
       designation: 'Payroll Officer',
       departmentSlug: 'payroll',
+      managerEmail: 'manager@example.com',
       roles: ['payroll-officer'],
     },
   ];
@@ -421,7 +435,7 @@ export class SeedService implements OnApplicationBootstrap {
 
     await this.seedDepartments();
     await this.seedRolesAndPermissions();
-    await this.seedUsers();
+    await this.seedUsers(); //
     // Workflow definition seeds are paused until we need them again.
     // await this.seedWorkflowDefinitions();
     // Demo transaction seeds are paused so development starts from scratch.
