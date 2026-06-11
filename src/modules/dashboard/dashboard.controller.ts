@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
-import { ApiOkData } from '../../common/http/swagger';
+import { ApiData } from '../../common/http/swagger';
 import {
   AccountsDashboardResponseDto,
   AdminDashboardResponseDto,
@@ -20,31 +20,31 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('admin')
-  @ApiOkData(AdminDashboardResponseDto)
+  @ApiData(AdminDashboardResponseDto, { errors: [401, 403] })
   admin() {
     return this.dashboardService.admin();
   }
 
   @Get('employee')
-  @ApiOkData(EmployeeDashboardResponseDto)
+  @ApiData(EmployeeDashboardResponseDto, { errors: [401, 403] })
   employee(@CurrentUser() actor: Express.User) {
     return this.dashboardService.employee(actor);
   }
 
   @Get('approver')
-  @ApiOkData(ApproverDashboardResponseDto)
+  @ApiData(ApproverDashboardResponseDto, { errors: [401, 403] })
   approver(@CurrentUser() actor: Express.User) {
     return this.dashboardService.approver(actor);
   }
 
   @Get('accounts')
-  @ApiOkData(AccountsDashboardResponseDto)
+  @ApiData(AccountsDashboardResponseDto, { errors: [401, 403] })
   accounts() {
     return this.dashboardService.accounts();
   }
 
   @Get('hr')
-  @ApiOkData(HrDashboardResponseDto)
+  @ApiData(HrDashboardResponseDto, { errors: [401, 403] })
   hr() {
     return this.dashboardService.hr();
   }

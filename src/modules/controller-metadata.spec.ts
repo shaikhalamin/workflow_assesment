@@ -7,26 +7,37 @@ import {
   ROUTE_ARGS_METADATA,
 } from '@nestjs/common/constants';
 import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
+import { Test } from '@nestjs/testing';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppController } from '../app.controller';
+import { AppService } from '../app.service';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { AuditLogsController } from './audit-logs/audit-logs.controller';
+import { AuditLogsService } from './audit-logs/audit-logs.service';
 import { AuditLogResponseDto } from './audit-logs/dto/audit-log-response.dto';
 import { AuthModule } from './auth/auth.module';
 import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { DashboardController } from './dashboard/dashboard.controller';
+import { DashboardService } from './dashboard/dashboard.service';
 import { ExpensesModule } from './expenses/expenses.module';
 import { ExpensesController } from './expenses/expenses.controller';
 import { CreateExpenseDto } from './expenses/dto/create-expense.dto';
 import { ExpenseResponseDto } from './expenses/dto/expense-response.dto';
+import { ExpensesService } from './expenses/expenses.service';
 import { LeavesModule } from './leaves/leaves.module';
 import { LeavesController } from './leaves/leaves.controller';
 import { CreateLeaveDto } from './leaves/dto/create-leave.dto';
+import { LeavesService } from './leaves/leaves.service';
 import { PaymentsModule } from './payments/payments.module';
 import { PaymentsController } from './payments/payments.controller';
 import { PaymentRequestResponseDto } from './payments/dto/payment-request-response.dto';
+import { PaymentsService } from './payments/payments.service';
 import { UsersModule } from './users/users.module';
 import { UsersController } from './users/users.controller';
 import { UserResponseDto } from './users/dto/user-response.dto';
+import { UsersService } from './users/users.service';
 import { WorkflowBuilderModule } from './workflow-builder/workflow-builder.module';
 import { CreateWorkflowStepConfigDto } from './workflow-builder/dto/create-workflow-step-config.dto';
 import { CreateWorkflowTemplateDto } from './workflow-builder/dto/create-workflow-template.dto';
@@ -35,9 +46,12 @@ import {
   WorkflowTemplateResponseDto,
 } from './workflow-builder/dto/workflow-builder-response.dto';
 import { WorkflowEventSchemaController } from './workflow-builder/workflow-event-schema.controller';
+import { WorkflowEventSchemaService } from './workflow-builder/workflow-event-schema.service';
 import { WorkflowRuleController } from './workflow-builder/workflow-rule.controller';
+import { WorkflowRuleService } from './workflow-builder/workflow-rule.service';
 import { WorkflowStepConfigController } from './workflow-builder/workflow-step-config.controller';
 import { WorkflowTemplateController } from './workflow-builder/workflow-template.controller';
+import { WorkflowTemplateService } from './workflow-builder/workflow-template.service';
 import { WorkflowRuntimeModule } from './workflow-runtime/workflow-runtime.module';
 import { TriggerWorkflowDto } from './workflow-runtime/dto/trigger-workflow.dto';
 import {
@@ -46,6 +60,8 @@ import {
   WorkflowStepResponseDto,
 } from './workflow-runtime/dto/workflow-runtime-response.dto';
 import { WorkflowRuntimeController } from './workflow-runtime/workflow-runtime.controller';
+import { WorkflowRuntimeService } from './workflow-runtime/workflow-runtime.service';
+import { ENVELOPE_EXTRA_MODELS } from '../common/http/swagger';
 
 type ControllerMethod = (...args: unknown[]) => unknown;
 
@@ -55,6 +71,7 @@ const SWAGGER_MODEL_PROPERTIES_ARRAY_METADATA =
   'swagger/apiModelPropertiesArray';
 
 interface RouteArgMetadata {
+  data?: unknown;
   index: number;
 }
 
@@ -67,6 +84,40 @@ interface SwaggerPropertyMetadata {
 
 interface SwaggerResponseMetadata {
   schema?: unknown;
+}
+
+interface SwaggerReference {
+  $ref: string;
+}
+
+interface SwaggerSchema {
+  $ref?: string;
+  allOf?: unknown[];
+}
+
+interface SwaggerMediaType {
+  schema?: SwaggerSchema;
+}
+
+interface SwaggerRequestBody {
+  content: Record<string, SwaggerMediaType>;
+}
+
+interface SwaggerResponse {
+  content?: Record<string, SwaggerMediaType>;
+}
+
+interface SwaggerOperation {
+  requestBody?: SwaggerReference | SwaggerRequestBody;
+  responses: Record<string, SwaggerReference | SwaggerResponse>;
+}
+
+type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+
+type SwaggerPathItem = Partial<Record<HttpMethod, SwaggerOperation>>;
+
+interface SwaggerDocument {
+  paths: Record<string, SwaggerPathItem>;
 }
 
 const modules = [
@@ -82,6 +133,7 @@ const modules = [
 ];
 
 const controllers: Type<unknown>[] = [
+  AppController,
   AuditLogsController,
   AuthController,
   DashboardController,
@@ -95,6 +147,29 @@ const controllers: Type<unknown>[] = [
   WorkflowTemplateController,
   WorkflowRuntimeController,
 ];
+
+const controllerServices: Type<unknown>[] = [
+  AppService,
+  AuditLogsService,
+  AuthService,
+  DashboardService,
+  ExpensesService,
+  LeavesService,
+  PaymentsService,
+  UsersService,
+  WorkflowEventSchemaService,
+  WorkflowRuleService,
+  WorkflowTemplateService,
+  WorkflowRuntimeService,
+];
+
+const httpMethods: HttpMethod[] = ['get', 'post', 'put', 'patch', 'delete'];
+
+interface DocumentedOperation {
+  method: string;
+  operation: SwaggerOperation;
+  path: string;
+}
 
 function routeMethods(controller: Type<unknown>) {
   const prototype = prototypeOf(controller) as Record<string, unknown>;
@@ -129,6 +204,65 @@ function typedMetadata<T>(
   propertyKey?: string,
 ): T | undefined {
   return metadata(key, target, propertyKey) as T | undefined;
+}
+
+function documentedOperations(
+  paths: Record<string, SwaggerPathItem>,
+): DocumentedOperation[] {
+  return Object.entries(paths).flatMap(([path, pathItem]) =>
+    httpMethods.flatMap((method) => {
+      const operation = pathItem[method];
+      return operation ? [{ method, operation, path }] : [];
+    }),
+  );
+}
+
+function isReferenceObject(
+  value: SwaggerReference | SwaggerRequestBody | SwaggerResponse,
+): value is SwaggerReference {
+  return '$ref' in value;
+}
+
+function jsonSchemaFromRequestBody(
+  requestBody: SwaggerOperation['requestBody'],
+): SwaggerSchema | undefined {
+  if (!requestBody || isReferenceObject(requestBody)) return undefined;
+  return requestBody.content['application/json']?.schema;
+}
+
+function jsonSchemaFromResponse(
+  response: SwaggerReference | SwaggerResponse,
+): SwaggerSchema | undefined {
+  if (isReferenceObject(response)) return undefined;
+  return response.content?.['application/json']?.schema;
+}
+
+async function createSwaggerDocument() {
+  const moduleRef = await Test.createTestingModule({
+    controllers,
+    providers: controllerServices.map((service) => ({
+      provide: service,
+      useValue: {},
+    })),
+  }).compile();
+  const app = moduleRef.createNestApplication();
+  const config = new DocumentBuilder()
+    .setTitle('Workflow API')
+    .setDescription('Workflow API endpoints')
+    .setVersion('0.1.0')
+    .addCookieAuth(
+      'access_token',
+      { type: 'apiKey', in: 'cookie', name: 'access_token' },
+      'access_token',
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config, {
+    extraModels: [...ENVELOPE_EXTRA_MODELS],
+  }) as SwaggerDocument;
+
+  await app.close();
+  return document;
 }
 
 describe('module controller metadata', () => {
@@ -169,6 +303,75 @@ describe('module controller metadata', () => {
     );
 
     expect(missingResponses).toEqual([]);
+  });
+
+  it('documents every route with wrapped error responses', () => {
+    const missingResponses = controllers.flatMap((controller) =>
+      routeMethods(controller)
+        .filter(({ handler }) => {
+          const responses = typedMetadata<
+            Record<string, SwaggerResponseMetadata>
+          >(SWAGGER_RESPONSE_METADATA, handler);
+          return !Object.keys(responses ?? {}).some((status) => {
+            const statusCode = Number(status);
+            return statusCode >= 400;
+          });
+        })
+        .map(({ propertyName }) => `${controller.name}.${propertyName}`),
+    );
+
+    expect(missingResponses).toEqual([]);
+  });
+
+  it('uses DTO-backed path parameter objects', () => {
+    const primitiveParams = controllers.flatMap((controller) =>
+      routeMethods(controller).flatMap(({ propertyName }) => {
+        const routeArgs = typedMetadata<Record<string, RouteArgMetadata>>(
+          ROUTE_ARGS_METADATA,
+          controller,
+          propertyName,
+        );
+
+        return Object.entries(routeArgs ?? {})
+          .filter(
+            ([key, routeArg]) =>
+              key.startsWith(`${RouteParamtypes.PARAM}:`) &&
+              routeArg.data !== undefined,
+          )
+          .map(() => `${controller.name}.${propertyName}`);
+      }),
+    );
+
+    expect(primitiveParams).toEqual([]);
+  });
+
+  it('generates Swagger JSON with envelope responses and DTO request bodies', async () => {
+    const document = await createSwaggerDocument();
+    const operations = documentedOperations(document.paths);
+
+    const missingResponseShapes = operations.flatMap(
+      ({ method, operation, path }) =>
+        Object.entries(operation.responses)
+          .filter(([status]) => {
+            const statusCode = Number(status);
+            return (statusCode >= 200 && statusCode < 300) || statusCode >= 400;
+          })
+          .filter(([, response]) => {
+            const schema = jsonSchemaFromResponse(response);
+            return !schema || schema.$ref !== undefined || !schema.allOf;
+          })
+          .map(([status]) => `${method.toUpperCase()} ${path} ${status}`),
+    );
+
+    const primitiveRequestBodies = operations
+      .filter(({ operation }) => {
+        const schema = jsonSchemaFromRequestBody(operation.requestBody);
+        return schema && schema.$ref === undefined && !schema.allOf;
+      })
+      .map(({ method, path }) => `${method.toUpperCase()} ${path}`);
+
+    expect(missingResponseShapes).toEqual([]);
+    expect(primitiveRequestBodies).toEqual([]);
   });
 
   it('documents every request body DTO with Swagger examples', () => {

@@ -12,11 +12,7 @@ import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { SuccessResponseDto } from '../../common/http/success-response.dto';
-import {
-  ApiErrors,
-  ApiOkData,
-  ApiOkPaginated,
-} from '../../common/http/swagger';
+import { ApiData, ApiPaginatedData } from '../../common/http/swagger';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { ExpenseResponseDto } from './dto/expense-response.dto';
 import { ExpenseQueryDto } from './dto/expense-query.dto';
@@ -33,24 +29,21 @@ export class ExpensesController {
 
   @Post()
   @Permissions('expenses.write')
-  @ApiOkData(ExpenseResponseDto, { status: 201 })
-  @ApiErrors(400, 401, 403)
+  @ApiData(ExpenseResponseDto, { status: 201, errors: [400, 401, 403] })
   create(@Body() dto: CreateExpenseDto, @CurrentUser() actor: Express.User) {
     return this.expensesService.create(dto, actor);
   }
 
   @Get()
   @Permissions('expenses.read')
-  @ApiOkPaginated(ExpenseResponseDto)
-  @ApiErrors(400, 401, 403)
+  @ApiPaginatedData(ExpenseResponseDto, { errors: [400, 401, 403] })
   list(@Query() query: ExpenseQueryDto, @CurrentUser() actor: Express.User) {
     return this.expensesService.list(query, actor);
   }
 
   @Get(':id')
   @Permissions('expenses.read')
-  @ApiOkData(ExpenseResponseDto)
-  @ApiErrors(400, 401, 403, 404)
+  @ApiData(ExpenseResponseDto, { errors: [400, 401, 403, 404] })
   findOne(
     @Param() params: ExpenseParamDto,
     @CurrentUser() actor: Express.User,
@@ -60,8 +53,7 @@ export class ExpensesController {
 
   @Patch(':id')
   @Permissions('expenses.write')
-  @ApiOkData(ExpenseResponseDto)
-  @ApiErrors(400, 401, 403, 404)
+  @ApiData(ExpenseResponseDto, { errors: [400, 401, 403, 404] })
   update(
     @Param() params: ExpenseParamDto,
     @Body() dto: UpdateExpenseDto,
@@ -72,16 +64,20 @@ export class ExpensesController {
 
   @Post(':id/submit')
   @Permissions('expenses.write')
-  @ApiOkData(ExpenseResponseDto, { status: 201 })
-  @ApiErrors(400, 401, 403, 404)
+  @ApiData(ExpenseResponseDto, {
+    status: 201,
+    errors: [400, 401, 403, 404],
+  })
   submit(@Param() params: ExpenseParamDto, @CurrentUser() actor: Express.User) {
     return this.expensesService.submit(params.id, actor);
   }
 
   @Post(':id/resubmit')
   @Permissions('expenses.write')
-  @ApiOkData(ExpenseResponseDto, { status: 201 })
-  @ApiErrors(400, 401, 403, 404)
+  @ApiData(ExpenseResponseDto, {
+    status: 201,
+    errors: [400, 401, 403, 404],
+  })
   resubmit(
     @Param() params: ExpenseParamDto,
     @Body() dto: ResubmitExpenseDto,
@@ -92,8 +88,7 @@ export class ExpensesController {
 
   @Delete(':id')
   @Permissions('expenses.write')
-  @ApiOkData(SuccessResponseDto)
-  @ApiErrors(400, 401, 403, 404)
+  @ApiData(SuccessResponseDto, { errors: [400, 401, 403, 404] })
   delete(@Param() params: ExpenseParamDto, @CurrentUser() actor: Express.User) {
     return this.expensesService.delete(params.id, actor);
   }

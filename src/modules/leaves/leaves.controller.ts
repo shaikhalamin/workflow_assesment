@@ -12,11 +12,7 @@ import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { SuccessResponseDto } from '../../common/http/success-response.dto';
-import {
-  ApiErrors,
-  ApiOkData,
-  ApiOkPaginated,
-} from '../../common/http/swagger';
+import { ApiData, ApiPaginatedData } from '../../common/http/swagger';
 import { CreateLeaveDto } from './dto/create-leave.dto';
 import { LeaveResponseDto } from './dto/leave-response.dto';
 import { LeaveQueryDto } from './dto/leave-query.dto';
@@ -33,32 +29,28 @@ export class LeavesController {
 
   @Post()
   @Permissions('leaves.write')
-  @ApiOkData(LeaveResponseDto, { status: 201 })
-  @ApiErrors(400, 401, 403)
+  @ApiData(LeaveResponseDto, { status: 201, errors: [400, 401, 403] })
   create(@Body() dto: CreateLeaveDto, @CurrentUser() actor: Express.User) {
     return this.leavesService.create(dto, actor);
   }
 
   @Get()
   @Permissions('leaves.read')
-  @ApiOkPaginated(LeaveResponseDto)
-  @ApiErrors(400, 401, 403)
+  @ApiPaginatedData(LeaveResponseDto, { errors: [400, 401, 403] })
   list(@Query() query: LeaveQueryDto, @CurrentUser() actor: Express.User) {
     return this.leavesService.list(query, actor);
   }
 
   @Get(':id')
   @Permissions('leaves.read')
-  @ApiOkData(LeaveResponseDto)
-  @ApiErrors(400, 401, 403, 404)
+  @ApiData(LeaveResponseDto, { errors: [400, 401, 403, 404] })
   findOne(@Param() params: LeaveParamDto, @CurrentUser() actor: Express.User) {
     return this.leavesService.findOne(params.id, actor);
   }
 
   @Patch(':id')
   @Permissions('leaves.write')
-  @ApiOkData(LeaveResponseDto)
-  @ApiErrors(400, 401, 403, 404)
+  @ApiData(LeaveResponseDto, { errors: [400, 401, 403, 404] })
   update(
     @Param() params: LeaveParamDto,
     @Body() dto: UpdateLeaveDto,
@@ -69,16 +61,20 @@ export class LeavesController {
 
   @Post(':id/submit')
   @Permissions('leaves.write')
-  @ApiOkData(LeaveResponseDto, { status: 201 })
-  @ApiErrors(400, 401, 403, 404)
+  @ApiData(LeaveResponseDto, {
+    status: 201,
+    errors: [400, 401, 403, 404],
+  })
   submit(@Param() params: LeaveParamDto, @CurrentUser() actor: Express.User) {
     return this.leavesService.submit(params.id, actor);
   }
 
   @Post(':id/resubmit')
   @Permissions('leaves.write')
-  @ApiOkData(LeaveResponseDto, { status: 201 })
-  @ApiErrors(400, 401, 403, 404)
+  @ApiData(LeaveResponseDto, {
+    status: 201,
+    errors: [400, 401, 403, 404],
+  })
   resubmit(
     @Param() params: LeaveParamDto,
     @Body() dto: ResubmitLeaveDto,
@@ -89,8 +85,7 @@ export class LeavesController {
 
   @Delete(':id')
   @Permissions('leaves.write')
-  @ApiOkData(SuccessResponseDto)
-  @ApiErrors(400, 401, 403, 404)
+  @ApiData(SuccessResponseDto, { errors: [400, 401, 403, 404] })
   delete(@Param() params: LeaveParamDto, @CurrentUser() actor: Express.User) {
     return this.leavesService.delete(params.id, actor);
   }

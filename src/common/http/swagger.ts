@@ -14,7 +14,19 @@ const ENVELOPE_MODELS = [
   ApiErrorDto,
 ] as const;
 
-const STATUS_TO_ERROR_DESCRIPTION: Record<number, string> = {
+export type ApiErrorStatus =
+  | 400
+  | 401
+  | 403
+  | 404
+  | 409
+  | 410
+  | 422
+  | 429
+  | 500
+  | 503;
+
+const STATUS_TO_ERROR_DESCRIPTION: Record<ApiErrorStatus, string> = {
   400: 'Validation failed or malformed request',
   401: 'Unauthenticated',
   403: 'Insufficient permissions',
@@ -31,6 +43,10 @@ interface ApiOkDataOptions {
   status?: number;
   description?: string;
   isArray?: boolean;
+}
+
+interface ApiDataOptions extends ApiOkDataOptions {
+  errors: ApiErrorStatus[];
 }
 
 export function ApiOkData<TModel extends Type<unknown>>(
@@ -73,6 +89,10 @@ interface ApiOkPaginatedOptions {
   description?: string;
 }
 
+interface ApiPaginatedDataOptions extends ApiOkPaginatedOptions {
+  errors: ApiErrorStatus[];
+}
+
 export function ApiOkPaginated<TModel extends Type<unknown>>(
   model: TModel,
   options: ApiOkPaginatedOptions = {},
@@ -108,7 +128,29 @@ export function ApiOkPaginated<TModel extends Type<unknown>>(
   );
 }
 
-export function ApiErrors(...statuses: number[]) {
+export function ApiData<TModel extends Type<unknown>>(
+  model: TModel,
+  options: ApiDataOptions,
+) {
+  const { errors, ...successOptions } = options;
+  return applyDecorators(
+    ApiOkData(model, successOptions),
+    ApiErrors(...errors),
+  );
+}
+
+export function ApiPaginatedData<TModel extends Type<unknown>>(
+  model: TModel,
+  options: ApiPaginatedDataOptions,
+) {
+  const { errors, ...successOptions } = options;
+  return applyDecorators(
+    ApiOkPaginated(model, successOptions),
+    ApiErrors(...errors),
+  );
+}
+
+export function ApiErrors(...statuses: ApiErrorStatus[]) {
   const decorators = statuses.map((status) =>
     ApiResponse({
       status,

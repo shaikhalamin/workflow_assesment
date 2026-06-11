@@ -3,9 +3,13 @@ import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { PaginationQueryDto } from '../../common/http/pagination.query';
-import { ApiOkData, ApiOkPaginated } from '../../common/http/swagger';
+import { ApiData, ApiPaginatedData } from '../../common/http/swagger';
 import { TriggerWorkflowDto } from './dto/trigger-workflow.dto';
 import { WorkflowActionDto } from './dto/workflow-action.dto';
+import {
+  WorkflowInstanceParamDto,
+  WorkflowStepParamDto,
+} from './dto/workflow-runtime-param.dto';
 import {
   WorkflowActionResponseDto,
   WorkflowInstanceResponseDto,
@@ -23,62 +27,79 @@ export class WorkflowRuntimeController {
 
   @Post('workflow-runtime/trigger')
   @Permissions('workflow.builder.manage')
-  @ApiOkData(WorkflowInstanceResponseDto, { status: 201 })
+  @ApiData(WorkflowInstanceResponseDto, {
+    status: 201,
+    errors: [400, 401, 403],
+  })
   trigger(@Body() dto: TriggerWorkflowDto) {
     return this.workflowRuntimeService.trigger(dto);
   }
 
   @Get('workflow-instances')
   @Permissions('workflow.runtime.act')
-  @ApiOkPaginated(WorkflowInstanceResponseDto)
+  @ApiPaginatedData(WorkflowInstanceResponseDto, {
+    errors: [400, 401, 403],
+  })
   list(@Query() query: PaginationQueryDto) {
     return this.workflowRuntimeService.list(query);
   }
 
   @Get('workflow-instances/:id')
   @Permissions('workflow.runtime.act')
-  @ApiOkData(WorkflowInstanceResponseDto)
-  findOne(@Param('id') id: string) {
-    return this.workflowRuntimeService.findOne(id);
+  @ApiData(WorkflowInstanceResponseDto, { errors: [400, 401, 403, 404] })
+  findOne(@Param() params: WorkflowInstanceParamDto) {
+    return this.workflowRuntimeService.findOne(params.id);
   }
 
   @Get('workflow-tasks/my-pending')
   @Permissions('workflow.runtime.act')
-  @ApiOkData(WorkflowStepResponseDto, { isArray: true })
+  @ApiData(WorkflowStepResponseDto, {
+    isArray: true,
+    errors: [401, 403],
+  })
   myPending(@CurrentUser() actor: Express.User) {
     return this.workflowRuntimeService.myPending(actor);
   }
 
   @Post('workflow-steps/:id/approve')
   @Permissions('workflow.runtime.act')
-  @ApiOkData(WorkflowStepResponseDto, { status: 201 })
+  @ApiData(WorkflowStepResponseDto, {
+    status: 201,
+    errors: [400, 401, 403, 404],
+  })
   approve(
-    @Param('id') id: string,
+    @Param() params: WorkflowStepParamDto,
     @CurrentUser() actor: Express.User,
     @Body() dto: WorkflowActionDto,
   ) {
-    return this.workflowRuntimeService.approveStep(id, actor, dto);
+    return this.workflowRuntimeService.approveStep(params.id, actor, dto);
   }
 
   @Post('workflow-steps/:id/reject')
   @Permissions('workflow.runtime.act')
-  @ApiOkData(WorkflowStepResponseDto, { status: 201 })
+  @ApiData(WorkflowStepResponseDto, {
+    status: 201,
+    errors: [400, 401, 403, 404],
+  })
   reject(
-    @Param('id') id: string,
+    @Param() params: WorkflowStepParamDto,
     @CurrentUser() actor: Express.User,
     @Body() dto: WorkflowActionDto,
   ) {
-    return this.workflowRuntimeService.rejectStep(id, actor, dto);
+    return this.workflowRuntimeService.rejectStep(params.id, actor, dto);
   }
 
   @Post('workflow-steps/:id/comment')
   @Permissions('workflow.runtime.act')
-  @ApiOkData(WorkflowActionResponseDto, { status: 201 })
+  @ApiData(WorkflowActionResponseDto, {
+    status: 201,
+    errors: [400, 401, 403, 404],
+  })
   comment(
-    @Param('id') id: string,
+    @Param() params: WorkflowStepParamDto,
     @CurrentUser() actor: Express.User,
     @Body() dto: WorkflowActionDto,
   ) {
-    return this.workflowRuntimeService.commentStep(id, actor, dto);
+    return this.workflowRuntimeService.commentStep(params.id, actor, dto);
   }
 }

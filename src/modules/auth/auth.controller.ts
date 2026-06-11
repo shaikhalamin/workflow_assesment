@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { SuccessResponseDto } from '../../common/http/success-response.dto';
-import { ApiErrors, ApiOkData } from '../../common/http/swagger';
+import { ApiData } from '../../common/http/swagger';
 import { AuthService, AuthResult } from './auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
@@ -18,11 +18,11 @@ export class AuthController {
 
   @Public()
   @Post('signup')
-  @ApiOkData(AuthResponseDto, {
+  @ApiData(AuthResponseDto, {
     status: 201,
     description: 'Creates an employee account and starts an auth session',
+    errors: [400, 409, 429],
   })
-  @ApiErrors(400, 409, 429)
   async signup(
     @Body() dto: SignupDto,
     @Req() request: Request,
@@ -35,11 +35,11 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  @ApiOkData(AuthResponseDto, {
+  @ApiData(AuthResponseDto, {
     status: 201,
     description: 'Starts an auth session for valid credentials',
+    errors: [400, 401, 429],
   })
-  @ApiErrors(400, 401, 429)
   async login(
     @Body() dto: LoginDto,
     @Req() request: Request,
@@ -52,11 +52,11 @@ export class AuthController {
 
   @Public()
   @Post('refresh')
-  @ApiOkData(AuthResponseDto, {
+  @ApiData(AuthResponseDto, {
     status: 201,
     description: 'Rotates refresh token cookies and returns the current user',
+    errors: [401, 429],
   })
-  @ApiErrors(401, 429)
   async refresh(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
@@ -70,15 +70,15 @@ export class AuthController {
   }
 
   @Post('logout')
-  @ApiOkData(SuccessResponseDto, {
+  @ApiData(SuccessResponseDto, {
     status: 201,
     description: 'Revokes the current refresh token session',
+    errors: [401, 429],
   })
-  @ApiErrors(401, 429)
   async logout(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<{ success: true }> {
+  ): Promise<SuccessResponseDto> {
     await this.authService.logout(this.getRefreshToken(request));
     response.clearCookie(
       'access_token',
@@ -92,10 +92,10 @@ export class AuthController {
   }
 
   @Get('me')
-  @ApiOkData(AuthResponseDto, {
+  @ApiData(AuthResponseDto, {
     description: 'Returns the authenticated user profile',
+    errors: [401, 429],
   })
-  @ApiErrors(401, 429)
   me(@CurrentUser() user: Express.User): Promise<AuthResponseDto> {
     return this.authService.me(user.userId);
   }

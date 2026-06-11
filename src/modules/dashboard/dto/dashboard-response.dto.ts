@@ -35,6 +35,20 @@ class HrLeaveCountsDto {
   rejected!: number;
 }
 
+class DashboardRecentItemDto {
+  @ApiProperty({ example: 'expense-2026-0001' })
+  id!: string;
+
+  @ApiProperty({ example: 'Expense' })
+  type!: string;
+
+  @ApiProperty({ example: 'Laptop charger reimbursement' })
+  title!: string;
+
+  @ApiProperty({ example: '2026-06-10T09:30:00.000Z' })
+  createdAt!: string;
+}
+
 export class EmployeeDashboardResponseDto {
   @ApiProperty({ type: EmployeeExpenseSummaryDto })
   expenses!: EmployeeExpenseSummaryDto;
@@ -42,16 +56,16 @@ export class EmployeeDashboardResponseDto {
   @ApiProperty({ type: EmployeeLeaveSummaryDto })
   leaves!: EmployeeLeaveSummaryDto;
 
-  @ApiProperty({ example: [] })
-  recentItems!: unknown[];
+  @ApiProperty({ type: [DashboardRecentItemDto] })
+  recentItems!: DashboardRecentItemDto[];
 }
 
 export class AdminDashboardResponseDto {
   @ApiProperty({ type: AdminWorkflowSummaryDto })
   workflows!: AdminWorkflowSummaryDto;
 
-  @ApiProperty({ example: [] })
-  recentWorkflowChanges!: unknown[];
+  @ApiProperty({ type: [DashboardRecentItemDto] })
+  recentWorkflowChanges!: DashboardRecentItemDto[];
 
   @ApiProperty({ example: 1 })
   failedTriggers!: number;

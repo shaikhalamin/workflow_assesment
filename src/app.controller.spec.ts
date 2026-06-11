@@ -17,7 +17,9 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return the configured greeting', () => {
-      expect(appController.getHello()).toBe('Hello World! Changed again !!!!');
+      expect(appController.getHello()).toEqual({
+        message: 'Hello World! Changed again !!!!',
+      });
     });
 
     it('marks the base controller as public', () => {
