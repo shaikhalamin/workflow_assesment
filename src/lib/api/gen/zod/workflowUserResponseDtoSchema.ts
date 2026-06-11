@@ -9,4 +9,5 @@ export const workflowUserResponseDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
+  designation: z.nullable(z.string()),
 });

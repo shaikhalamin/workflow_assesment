@@ -167,6 +167,7 @@ const baseWorkflow = {
         id: 'manager-1',
         name: 'Line Manager',
         email: 'manager@example.com',
+        designation: 'Manager',
       },
       assignedRoleSlug: null,
       assigneeType: 'USER',
@@ -198,7 +199,8 @@ describe('LeaveDetailPage', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Leave ANNUAL' })).toBeInTheDocument()
     expect(screen.getByText('2 days')).toBeInTheDocument()
-    expect(screen.getByText('2026-06-10 - 2026-06-11')).toBeInTheDocument()
+    expect(screen.getByText('Start date')).toBeInTheDocument()
+    expect(screen.getByText('End date')).toBeInTheDocument()
     expect(screen.getByText('Reason')).toBeInTheDocument()
     expect(screen.getByText('Family event')).toBeInTheDocument()
 
@@ -209,21 +211,66 @@ describe('LeaveDetailPage', () => {
     }
 
     const summaryContent = summary.textContent ?? ''
+    expect(within(summary).getAllByText('ANNUAL').length).toBeGreaterThan(0)
+    expect(within(summary).getByText('2026-06-10')).toBeInTheDocument()
+    expect(within(summary).getByText('2026-06-11')).toBeInTheDocument()
+    expect(within(summary).queryByText('Period')).not.toBeInTheDocument()
+    expect(summaryContent.indexOf('Requester')).toBeLessThan(summaryContent.indexOf('Leave type'))
+    expect(summaryContent.indexOf('Leave type')).toBeLessThan(summaryContent.indexOf('Duration'))
+    expect(summaryContent.indexOf('Duration')).toBeLessThan(summaryContent.indexOf('Start date'))
+    expect(summaryContent.indexOf('Start date')).toBeLessThan(summaryContent.indexOf('End date'))
+    expect(within(summary).getByText('Duration')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('Duration')).not.toHaveClass('text-black')
+    expect(within(summary).getByText('Reason')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('Family event')).toHaveClass('text-black')
     expect(within(summary).getByText('Leave Creator (creator@example.com)')).toBeInTheDocument()
     expect(within(summary).getByText('Leave Requester (requester@example.com)')).toBeInTheDocument()
     expect(summaryContent.indexOf('Reason')).toBeLessThan(summaryContent.indexOf('Request created by'))
-    expect(summaryContent.indexOf('Request created by')).toBeLessThan(summaryContent.indexOf('Requester'))
     expect(summaryContent).not.toContain('requester-1')
     expect(summaryContent).not.toContain('creator-1')
 
     const workflow = screen.getByRole('region', { name: /workflow progress/i })
-    expect(within(workflow).getByText('Manager review')).toBeInTheDocument()
+    expect(within(workflow).getByRole('heading', { level: 3, name: 'Line Manager' })).toBeInTheDocument()
+    expect(within(workflow).getByText('Manager')).toHaveClass('font-semibold')
     expect(within(workflow).getAllByText(/Line Manager/).length).toBeGreaterThan(0)
     expect(within(workflow).getAllByText(/manager@example.com/).length).toBeGreaterThan(0)
     expect(screen.getByRole('link', { name: /full workflow detail/i })).toHaveAttribute(
       'href',
       '/workflow-instances/$instanceId',
     )
+  })
+
+  it('shows resolved role assignee name and email in embedded workflow progress', () => {
+    workflowResponse = {
+      ...baseWorkflow,
+      steps: baseWorkflow.steps.map((step) => ({
+        ...step,
+        assignedUserId: 'hr-manager-1',
+        assignedUser: {
+          id: 'hr-manager-1',
+          name: 'HR Manager',
+          email: 'hr.manager@example.com',
+          designation: 'HR Manager',
+        },
+        assignedRoleSlug: 'hr-manager',
+        assigneeType: 'ROLE',
+      })),
+    }
+
+    render(<LeaveDetailPage />)
+
+    const workflow = screen.getByRole('region', { name: /workflow progress/i })
+    expect(
+      within(workflow).getByRole('heading', {
+        level: 3,
+        name: 'HR Manager',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      within(workflow).getAllByText(
+        /Role: Hr Manager, HR Manager \(hr.manager@example.com\)/,
+      ).length,
+    ).toBeGreaterThan(0)
   })
 
   it('shows an empty state when no workflow was started', () => {

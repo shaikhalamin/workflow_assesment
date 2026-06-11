@@ -40,9 +40,14 @@
                     "email": {
                       "type": "string",
                       "example": "finance@example.com"
+                    },
+                    "designation": {
+                      "type": "string",
+                      "example": "Finance Approver",
+                      "nullable": true
                     }
                   },
-                  "required": ["id", "name", "email"],
+                  "required": ["id", "name", "email", "designation"],
                   "x-readme-ref-name": "WorkflowUserResponseDto"
                 }
               ]
@@ -104,9 +109,14 @@
               "example": "71cb34da-1809-4c72-b132-2b9860be8936"
             },
             "name": { "type": "string", "example": "Finance Approver" },
-            "email": { "type": "string", "example": "finance@example.com" }
+            "email": { "type": "string", "example": "finance@example.com" },
+            "designation": {
+              "type": "string",
+              "example": "Finance Approver",
+              "nullable": true
+            }
           },
-          "required": ["id", "name", "email"],
+          "required": ["id", "name", "email", "designation"],
           "x-readme-ref-name": "WorkflowUserResponseDto"
         }
       ]
@@ -161,9 +171,14 @@
               "example": "71cb34da-1809-4c72-b132-2b9860be8936"
             },
             "name": { "type": "string", "example": "Finance Approver" },
-            "email": { "type": "string", "example": "finance@example.com" }
+            "email": { "type": "string", "example": "finance@example.com" },
+            "designation": {
+              "type": "string",
+              "example": "Finance Approver",
+              "nullable": true
+            }
           },
-          "required": ["id", "name", "email"],
+          "required": ["id", "name", "email", "designation"],
           "x-readme-ref-name": "WorkflowUserResponseDto"
         }
       ]
@@ -230,9 +245,14 @@
                   "email": {
                     "type": "string",
                     "example": "finance@example.com"
+                  },
+                  "designation": {
+                    "type": "string",
+                    "example": "Finance Approver",
+                    "nullable": true
                   }
                 },
-                "required": ["id", "name", "email"],
+                "required": ["id", "name", "email", "designation"],
                 "x-readme-ref-name": "WorkflowUserResponseDto"
               }
             ]

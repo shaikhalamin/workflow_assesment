@@ -21,6 +21,30 @@
       "type": "string",
       "example": "71cb34da-1809-4c72-b132-2b9860be8936"
     },
+    "requester": {
+      "nullable": true,
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+            },
+            "name": { "type": "string", "example": "Finance Approver" },
+            "email": { "type": "string", "example": "finance@example.com" },
+            "designation": {
+              "type": "string",
+              "example": "Finance Approver",
+              "nullable": true
+            }
+          },
+          "required": ["id", "name", "email", "designation"],
+          "x-readme-ref-name": "WorkflowUserResponseDto"
+        }
+      ]
+    },
     "departmentId": {
       "type": "string",
       "example": "61f1d2de-5733-4830-a97c-cb1899482850",
@@ -108,9 +132,14 @@
                           "email": {
                             "type": "string",
                             "example": "finance@example.com"
+                          },
+                          "designation": {
+                            "type": "string",
+                            "example": "Finance Approver",
+                            "nullable": true
                           }
                         },
-                        "required": ["id", "name", "email"],
+                        "required": ["id", "name", "email", "designation"],
                         "x-readme-ref-name": "WorkflowUserResponseDto"
                       }
                     ]
@@ -183,9 +212,14 @@
                   "email": {
                     "type": "string",
                     "example": "finance@example.com"
+                  },
+                  "designation": {
+                    "type": "string",
+                    "example": "Finance Approver",
+                    "nullable": true
                   }
                 },
-                "required": ["id", "name", "email"],
+                "required": ["id", "name", "email", "designation"],
                 "x-readme-ref-name": "WorkflowUserResponseDto"
               }
             ]
@@ -243,9 +277,14 @@
                   "email": {
                     "type": "string",
                     "example": "finance@example.com"
+                  },
+                  "designation": {
+                    "type": "string",
+                    "example": "Finance Approver",
+                    "nullable": true
                   }
                 },
-                "required": ["id", "name", "email"],
+                "required": ["id", "name", "email", "designation"],
                 "x-readme-ref-name": "WorkflowUserResponseDto"
               }
             ]
@@ -315,9 +354,14 @@
                         "email": {
                           "type": "string",
                           "example": "finance@example.com"
+                        },
+                        "designation": {
+                          "type": "string",
+                          "example": "Finance Approver",
+                          "nullable": true
                         }
                       },
-                      "required": ["id", "name", "email"],
+                      "required": ["id", "name", "email", "designation"],
                       "x-readme-ref-name": "WorkflowUserResponseDto"
                     }
                   ]
@@ -443,9 +487,14 @@
                   "email": {
                     "type": "string",
                     "example": "finance@example.com"
+                  },
+                  "designation": {
+                    "type": "string",
+                    "example": "Finance Approver",
+                    "nullable": true
                   }
                 },
-                "required": ["id", "name", "email"],
+                "required": ["id", "name", "email", "designation"],
                 "x-readme-ref-name": "WorkflowUserResponseDto"
               }
             ]
@@ -497,6 +546,7 @@
     "entityType",
     "entityId",
     "requesterId",
+    "requester",
     "departmentId",
     "status",
     "metadataJson",

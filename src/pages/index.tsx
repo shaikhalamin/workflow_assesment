@@ -147,6 +147,24 @@ function userIdentityFromObjectField(value: unknown) {
   return undefined
 }
 
+function workflowUserFromObjectField(value: unknown) {
+  if (
+    isRecord(value) &&
+    typeof value.id === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.email === 'string'
+  ) {
+    return {
+      id: value.id,
+      name: value.name,
+      email: value.email,
+      designation: typeof value.designation === 'string' ? value.designation : null,
+    }
+  }
+
+  return undefined
+}
+
 function isWorkflowRequestSummary(
   value: unknown,
 ): value is WorkflowRequestSummaryResponseDto {
@@ -287,10 +305,10 @@ const conditionOperatorLabels: Record<string, string> = {
 const stepTypeLabels: Record<string, string> = {
   REVIEW: 'Review',
   APPROVAL: 'Approval',
-  FINANCE_CHECK: 'Finance check',
-  HR_CHECK: 'HR check',
-  MANAGEMENT_APPROVAL: 'Management approval',
-  FINAL_VERIFICATION: 'Final verification',
+  FINANCE_CHECK: 'Finance Check',
+  HR_CHECK: 'HR Check',
+  MANAGEMENT_APPROVAL: 'Management Approval',
+  FINAL_VERIFICATION: 'Final Verification',
 }
 
 type ReadableRow = {
@@ -304,6 +322,7 @@ type WorkflowUserReference = {
   id: string
   name: string
   email: string
+  designation?: string | null
 }
 
 type WorkflowStepWithUsers = WorkflowStepResponseDto & {
@@ -463,6 +482,88 @@ function describeRuntimeAssignee(
   return userReference
     ? `Custom field user: ${userReference}`
     : 'User from custom field is not resolved'
+}
+
+function timelineUserFromStep(
+  step: WorkflowStepResponseDto,
+  users: UserResponseDto[],
+  currentUser?: AuthUserDto | null,
+) {
+  const stepWithUsers = step as WorkflowStepWithUsers
+  const assignedReference = stepWithUsers.assignedUser ?? step.assignedUserId
+  const embeddedUser = workflowUserFromObjectField(assignedReference)
+  if (embeddedUser) return embeddedUser
+
+  const assignedUserId = idFromObjectField(assignedReference)
+  if (!assignedUserId) return undefined
+  if (currentUser?.id === assignedUserId) {
+    return {
+      id: currentUser.id,
+      name: currentUser.name,
+      email: currentUser.email,
+      designation: null,
+    }
+  }
+
+  const user = findUserById(users, assignedUserId)
+  return user
+    ? {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        designation: user.designation,
+      }
+    : undefined
+}
+
+function timelineStepHeader(
+  step: WorkflowStepResponseDto,
+  users: UserResponseDto[],
+  requesterId: string,
+  currentUser?: AuthUserDto | null,
+) {
+  const user = timelineUserFromStep(step, users, currentUser)
+  const assignee = describeRuntimeAssignee(step, users, requesterId, currentUser)
+
+  if (user) {
+    return {
+      title: user.name,
+      subtitle: user.designation ?? assignee,
+    }
+  }
+
+  if (step.assigneeType === 'ROLE' && step.assignedRoleSlug) {
+    return {
+      title: formatRoleLabel(step.assignedRoleSlug),
+      subtitle: 'Role assignee',
+    }
+  }
+
+  if (step.assigneeType === 'REQUESTER_MANAGER') {
+    return {
+      title: 'Requester manager',
+      subtitle: assignee,
+    }
+  }
+
+  if (step.assigneeType === 'DEPARTMENT_HEAD') {
+    return {
+      title: 'Department head',
+      subtitle: assignee,
+    }
+  }
+
+  if (step.assigneeType === 'CUSTOM_FIELD_USER') {
+    return {
+      title: 'Custom field user',
+      subtitle: assignee,
+    }
+  }
+
+  return {
+    title: step.stepName || 'Unnamed step',
+    subtitle: stepTypeLabels[step.stepType] ?? step.stepType,
+  }
 }
 
 function canActOnStep(
@@ -2222,8 +2323,8 @@ function SummaryValue({
   value: React.ReactNode
 }) {
   return (
-    <div className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3">
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+    <div className="rounded-md border border-[var(--border)] bg-white p-3">
+      <p className="font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--ink-3)]">
         {label}
       </p>
       <p className="mt-1 break-words text-sm font-medium text-[var(--foreground)]">
@@ -2643,15 +2744,16 @@ function RuntimeStepTimeline({
     <ol className="mt-4 space-y-0">
       {steps.map((step, index) => {
         const stepWithUsers = step as WorkflowStepWithUsers
+        const header = timelineStepHeader(step, users, requesterId, currentUser)
         const isLastStep = index === steps.length - 1
         const tone =
           step.status === 'ACTIVE'
-            ? 'border-l-blue-600 bg-blue-50'
+            ? 'border-l-blue-600 bg-white'
             : step.status === 'APPROVED'
               ? 'border-l-emerald-600 bg-white'
               : step.status === 'REJECTED'
-                ? 'border-l-red-600 bg-red-50'
-                : 'border-l-slate-300 bg-[var(--surface-2)]'
+                ? 'border-l-red-600 bg-white'
+                : 'border-l-slate-300 bg-white'
 
         return (
           <li key={step.id} className="grid grid-cols-[32px_1fr] gap-3">
@@ -2671,10 +2773,13 @@ function RuntimeStepTimeline({
                       Step {step.stepOrder}
                     </p>
                     <h3 className="mt-1 text-sm font-semibold text-[var(--foreground)]">
-                      {step.stepName || 'Unnamed step'}
+                      {header.title}
                     </h3>
+                    <p className="mt-1 text-xs font-semibold leading-5 text-[var(--muted-foreground)]">
+                      {header.subtitle}
+                    </p>
                     <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-                      {stepTypeLabels[step.stepType] ?? step.stepType}
+                      Action Type: {stepTypeLabels[step.stepType] ?? humanizeKey(step.stepType)}
                     </p>
                     <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
                       Assignee: {describeRuntimeAssignee(step, users, requesterId, currentUser)}
@@ -2804,7 +2909,7 @@ function WorkflowDecisionPanel({
   return (
     <section
       aria-label="Approval decision"
-      className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-4"
+      className="mt-4 rounded-md border border-[var(--border)] bg-white p-4"
       role="region"
     >
       <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
@@ -2858,10 +2963,12 @@ export function WorkflowInstanceDetailPage() {
     params: { page: 1, limit: 50 },
   })
   const instance = unwrapData(query.data) as WorkflowInstanceResponseDto | undefined
+  const metadata = instance && isRecord(instance.metadataJson) ? instance.metadataJson : {}
+  const headerTitle = readableValue(metadata.title) ?? 'Workflow detail'
 
   return (
     <>
-      <PageHeader title={`Workflow ${instanceId}`} kicker="Runtime detail" />
+      <PageHeader title={headerTitle} kicker="Runtime detail" />
       <ErrorNotice error={query.error} />
       {instance ? (
         <div className="space-y-5">
@@ -2884,7 +2991,38 @@ function WorkflowInstanceSummary({
 }: {
   instance: WorkflowInstanceResponseDto
 }) {
-  const metadataRows = readableRowsFromRecord(instance.metadataJson)
+  const metadata = isRecord(instance.metadataJson) ? instance.metadataJson : {}
+  const isLeaveWorkflow =
+    instance.moduleName === 'leaves' || instance.entityType === 'LeaveRequest'
+  const rawLeaveDays = primitiveFromObjectField(metadata.leaveDays)
+  const parsedLeaveDays =
+    typeof rawLeaveDays === 'number'
+      ? rawLeaveDays
+      : typeof rawLeaveDays === 'string' && rawLeaveDays.trim()
+        ? Number(rawLeaveDays)
+        : undefined
+  const leaveDuration =
+    typeof parsedLeaveDays === 'number' && Number.isFinite(parsedLeaveDays)
+      ? `${parsedLeaveDays} ${parsedLeaveDays === 1 ? 'day' : 'days'}`
+      : readableValue(metadata.leaveDays)
+  const metadataRows = readableRowsFromRecord(instance.metadataJson).filter(
+    (row) =>
+      ![
+        'Title',
+        'Vendor',
+        'Currency',
+        'Amount',
+        'Category',
+        'Leave type',
+        'Leave days',
+        'Start date',
+        'End date',
+      ].includes(row.label),
+  )
+  const requester = describeUserReference(
+    [],
+    instance.requester ?? instance.requesterId,
+  )
 
   return (
     <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
@@ -2898,11 +3036,51 @@ function WorkflowInstanceSummary({
         </Badge>
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Requester" value={formatValue(requester)} />
+        {isLeaveWorkflow ? (
+          <>
+            <SummaryValue
+              label="Leave type"
+              value={formatValue(readableValue(metadata.leaveType))}
+            />
+            <SummaryValue label="Duration" value={formatValue(leaveDuration)} />
+            <SummaryValue
+              label="Start date"
+              value={formatValue(readableValue(metadata.startDate))}
+            />
+            <SummaryValue
+              label="End date"
+              value={formatValue(readableValue(metadata.endDate))}
+            />
+          </>
+        ) : (
+          <>
+            <SummaryValue
+              label="Title"
+              value={formatValue(readableValue(metadata.title))}
+            />
+            <SummaryValue
+              label="Vendor"
+              value={formatValue(readableValue(metadata.vendor))}
+            />
+            <SummaryValue
+              label="Currency"
+              value={formatValue(readableValue(metadata.currency))}
+            />
+            <SummaryValue
+              label="Amount"
+              value={formatValue(readableValue(metadata.amount))}
+            />
+            <SummaryValue
+              label="Category"
+              value={formatValue(readableValue(metadata.category))}
+            />
+          </>
+        )}
         <SummaryValue label="Entity" value={`${instance.entityType} ${instance.entityId}`} />
         <SummaryValue label="Started" value={formatDate(instance.startedAt)} />
         <SummaryValue label="Completed" value={formatDate(instance.completedAt)} />
         <SummaryValue label="Rejected" value={formatDate(instance.rejectedAt)} />
-        <SummaryValue label="Requester" value={instance.requesterId} />
         <SummaryValue label="Department" value={formatValue(instance.departmentId)} />
       </div>
       <ReadableRowsSection
@@ -3383,11 +3561,10 @@ function ExpenseSummary({ expense }: { expense: ExpenseResponseDto }) {
     <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
         <Badge>{expense.status}</Badge>
-        <Badge className="bg-[var(--surface-2)] text-[var(--ink-3)]">
-          {expense.category}
-        </Badge>
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Requester" value={formatValue(requester)} />
+        <SummaryValue label="Category" value={expense.category} />
         <SummaryValue label="Amount" value={`${expense.amount} ${expense.currency}`} />
         <SummaryValue label="Vendor" value={formatValue(readableValue(expense.vendor))} />
         <SummaryValue label="Submitted" value={formatOptionalDate(expense.submittedAt)} />
@@ -3398,16 +3575,15 @@ function ExpenseSummary({ expense }: { expense: ExpenseResponseDto }) {
         <SummaryValue label="Updated" value={formatDate(expense.updatedAt)} />
       </div>
       {readableValue(expense.description) ? (
-        <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3 text-sm leading-6 text-[var(--ink-2)]">
+        <div className="mt-4 rounded-md border border-[var(--border)] bg-white p-3 text-sm leading-6 text-black">
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
             Description
           </p>
-          <p className="mt-1">{readableValue(expense.description)}</p>
+          <p className="mt-1 text-black">{readableValue(expense.description)}</p>
         </div>
       ) : null}
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryValue label="Request created by" value={formatValue(createdBy)} />
-        <SummaryValue label="Requester" value={formatValue(requester)} />
       </div>
       {readableValue(expense.rejectionReason) ? (
         <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-800">
@@ -3681,13 +3857,13 @@ function LeaveSummary({ leave }: { leave: LeaveResponseDto }) {
     <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
         <Badge>{leave.status}</Badge>
-        <Badge className="bg-[var(--surface-2)] text-[var(--ink-3)]">
-          {leave.leaveType}
-        </Badge>
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Requester" value={formatValue(requester)} />
+        <SummaryValue label="Leave type" value={leave.leaveType} />
         <SummaryValue label="Duration" value={`${leave.leaveDays} ${leaveDayLabel}`} />
-        <SummaryValue label="Period" value={`${leave.startDate} - ${leave.endDate}`} />
+        <SummaryValue label="Start date" value={leave.startDate} />
+        <SummaryValue label="End date" value={leave.endDate} />
         <SummaryValue label="Employee grade" value={formatValue(leave.employeeGrade)} />
         <SummaryValue label="Submitted" value={formatOptionalDate(leave.submittedAt)} />
         <SummaryValue label="Approved" value={formatOptionalDate(leave.approvedAt)} />
@@ -3696,16 +3872,15 @@ function LeaveSummary({ leave }: { leave: LeaveResponseDto }) {
         <SummaryValue label="Updated" value={formatDate(leave.updatedAt)} />
       </div>
       {leave.reason ? (
-        <div className="mt-4 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-3 text-sm leading-6 text-[var(--ink-2)]">
+        <div className="mt-4 rounded-md border border-[var(--border)] bg-white p-3 text-sm leading-6 text-black">
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
             Reason
           </p>
-          <p className="mt-1">{leave.reason}</p>
+          <p className="mt-1 text-black">{leave.reason}</p>
         </div>
       ) : null}
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryValue label="Request created by" value={formatValue(createdBy)} />
-        <SummaryValue label="Requester" value={formatValue(requester)} />
       </div>
       {leave.rejectionReason ? (
         <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-800">

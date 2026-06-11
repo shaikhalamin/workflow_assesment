@@ -156,11 +156,20 @@ const baseWorkflow = {
   entityType: 'Expense',
   entityId: 'expense-1',
   requesterId: 'requester-1',
+  requester: {
+    id: 'requester-1',
+    name: 'Expense Requester',
+    email: 'requester@example.com',
+    designation: 'Analyst',
+  },
   departmentId: 'finance',
   status: 'ACTIVE',
   metadataJson: {
     title: 'Laptop reimbursement',
+    vendor: 'Star Tech',
+    currency: 'BDT',
     amount: 4500,
+    category: 'Software',
     nested: { ignored: true },
   },
   startedAt: '2026-06-11T08:00:00.000Z',
@@ -197,6 +206,7 @@ const baseWorkflow = {
         id: 'manager-1',
         name: 'Line Manager',
         email: 'manager@example.com',
+        designation: 'Manager',
       },
       assignedRoleSlug: null,
       assigneeType: 'USER',
@@ -208,6 +218,7 @@ const baseWorkflow = {
         id: 'manager-1',
         name: 'Line Manager',
         email: 'manager@example.com',
+        designation: 'Manager',
       },
       comment: 'Looks correct',
       rejectionReason: null,
@@ -222,6 +233,7 @@ const baseWorkflow = {
             id: 'manager-1',
             name: 'Line Manager',
             email: 'manager@example.com',
+            designation: 'Manager',
           },
           comment: 'Looks correct',
           reason: null,
@@ -243,6 +255,7 @@ const baseWorkflow = {
         id: 'user-active',
         name: 'Active Approver',
         email: 'active@example.com',
+        designation: 'Finance Specialist',
       },
       assignedRoleSlug: null,
       assigneeType: 'USER',
@@ -280,6 +293,7 @@ const baseWorkflow = {
         id: 'requester-1',
         name: 'Expense Requester',
         email: 'requester@example.com',
+        designation: 'Analyst',
       },
       comment: 'Submitted expense',
       reason: null,
@@ -348,18 +362,36 @@ describe('WorkflowInstanceDetailPage', () => {
   it('renders ordered readable workflow progress and responsibility summaries', () => {
     const { container } = render(<WorkflowInstanceDetailPage />)
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Workflow wf-1' })).toBeInTheDocument()
+    expect(screen.getByText('Runtime detail')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Laptop reimbursement' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 1, name: 'Workflow wf-1' })).not.toBeInTheDocument()
+    const requester = screen.getAllByText('Expense Requester (requester@example.com)')[0]
+    if (!requester) throw new Error('Expected workflow requester to be rendered')
+    const summary = requester.closest('section')
+    if (!summary) throw new Error('Expected workflow summary section')
+    const summaryContent = summary.textContent ?? ''
+    expect(within(summary).getByText('Title')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('Laptop reimbursement')).toBeInTheDocument()
+    expect(within(summary).getByText('Vendor')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('Star Tech')).toBeInTheDocument()
+    expect(within(summary).getByText('Currency')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('BDT')).toBeInTheDocument()
+    expect(within(summary).getByText('Amount')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('4500')).toBeInTheDocument()
+    expect(within(summary).getByText('Category')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('Software')).toBeInTheDocument()
+    expect(summaryContent.indexOf('Requester')).toBeLessThan(summaryContent.indexOf('Category'))
     expect(screen.getByText('Current responsibility')).toBeInTheDocument()
-    expect(screen.getByText('Finance approval')).toBeInTheDocument()
+    expect(screen.getByText(/Finance approval/)).toBeInTheDocument()
     expect(screen.getAllByText(/Active Approver/).length).toBeGreaterThan(0)
     expect(screen.getAllByText(/active@example.com/).length).toBeGreaterThan(0)
     expect(screen.getByText('Next responsibility')).toBeInTheDocument()
-    expect(screen.getByText('Accounts payment check')).toBeInTheDocument()
+    expect(screen.getByText(/Accounts payment check/)).toBeInTheDocument()
 
     const timeline = screen.getByRole('region', { name: /workflow progress/i })
-    const stepOne = within(timeline).getByText('Manager review')
-    const stepTwo = within(timeline).getByText('Finance approval')
-    const stepThree = within(timeline).getByText('Accounts payment check')
+    const stepOne = within(timeline).getByRole('heading', { level: 3, name: 'Line Manager' })
+    const stepTwo = within(timeline).getByRole('heading', { level: 3, name: 'Active Approver' })
+    const stepThree = within(timeline).getByRole('heading', { level: 3, name: 'Accounts Admin' })
     expect(stepOne.compareDocumentPosition(stepTwo) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
@@ -376,10 +408,85 @@ describe('WorkflowInstanceDetailPage', () => {
     expect(container.textContent).not.toContain('{"nested"')
   })
 
+  it('shows leave request details in the workflow summary', () => {
+    workflowResponse = {
+      ...baseWorkflow,
+      moduleName: 'leaves',
+      eventName: 'leave.submitted',
+      entityType: 'LeaveRequest',
+      entityId: 'leave-1',
+      departmentId: 'hr',
+      metadataJson: {
+        title: 'Annual leave request',
+        leaveType: 'ANNUAL',
+        leaveDays: 2,
+        startDate: '2026-06-10',
+        endDate: '2026-06-11',
+        employeeGrade: 'G5',
+      },
+    }
+
+    render(<WorkflowInstanceDetailPage />)
+
+    const requester = screen.getAllByText('Expense Requester (requester@example.com)')[0]
+    if (!requester) throw new Error('Expected workflow requester to be rendered')
+    const summary = requester.closest('section')
+    if (!summary) throw new Error('Expected workflow summary section')
+    const summaryContent = summary.textContent ?? ''
+
+    expect(within(summary).getByText('Leave type')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('ANNUAL')).toBeInTheDocument()
+    expect(within(summary).getByText('Duration')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('2 days')).toBeInTheDocument()
+    expect(within(summary).getByText('Start date')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('2026-06-10')).toBeInTheDocument()
+    expect(within(summary).getByText('End date')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('2026-06-11')).toBeInTheDocument()
+    expect(summaryContent.indexOf('Leave type')).toBeLessThan(summaryContent.indexOf('Duration'))
+    expect(summaryContent.indexOf('Duration')).toBeLessThan(summaryContent.indexOf('Start date'))
+    expect(summaryContent.indexOf('Start date')).toBeLessThan(summaryContent.indexOf('End date'))
+  })
+
+  it('shows approval assignee name and designation before the step name in timeline cards', () => {
+    render(<WorkflowInstanceDetailPage />)
+
+    const progress = screen.getByRole('region', { name: /workflow progress/i })
+    const stepOneLabel = within(progress).getByText('Step 1')
+    const stepOne = stepOneLabel.closest('article')
+    if (!stepOne) throw new Error('Expected first step article')
+
+    const stepTwoLabel = within(progress).getByText('Step 2')
+    const stepTwo = stepTwoLabel.closest('article')
+    if (!stepTwo) throw new Error('Expected second step article')
+    const stepThreeLabel = within(progress).getByText('Step 3')
+    const stepThree = stepThreeLabel.closest('article')
+    if (!stepThree) throw new Error('Expected third step article')
+
+    expect(within(stepOne).getByRole('heading', { level: 3, name: 'Line Manager' })).toHaveClass(
+      'font-semibold',
+    )
+    expect(within(stepOne).getByText('Manager')).toHaveClass('font-semibold')
+    expect(within(stepOne).getByText('Action Type: Approval')).toBeInTheDocument()
+    expect(within(stepOne).queryByRole('heading', { level: 3, name: 'Manager review' })).not.toBeInTheDocument()
+
+    expect(within(stepTwo).getByRole('heading', { level: 3, name: 'Active Approver' })).toHaveClass(
+      'font-semibold',
+    )
+    expect(within(stepTwo).getByText('Finance Specialist')).toHaveClass('font-semibold')
+    expect(within(stepTwo).getByText('Action Type: Finance Check')).toBeInTheDocument()
+    expect(within(stepTwo).queryByRole('heading', { level: 3, name: 'Finance approval' })).not.toBeInTheDocument()
+    expect(stepTwo).toHaveClass('bg-white')
+    expect(stepTwo).not.toHaveClass('bg-blue-50')
+    expect(stepThree).toHaveClass('bg-white')
+    expect(stepThree).not.toHaveClass('bg-[var(--surface-2)]')
+  })
+
   it('lets a directly assigned active user approve and reject from the detail page', () => {
     render(<WorkflowInstanceDetailPage />)
 
     const panel = screen.getByRole('region', { name: /approval decision/i })
+    expect(panel).toHaveClass('bg-white')
+    expect(panel).not.toHaveClass('bg-[var(--surface-2)]')
     fireEvent.change(within(panel).getByRole('textbox', { name: /comment or rejection reason/i }), {
       target: { value: 'Approved from detail' },
     })
@@ -402,7 +509,7 @@ describe('WorkflowInstanceDetailPage', () => {
     const progress = screen.getByRole('region', { name: /workflow progress/i })
     const activeStep = within(progress).getByRole('heading', {
       level: 3,
-      name: 'Finance approval',
+      name: 'Active Approver',
     })
     const actionBox = within(progress).getByRole('heading', {
       level: 3,
@@ -410,7 +517,7 @@ describe('WorkflowInstanceDetailPage', () => {
     })
     const nextStep = within(progress).getByRole('heading', {
       level: 3,
-      name: 'Accounts payment check',
+      name: 'Accounts Admin',
     })
 
     expect(activeStep.compareDocumentPosition(actionBox) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
@@ -427,7 +534,7 @@ describe('WorkflowInstanceDetailPage', () => {
     const progress = screen.getByRole('region', { name: /workflow progress/i })
     const actedStepHeading = within(progress).getByRole('heading', {
       level: 3,
-      name: 'Manager review',
+      name: 'Line Manager',
     })
     const actedStep = actedStepHeading.closest('article')
     if (!actedStep) throw new Error('Expected manager review step article')
@@ -476,7 +583,7 @@ describe('WorkflowInstanceDetailPage', () => {
     const progress = screen.getByRole('region', { name: /workflow progress/i })
     const actedStepHeading = within(progress).getByRole('heading', {
       level: 3,
-      name: 'Manager review',
+      name: 'Line Manager',
     })
     const actedStep = actedStepHeading.closest('article')
     if (!actedStep) throw new Error('Expected manager review step article')
@@ -520,7 +627,7 @@ describe('WorkflowInstanceDetailPage', () => {
     const progress = screen.getByRole('region', { name: /workflow progress/i })
     const actedStepHeading = within(progress).getByRole('heading', {
       level: 3,
-      name: 'Manager review',
+      name: 'Line Manager',
     })
     const actedStep = actedStepHeading.closest('article')
     if (!actedStep) throw new Error('Expected manager review step article')
@@ -551,6 +658,45 @@ describe('WorkflowInstanceDetailPage', () => {
     render(<WorkflowInstanceDetailPage />)
 
     expect(screen.getAllByText(/Role: Finance Admin, Finance Approver \(finance@example.com\)/).length).toBeGreaterThan(0)
+  })
+
+  it('shows embedded role assignee name and email to non-role viewers', () => {
+    workflowResponse = {
+      ...baseWorkflow,
+      steps: baseWorkflow.steps.map((step) =>
+        step.id === 'step-2'
+          ? {
+              ...step,
+              assignedUserId: 'finance-1',
+              assignedUser: {
+                id: 'finance-1',
+                name: 'Finance Approver',
+                email: 'finance@example.com',
+                designation: 'Finance Specialist',
+              },
+              assignedRoleSlug: 'finance-admin',
+              assigneeType: 'ROLE',
+            }
+          : step,
+      ),
+    }
+    useAuthStore.setState({ isAuthenticated: true, user: unassignedUser })
+
+    render(<WorkflowInstanceDetailPage />)
+
+    const progress = screen.getByRole('region', { name: /workflow progress/i })
+    expect(
+      within(progress).getByRole('heading', {
+        level: 3,
+        name: 'Finance Approver',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      within(progress).getAllByText(
+        /Role: Finance Admin, Finance Approver \(finance@example.com\)/,
+      ).length,
+    ).toBeGreaterThan(0)
+    expect(screen.queryByRole('region', { name: /approval decision/i })).not.toBeInTheDocument()
   })
 
   it('lets a matching role approver act on the active step', () => {

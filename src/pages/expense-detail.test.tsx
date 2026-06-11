@@ -111,6 +111,11 @@ vi.mock('@/lib/api/gen', () => ({
 const baseExpense = {
   id: 'expense-1',
   requesterId: 'requester-1',
+  requester: {
+    id: 'requester-1',
+    name: 'Expense Requester',
+    email: 'requester@example.com',
+  },
   departmentId: 'finance',
   title: 'Laptop reimbursement',
   description: 'Replacement laptop for field work',
@@ -164,6 +169,7 @@ const baseWorkflow = {
         id: 'manager-1',
         name: 'Line Manager',
         email: 'manager@example.com',
+        designation: 'Manager',
       },
       assignedRoleSlug: null,
       assigneeType: 'USER',
@@ -262,14 +268,30 @@ describe('ExpenseDetailPage', () => {
     expect(container.textContent).not.toContain('customFieldsJson')
     expect(container.textContent).not.toContain('{"budgetOwner"')
     expect(container.textContent).not.toContain('"nested"')
+
+    const summary = screen.getByText('Replacement laptop for field work').closest('section')
+    if (!summary) {
+      throw new Error('Expected expense summary section to contain the description')
+    }
+    const summaryContent = summary.textContent ?? ''
+    expect(within(summary).getByText('Expense Requester (requester@example.com)')).toBeInTheDocument()
+    expect(within(summary).getByText('Category')).toBeInTheDocument()
+    expect(summaryContent.indexOf('Requester')).toBeLessThan(summaryContent.indexOf('Category'))
+    expect(summaryContent.indexOf('Category')).toBeLessThan(summaryContent.indexOf('Amount'))
+    expect(within(summary).getByText('Category')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('Description')).toHaveClass('text-[var(--ink-3)]')
+    expect(within(summary).getByText('Replacement laptop for field work')).toHaveClass('text-black')
   })
 
   it('embeds workflow progress and links to the full runtime detail', () => {
     render(<ExpenseDetailPage />)
 
     const workflow = screen.getByRole('region', { name: /workflow progress/i })
-    expect(within(workflow).getByText('Manager review')).toBeInTheDocument()
-    expect(within(workflow).getByText('Finance approval')).toBeInTheDocument()
+    expect(within(workflow).getByRole('heading', { level: 3, name: 'Line Manager' })).toBeInTheDocument()
+    expect(within(workflow).getByText('Manager')).toHaveClass('font-semibold')
+    expect(within(workflow).getByText('Action Type: Approval')).toBeInTheDocument()
+    expect(within(workflow).getByRole('heading', { level: 3, name: 'Requester manager' })).toBeInTheDocument()
+    expect(within(workflow).getByText('Action Type: Finance Check')).toBeInTheDocument()
     expect(within(workflow).getByText('Current responsibility')).toBeInTheDocument()
     expect(within(workflow).getAllByText(/Line Manager/).length).toBeGreaterThan(0)
     expect(within(workflow).getAllByText(/manager@example.com/).length).toBeGreaterThan(0)
@@ -283,7 +305,44 @@ describe('ExpenseDetailPage', () => {
     )
   })
 
-  it('shows request creator and requester after the description with names and emails', () => {
+  it('shows resolved role assignee name and email in embedded workflow progress', () => {
+    workflowResponse = {
+      ...baseWorkflow,
+      steps: baseWorkflow.steps.map((step) =>
+        step.id === 'step-2'
+          ? {
+              ...step,
+              assignedUserId: 'finance-1',
+              assignedUser: {
+                id: 'finance-1',
+                name: 'Finance Approver',
+                email: 'finance@example.com',
+                designation: 'Finance Specialist',
+              },
+              assignedRoleSlug: 'finance-admin',
+              assigneeType: 'ROLE',
+            }
+          : step,
+      ),
+    }
+
+    render(<ExpenseDetailPage />)
+
+    const workflow = screen.getByRole('region', { name: /workflow progress/i })
+    expect(
+      within(workflow).getByRole('heading', {
+        level: 3,
+        name: 'Finance Approver',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      within(workflow).getAllByText(
+        /Role: Finance Admin, Finance Approver \(finance@example.com\)/,
+      ).length,
+    ).toBeGreaterThan(0)
+  })
+
+  it('shows requester before category and request creator after the description with names and emails', () => {
     expenseResponse = {
       ...baseExpense,
       requester: {
@@ -310,8 +369,8 @@ describe('ExpenseDetailPage', () => {
     const summaryContent = summary.textContent ?? ''
     expect(within(summary).getByText('Expense Creator (creator@example.com)')).toBeInTheDocument()
     expect(within(summary).getByText('Expense Requester (requester@example.com)')).toBeInTheDocument()
+    expect(summaryContent.indexOf('Requester')).toBeLessThan(summaryContent.indexOf('Category'))
     expect(summaryContent.indexOf('Description')).toBeLessThan(summaryContent.indexOf('Request created by'))
-    expect(summaryContent.indexOf('Request created by')).toBeLessThan(summaryContent.indexOf('Requester'))
     expect(summaryContent).not.toContain('requester-1')
     expect(summaryContent).not.toContain('creator-1')
   })

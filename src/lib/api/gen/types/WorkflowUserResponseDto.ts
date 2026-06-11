@@ -16,4 +16,8 @@ export type WorkflowUserResponseDto = {
    * @type string
    */
   email: string;
+  /**
+   * @type string
+   */
+  designation: string | null;
 };

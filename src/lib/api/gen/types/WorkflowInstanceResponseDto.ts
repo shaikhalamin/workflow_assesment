@@ -5,6 +5,7 @@
 
 import type { WorkflowActionResponseDto } from "./WorkflowActionResponseDto.ts";
 import type { WorkflowStepResponseDto } from "./WorkflowStepResponseDto.ts";
+import type { WorkflowUserResponseDto } from "./WorkflowUserResponseDto.ts";
 
 export type WorkflowInstanceResponseDtoStatusEnum =
   | "PENDING"
@@ -47,6 +48,10 @@ export type WorkflowInstanceResponseDto = {
    * @type string
    */
   requesterId: string;
+  /**
+   * @type object
+   */
+  requester: WorkflowUserResponseDto | null;
   /**
    * @type string
    */

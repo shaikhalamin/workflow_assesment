@@ -5,6 +5,7 @@
 
 import { workflowActionResponseDtoSchema } from "./workflowActionResponseDtoSchema.ts";
 import { workflowStepResponseDtoSchema } from "./workflowStepResponseDtoSchema.ts";
+import { workflowUserResponseDtoSchema } from "./workflowUserResponseDtoSchema.ts";
 import { z } from "zod/v4";
 
 export const workflowInstanceResponseDtoSchema = z.object({
@@ -16,6 +17,9 @@ export const workflowInstanceResponseDtoSchema = z.object({
   entityType: z.string(),
   entityId: z.string(),
   requesterId: z.string(),
+  get requester() {
+    return workflowUserResponseDtoSchema.nullable();
+  },
   departmentId: z.nullable(z.string()),
   status: z.enum([
     "PENDING",
