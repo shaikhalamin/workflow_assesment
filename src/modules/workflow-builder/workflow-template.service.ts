@@ -4,9 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { paginateRepo } from '../../common/http/paginate';
 import { PaginationQueryDto } from '../../common/http/pagination.query';
+import { WorkflowInstance } from '../workflow-runtime/entities/workflow-instance.entity';
 import { CreateWorkflowRuleDto } from './dto/create-workflow-rule.dto';
 import { CreateWorkflowTemplateDto } from './dto/create-workflow-template.dto';
 import { UpdateWorkflowTemplateDto } from './dto/update-workflow-template.dto';
@@ -34,15 +35,23 @@ export class WorkflowTemplateService {
     private readonly stepConfigsRepository: Repository<WorkflowApprovalStepConfig>,
     @InjectRepository(WorkflowOutcomeConfig)
     private readonly outcomeConfigsRepository: Repository<WorkflowOutcomeConfig>,
-    private readonly dataSource?: DataSource,
+    @InjectRepository(WorkflowInstance)
+    private readonly workflowInstancesRepository?: Repository<WorkflowInstance>,
   ) {}
 
-  list(query: PaginationQueryDto) {
-    return paginateRepo(this.templatesRepository, {
+  async list(query: PaginationQueryDto) {
+    const response = await paginateRepo(this.templatesRepository, {
       page: query.page ?? 1,
       limit: query.limit ?? 25,
       order: { priority: 'DESC', createdAt: 'DESC' },
     });
+    const items = await Promise.all(
+      response.items.map(async (template) => ({
+        ...template,
+        workflowInstanceCount: await this.countWorkflowInstances(template.id),
+      })),
+    );
+    return { ...response, items };
   }
 
   async findOne(id: string): Promise<WorkflowTemplate> {
@@ -56,6 +65,7 @@ export class WorkflowTemplateService {
       order: { rules: { priority: 'DESC', steps: { stepOrder: 'ASC' } } },
     });
     if (!template) throw new NotFoundException('Workflow template not found');
+    this.sanitizeTemplateOutcome(template);
     return template;
   }
 
@@ -112,7 +122,11 @@ export class WorkflowTemplateService {
       createdById: dto.createdById ?? template.createdById,
     });
     await this.templatesRepository.save(template);
-    await this.saveTemplateChildren(id, dto);
+    await this.saveTemplateChildren(id, {
+      ...dto,
+      moduleName: template.moduleName,
+      entityType: template.entityType,
+    });
     return this.findOne(id);
   }
 
@@ -138,6 +152,12 @@ export class WorkflowTemplateService {
 
   async deactivate(id: string): Promise<WorkflowTemplate> {
     const template = await this.findOne(id);
+    const workflowInstanceCount = await this.countWorkflowInstances(id);
+    if (workflowInstanceCount > 0) {
+      throw new BadRequestException(
+        'Workflow already associated can not deactivate',
+      );
+    }
     template.status = WorkflowTemplateStatus.INACTIVE;
     return this.templatesRepository.save(template);
   }
@@ -235,7 +255,11 @@ export class WorkflowTemplateService {
     workflowTemplateId: string,
     dto: Pick<
       CreateWorkflowTemplateDto,
-      'triggerConditionJson' | 'approvedActionsJson' | 'rejectedActionsJson'
+      | 'moduleName'
+      | 'entityType'
+      | 'triggerConditionJson'
+      | 'approvedActionsJson'
+      | 'rejectedActionsJson'
     >,
   ): Promise<void> {
     if (dto.triggerConditionJson) {
@@ -258,8 +282,11 @@ export class WorkflowTemplateService {
         this.outcomeConfigsRepository.create({
           id: existing?.id,
           workflowTemplateId,
-          approvedActionsJson:
+          approvedActionsJson: this.sanitizeApprovedActions(
+            dto.moduleName,
+            dto.entityType,
             dto.approvedActionsJson ?? existing?.approvedActionsJson ?? null,
+          ),
           rejectedActionsJson:
             dto.rejectedActionsJson ?? existing?.rejectedActionsJson ?? null,
         }),
@@ -319,5 +346,35 @@ export class WorkflowTemplateService {
         'CUSTOM_FIELD_USER steps require assigneeFieldPath',
       );
     }
+  }
+
+  private sanitizeApprovedActions(
+    moduleName: string,
+    entityType: string,
+    actions: Record<string, unknown> | null,
+  ): Record<string, unknown> | null {
+    if (!actions) return null;
+    if (moduleName === 'expenses' && entityType === 'Expense') return actions;
+
+    const sanitized = { ...actions };
+    delete sanitized.createPaymentRequest;
+    return sanitized;
+  }
+
+  private sanitizeTemplateOutcome(template: WorkflowTemplate): void {
+    if (!template.outcomeConfig) return;
+    template.outcomeConfig.approvedActionsJson = this.sanitizeApprovedActions(
+      template.moduleName,
+      template.entityType,
+      template.outcomeConfig.approvedActionsJson,
+    );
+  }
+
+  private countWorkflowInstances(workflowTemplateId: string): Promise<number> {
+    return (
+      this.workflowInstancesRepository?.count({
+        where: { workflowTemplateId },
+      }) ?? Promise.resolve(0)
+    );
   }
 }

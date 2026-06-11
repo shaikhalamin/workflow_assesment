@@ -25,7 +25,10 @@ export class OutcomeHandlerService {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  async handleApproved(instance: WorkflowInstance): Promise<void> {
+  async handleApproved(
+    instance: WorkflowInstance,
+    actions: Record<string, unknown> | null = null,
+  ): Promise<void> {
     if (instance.entityType === 'LeaveRequest') {
       await this.approveLeave(instance);
       return;
@@ -35,9 +38,13 @@ export class OutcomeHandlerService {
       id: instance.entityId,
     });
     if (!expense) return;
-    expense.status = ExpenseStatus.PAYMENT_PENDING;
+    const shouldCreatePayment = actions?.createPaymentRequest === true;
+    expense.status = shouldCreatePayment
+      ? ExpenseStatus.PAYMENT_PENDING
+      : ExpenseStatus.APPROVED;
     expense.approvedAt = new Date();
     await this.expensesRepository.save(expense);
+    if (!shouldCreatePayment) return;
 
     const existingPayment = await this.paymentsRepository.findOneBy({
       expenseId: expense.id,

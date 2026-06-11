@@ -182,8 +182,8 @@ export class WorkflowRuntimeService {
       .leftJoinAndMapOne(
         'instance.expenseRequest',
         Expense,
-        'expenseRequest',
-        'instance.entityType = :expenseEntityType AND instance.entityId = expenseRequest.id::text',
+        'expense_request',
+        'instance.entityType = :expenseEntityType AND instance.entityId = expense_request.id::text',
         { expenseEntityType: 'Expense' },
       )
       .where('step.status = :status', { status: WorkflowStepStatus.ACTIVE })
@@ -259,7 +259,14 @@ export class WorkflowRuntimeService {
       instance.status = WorkflowInstanceStatus.APPROVED;
       instance.completedAt = new Date();
       await this.instancesRepository.save(instance);
-      await this.outcomeHandler.handleApproved(instance);
+      const template = await this.templatesRepository.findOne({
+        where: { id: instance.workflowTemplateId },
+        relations: { outcomeConfig: true },
+      });
+      await this.outcomeHandler.handleApproved(
+        instance,
+        template?.outcomeConfig?.approvedActionsJson ?? null,
+      );
       await this.notificationsService.createWorkflowApproved({
         recipientUserId: instance.requesterId,
         entityType: instance.entityType,

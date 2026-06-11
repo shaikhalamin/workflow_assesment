@@ -180,7 +180,7 @@ describe('WorkflowRuntimeService', () => {
     expect(response[0]?.request?.title).toBe('Travel expense monthly');
   });
 
-  it('casts expense ids when joining generic workflow entity ids', async () => {
+  it('uses a PostgreSQL-safe alias when joining generic workflow entity ids', async () => {
     const queryBuilder = {
       innerJoinAndSelect: jest.fn(),
       leftJoinAndSelect: jest.fn(),
@@ -220,8 +220,8 @@ describe('WorkflowRuntimeService', () => {
     expect(queryBuilder.leftJoinAndMapOne).toHaveBeenCalledWith(
       'instance.expenseRequest',
       expect.any(Function),
-      'expenseRequest',
-      'instance.entityType = :expenseEntityType AND instance.entityId = expenseRequest.id::text',
+      'expense_request',
+      'instance.entityType = :expenseEntityType AND instance.entityId = expense_request.id::text',
       { expenseEntityType: 'Expense' },
     );
   });
@@ -349,6 +349,104 @@ describe('WorkflowRuntimeService', () => {
       id: 'manager-1',
       name: 'Line Manager',
       email: 'manager@example.com',
+    });
+  });
+
+  it('passes approved outcome actions to the handler when final approval completes', async () => {
+    const createdAt = new Date('2026-06-11T08:00:00.000Z');
+    const step = {
+      id: 'step-1',
+      workflowInstanceId: 'workflow-1',
+      stepOrder: 1,
+      stepName: 'Manager approval',
+      stepType: WorkflowStepType.APPROVAL,
+      assignedUserId: 'manager-1',
+      assignedRoleSlug: null,
+      assigneeType: WorkflowAssigneeType.USER,
+      status: WorkflowStepStatus.ACTIVE,
+      activatedAt: createdAt,
+      actedAt: null,
+      actionByUserId: null,
+      actionByUser: null,
+      comment: null,
+      rejectionReason: null,
+      actions: [],
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const instance = {
+      id: 'workflow-1',
+      workflowTemplateId: 'template-1',
+      workflowApprovalRuleId: 'rule-1',
+      moduleName: 'expenses',
+      eventName: 'expense.submitted',
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      requesterId: 'requester-1',
+      departmentId: null,
+      status: WorkflowInstanceStatus.ACTIVE,
+      metadataJson: null,
+      startedAt: createdAt,
+      completedAt: null,
+      rejectedAt: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const templatesRepository = {
+      findOne: jest.fn().mockResolvedValue({
+        id: 'template-1',
+        outcomeConfig: {
+          approvedActionsJson: { createPaymentRequest: false },
+        },
+      }),
+    };
+    const instancesRepository = {
+      findOneByOrFail: jest.fn().mockResolvedValue(instance),
+      save: jest.fn().mockResolvedValue(instance),
+    };
+    const stepsRepository = {
+      findOneBy: jest.fn().mockResolvedValue(step),
+      save: jest.fn().mockResolvedValue(step),
+      findOne: jest.fn().mockResolvedValue(null),
+    };
+    const actionsRepository = {
+      create: jest.fn((value: unknown) => value),
+      save: jest.fn((value: unknown) => Promise.resolve(value)),
+    };
+    const outcomeHandler = {
+      handleApproved: jest.fn().mockResolvedValue(undefined),
+    };
+    const auditLogsService = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
+    const notificationsService = {
+      createWorkflowApproved: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new WorkflowRuntimeService(
+      templatesRepository as never,
+      instancesRepository as never,
+      stepsRepository as never,
+      actionsRepository as never,
+      {} as never,
+      {} as never,
+      outcomeHandler as never,
+      {} as never,
+      auditLogsService as never,
+      notificationsService as never,
+    );
+
+    await service.approveStep(
+      'step-1',
+      { userId: 'manager-1', roles: [] } as Express.User,
+      {},
+    );
+
+    expect(templatesRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 'template-1' },
+      relations: { outcomeConfig: true },
+    });
+    expect(outcomeHandler.handleApproved).toHaveBeenCalledWith(instance, {
+      createPaymentRequest: false,
     });
   });
 });

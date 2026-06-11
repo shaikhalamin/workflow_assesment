@@ -224,6 +224,13 @@ export class WorkflowTemplateResponseDto {
   allowResubmission!: boolean;
 
   @ApiProperty({
+    example: 2,
+    required: false,
+    description: 'Number of workflow runtime instances using this template.',
+  })
+  workflowInstanceCount?: number;
+
+  @ApiProperty({
     type: String,
     example: '71cb34da-1809-4c72-b132-2b9860be8936',
     nullable: true,
