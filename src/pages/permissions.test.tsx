@@ -345,7 +345,7 @@ describe('workspace page permissions', () => {
     expect(screen.getByRole('button', { name: /submitted/i })).toBeDisabled()
   })
 
-  it('resubmits rejected expense rows when the workflow allows resubmission', () => {
+  it('links rejected resubmittable expense rows to edit and resubmit', () => {
     expenseListState.expenses = [
       {
         id: 'expense-1',
@@ -364,9 +364,11 @@ describe('workspace page permissions', () => {
 
     render(<ExpensesPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /resubmit/i }))
-
-    expect(resubmitExpense).toHaveBeenCalledWith({ id: 'expense-1', data: {} })
+    expect(
+      screen.getByRole('link', { name: /edit and resubmit/i }),
+    ).toHaveAttribute('href', '/expenses/$expenseId/edit')
+    expect(screen.queryByRole('button', { name: /^resubmit$/i })).not.toBeInTheDocument()
+    expect(resubmitExpense).not.toHaveBeenCalled()
   })
 
   it('hides payment write actions from users with read-only payment access', () => {
@@ -465,7 +467,7 @@ describe('workspace page permissions', () => {
     expect(screen.getByRole('button', { name: /submitted/i })).toBeDisabled()
   })
 
-  it('resubmits rejected leave rows when the workflow allows resubmission', () => {
+  it('links rejected resubmittable leave rows to edit and resubmit', () => {
     leaveListState.leaves = [
       {
         id: 'leave-1',
@@ -484,9 +486,11 @@ describe('workspace page permissions', () => {
 
     render(<LeavesPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /resubmit/i }))
-
-    expect(resubmitLeave).toHaveBeenCalledWith({ id: 'leave-1', data: {} })
+    expect(
+      screen.getByRole('link', { name: /edit and resubmit/i }),
+    ).toHaveAttribute('href', '/leaves/$leaveId/edit')
+    expect(screen.queryByRole('button', { name: /^resubmit$/i })).not.toBeInTheDocument()
+    expect(resubmitLeave).not.toHaveBeenCalled()
   })
 
   it('deletes a draft leave from the list row', () => {

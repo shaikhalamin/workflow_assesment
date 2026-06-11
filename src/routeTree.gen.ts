@@ -33,6 +33,8 @@ import { Route as PrivateLeavesNewRouteImport } from './routes/_private/leaves.n
 import { Route as PrivateLeavesLeaveIdRouteImport } from './routes/_private/leaves.$leaveId'
 import { Route as PrivateExpensesNewRouteImport } from './routes/_private/expenses.new'
 import { Route as PrivateExpensesExpenseIdRouteImport } from './routes/_private/expenses.$expenseId'
+import { Route as PrivateLeavesLeaveIdEditRouteImport } from './routes/_private/leaves_.$leaveId.edit'
+import { Route as PrivateExpensesExpenseIdEditRouteImport } from './routes/_private/expenses_.$expenseId.edit'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -160,6 +162,18 @@ const PrivateExpensesExpenseIdRoute =
     path: '/$expenseId',
     getParentRoute: () => PrivateExpensesRoute,
   } as any)
+const PrivateLeavesLeaveIdEditRoute =
+  PrivateLeavesLeaveIdEditRouteImport.update({
+    id: '/leaves_/$leaveId/edit',
+    path: '/leaves/$leaveId/edit',
+    getParentRoute: () => PrivateRoute,
+  } as any)
+const PrivateExpensesExpenseIdEditRoute =
+  PrivateExpensesExpenseIdEditRouteImport.update({
+    id: '/expenses_/$expenseId/edit',
+    path: '/expenses/$expenseId/edit',
+    getParentRoute: () => PrivateRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PrivateIndexRoute
@@ -184,6 +198,8 @@ export interface FileRoutesByFullPath {
   '/leaves/': typeof PrivateLeavesIndexRoute
   '/workflow-instances/': typeof PrivateWorkflowInstancesIndexRoute
   '/workflow-templates/': typeof PrivateWorkflowTemplatesIndexRoute
+  '/expenses/$expenseId/edit': typeof PrivateExpensesExpenseIdEditRoute
+  '/leaves/$leaveId/edit': typeof PrivateLeavesLeaveIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof PrivateIndexRoute
@@ -204,6 +220,8 @@ export interface FileRoutesByTo {
   '/leaves': typeof PrivateLeavesIndexRoute
   '/workflow-instances': typeof PrivateWorkflowInstancesIndexRoute
   '/workflow-templates': typeof PrivateWorkflowTemplatesIndexRoute
+  '/expenses/$expenseId/edit': typeof PrivateExpensesExpenseIdEditRoute
+  '/leaves/$leaveId/edit': typeof PrivateLeavesLeaveIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -231,6 +249,8 @@ export interface FileRoutesById {
   '/_private/leaves/': typeof PrivateLeavesIndexRoute
   '/_private/workflow-instances/': typeof PrivateWorkflowInstancesIndexRoute
   '/_private/workflow-templates/': typeof PrivateWorkflowTemplatesIndexRoute
+  '/_private/expenses_/$expenseId/edit': typeof PrivateExpensesExpenseIdEditRoute
+  '/_private/leaves_/$leaveId/edit': typeof PrivateLeavesLeaveIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -257,6 +277,8 @@ export interface FileRouteTypes {
     | '/leaves/'
     | '/workflow-instances/'
     | '/workflow-templates/'
+    | '/expenses/$expenseId/edit'
+    | '/leaves/$leaveId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -277,6 +299,8 @@ export interface FileRouteTypes {
     | '/leaves'
     | '/workflow-instances'
     | '/workflow-templates'
+    | '/expenses/$expenseId/edit'
+    | '/leaves/$leaveId/edit'
   id:
     | '__root__'
     | '/_private'
@@ -303,6 +327,8 @@ export interface FileRouteTypes {
     | '/_private/leaves/'
     | '/_private/workflow-instances/'
     | '/_private/workflow-templates/'
+    | '/_private/expenses_/$expenseId/edit'
+    | '/_private/leaves_/$leaveId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -480,6 +506,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateExpensesExpenseIdRouteImport
       parentRoute: typeof PrivateExpensesRoute
     }
+    '/_private/leaves_/$leaveId/edit': {
+      id: '/_private/leaves_/$leaveId/edit'
+      path: '/leaves/$leaveId/edit'
+      fullPath: '/leaves/$leaveId/edit'
+      preLoaderRoute: typeof PrivateLeavesLeaveIdEditRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/_private/expenses_/$expenseId/edit': {
+      id: '/_private/expenses_/$expenseId/edit'
+      path: '/expenses/$expenseId/edit'
+      fullPath: '/expenses/$expenseId/edit'
+      preLoaderRoute: typeof PrivateExpensesExpenseIdEditRouteImport
+      parentRoute: typeof PrivateRoute
+    }
   }
 }
 
@@ -561,6 +601,8 @@ interface PrivateRouteChildren {
   PrivateWorkflowInstancesRoute: typeof PrivateWorkflowInstancesRouteWithChildren
   PrivateWorkflowTemplatesRoute: typeof PrivateWorkflowTemplatesRouteWithChildren
   PrivateIndexRoute: typeof PrivateIndexRoute
+  PrivateExpensesExpenseIdEditRoute: typeof PrivateExpensesExpenseIdEditRoute
+  PrivateLeavesLeaveIdEditRoute: typeof PrivateLeavesLeaveIdEditRoute
 }
 
 const PrivateRouteChildren: PrivateRouteChildren = {
@@ -573,6 +615,8 @@ const PrivateRouteChildren: PrivateRouteChildren = {
   PrivateWorkflowInstancesRoute: PrivateWorkflowInstancesRouteWithChildren,
   PrivateWorkflowTemplatesRoute: PrivateWorkflowTemplatesRouteWithChildren,
   PrivateIndexRoute: PrivateIndexRoute,
+  PrivateExpensesExpenseIdEditRoute: PrivateExpensesExpenseIdEditRoute,
+  PrivateLeavesLeaveIdEditRoute: PrivateLeavesLeaveIdEditRoute,
 }
 
 const PrivateRouteWithChildren =

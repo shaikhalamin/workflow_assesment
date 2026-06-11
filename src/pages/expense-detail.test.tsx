@@ -53,6 +53,11 @@ vi.mock('@/lib/api/gen', () => ({
     error: null,
   }),
   useExpensesControllerList: () => ({ data: { data: [] }, error: null }),
+  useExpensesControllerResubmit: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+  }),
   useExpensesControllerSubmit: () => ({ mutate: vi.fn() }),
   useLeavesControllerCreate: () => ({
     error: null,
@@ -388,5 +393,41 @@ describe('ExpenseDetailPage', () => {
     expect(screen.queryByText('No custom fields recorded.')).not.toBeInTheDocument()
     expect(screen.getByText('No workflow has been started for this expense.')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /full workflow detail/i })).not.toBeInTheDocument()
+  })
+
+  it('shows edit and resubmit for rejected resubmittable expenses', () => {
+    expenseResponse = {
+      ...baseExpense,
+      status: 'REJECTED',
+      canResubmit: true,
+      rejectionReason: 'Receipt missing',
+      rejectedAt: '2026-06-12T08:00:00.000Z',
+    }
+    workflowResponse = undefined
+
+    render(<ExpenseDetailPage />)
+
+    expect(
+      screen.getByRole('link', { name: /edit and resubmit/i }),
+    ).toHaveAttribute('href', '/expenses/$expenseId/edit')
+    expect(screen.getByText(/rejection reason: receipt missing/i)).toBeInTheDocument()
+  })
+
+  it('does not show edit and resubmit for rejected non-resubmittable expenses', () => {
+    expenseResponse = {
+      ...baseExpense,
+      status: 'REJECTED',
+      canResubmit: false,
+      rejectionReason: 'Receipt missing',
+      rejectedAt: '2026-06-12T08:00:00.000Z',
+    }
+    workflowResponse = undefined
+
+    render(<ExpenseDetailPage />)
+
+    expect(
+      screen.queryByRole('link', { name: /edit and resubmit/i }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByText(/rejection reason: receipt missing/i)).toBeInTheDocument()
   })
 })

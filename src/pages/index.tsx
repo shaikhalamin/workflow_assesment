@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Eye,
   FilePlus2,
+  Pencil,
   PlayCircle,
   Plus,
   Send,
@@ -55,6 +56,8 @@ import type {
   CreateLeaveDto,
   ExpenseResponseDto,
   LeaveResponseDto,
+  ResubmitExpenseDto,
+  ResubmitLeaveDto,
   UserResponseDto,
   WorkflowApprovalRuleResponseDto,
   WorkflowApprovalStepConfigResponseDto,
@@ -3290,7 +3293,6 @@ export function ExpensesPage() {
   const user = useAuthStore((state) => state.user)
   const query = useExpensesControllerList({ params: { page: 1, limit: 50 } })
   const submit = useExpensesControllerSubmit({ mutation: { onSuccess: () => void query.refetch() } })
-  const resubmit = useExpensesControllerResubmit({ mutation: { onSuccess: () => void query.refetch() } })
   const deleteExpense = useExpensesControllerDelete({ mutation: { onSuccess: () => void query.refetch() } })
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   const canWriteExpenses = hasPermission(
@@ -3311,7 +3313,7 @@ export function ExpensesPage() {
           ) : undefined
         }
       />
-      <ErrorNotice error={query.error ?? submit.error ?? resubmit.error ?? deleteExpense.error} />
+      <ErrorNotice error={query.error ?? submit.error ?? deleteExpense.error} />
       <DataTable
         data={rows}
         empty={
@@ -3360,16 +3362,14 @@ export function ExpensesPage() {
                     </Button>
                   ) : null}
                   {canWriteExpenses && status === 'REJECTED' && canResubmit ? (
-                    <Button
-                      className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
-                      disabled={resubmit.isPending}
-                      size="sm"
-                      type="button"
-                      onClick={() => resubmit.mutate({ id: String(row.original.id), data: {} })}
+                    <Link
+                      className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-emerald-600 bg-emerald-600 px-3 text-xs font-medium text-white shadow-sm transition hover:bg-emerald-700"
+                      to="/expenses/$expenseId/edit"
+                      params={{ expenseId: String(row.original.id) }}
                     >
-                      <Send className="h-4 w-4" />
-                      Resubmit
-                    </Button>
+                      <Pencil className="h-4 w-4" />
+                      Edit and resubmit
+                    </Link>
                   ) : null}
                   {canWriteExpenses && status !== 'DRAFT' && !(status === 'REJECTED' && canResubmit) ? (
                     <Button className="whitespace-nowrap" disabled size="sm" type="button" variant="secondary">
@@ -3502,6 +3502,146 @@ export function ExpenseCreatePage() {
   )
 }
 
+export function ExpenseEditPage() {
+  const { expenseId } = useParams({ strict: false }) as { expenseId: string }
+  const navigate = useNavigate()
+  const query = useExpensesControllerFindOne({ id: expenseId })
+  const expense = unwrapData(query.data) as ExpenseResponseDto | undefined
+  const resubmitExpense = useExpensesControllerResubmit({
+    mutation: {
+      onSuccess: async () => navigate({ to: '/expenses/$expenseId', params: { expenseId } }),
+    },
+  })
+  const isEditable = expense?.status === 'REJECTED' && expense.canResubmit === true
+
+  return (
+    <div className="max-w-3xl">
+      <PageHeader
+        title={expense ? `Edit ${expense.title}` : `Edit expense ${expenseId}`}
+        kicker="Expense request"
+      />
+      <ErrorNotice error={query.error ?? resubmitExpense.error} />
+      {expense && !isEditable ? (
+        <EmptyState message="This expense cannot be edited and resubmitted." />
+      ) : null}
+      {expense && isEditable ? (
+        <ExpenseEditForm
+          expense={expense}
+          error={resubmitExpense.error}
+          isPending={resubmitExpense.isPending}
+          onSubmit={(data) => resubmitExpense.mutate({ id: expenseId, data })}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+function ExpenseEditForm({
+  expense,
+  error,
+  isPending,
+  onSubmit,
+}: {
+  expense: ExpenseResponseDto
+  error: unknown
+  isPending: boolean
+  onSubmit: (data: ResubmitExpenseDto) => void
+}) {
+  const [form, setForm] = useState({
+    title: expense.title,
+    amount: String(expense.amount),
+    category: expense.category,
+    description: readableValue(expense.description) ?? '',
+    currency: expense.currency,
+    vendor: readableValue(expense.vendor) ?? expenseVendorOptions[0],
+  })
+  const expensePayload: ResubmitExpenseDto = {
+    title: form.title,
+    amount: Number(form.amount),
+    category: form.category,
+    currency: form.currency,
+    description: form.description || undefined,
+    vendor: form.vendor || undefined,
+  }
+
+  return (
+    <CreatePanel
+      title="Edit expense"
+      kicker="Rejected request"
+      description="Update the rejected request details before sending it back through workflow."
+      error={error}
+      onSubmit={() => onSubmit(expensePayload)}
+      submitLabel={isPending ? 'Resubmitting...' : 'Resubmit expense'}
+    >
+      <FormSection index="01" title="Expense details" hint="Required for approval routing.">
+        <div className="grid gap-3 md:grid-cols-2">
+          <FormField label="Title" htmlFor="expense-title">
+            <FormInput
+              id="expense-title"
+              value={form.title}
+              onChange={(event) => setForm({ ...form, title: event.target.value })}
+            />
+          </FormField>
+          <FormField label="Amount" htmlFor="expense-amount">
+            <FormInput
+              id="expense-amount"
+              type="number"
+              value={form.amount}
+              onChange={(event) => setForm({ ...form, amount: event.target.value })}
+            />
+          </FormField>
+          <FormField label="Currency" htmlFor="expense-currency">
+            <FormInput
+              id="expense-currency"
+              value={form.currency}
+              onChange={(event) => setForm({ ...form, currency: event.target.value })}
+            />
+          </FormField>
+        </div>
+      </FormSection>
+      <FormSection index="02" title="Vendor and category">
+        <div className="grid gap-3 md:grid-cols-2">
+          <FormField label="Category" htmlFor="expense-category">
+            <FormSelect
+              id="expense-category"
+              value={form.category}
+              onChange={(event) => setForm({ ...form, category: event.target.value })}
+            >
+              {expenseCategoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </FormSelect>
+          </FormField>
+          <FormField label="Vendor" htmlFor="expense-vendor">
+            <FormSelect
+              id="expense-vendor"
+              value={form.vendor}
+              onChange={(event) => setForm({ ...form, vendor: event.target.value })}
+            >
+              {expenseVendorOptions.map((vendor) => (
+                <option key={vendor} value={vendor}>
+                  {vendor}
+                </option>
+              ))}
+            </FormSelect>
+          </FormField>
+        </div>
+      </FormSection>
+      <FormSection index="03" title="Notes">
+        <FormField label="Description" htmlFor="expense-description">
+          <FormTextarea
+            id="expense-description"
+            value={form.description}
+            onChange={(event) => setForm({ ...form, description: event.target.value })}
+          />
+        </FormField>
+      </FormSection>
+    </CreatePanel>
+  )
+}
+
 export function ExpenseDetailPage() {
   const { expenseId } = useParams({ strict: false }) as { expenseId: string }
   const query = useExpensesControllerFindOne({ id: expenseId })
@@ -3511,6 +3651,7 @@ export function ExpenseDetailPage() {
   const workflow = workflowId
     ? (unwrapData(workflowQuery.data) as WorkflowInstanceResponseDto | undefined)
     : undefined
+  const canEditAndResubmit = expense?.status === 'REJECTED' && expense.canResubmit === true
 
   return (
     <>
@@ -3518,18 +3659,37 @@ export function ExpenseDetailPage() {
         title={expense?.title ?? `Expense ${expenseId}`}
         kicker="Expense detail"
         action={
-          workflowId ? (
-            <Button
-              className="border-sky-700 bg-sky-600 text-white shadow-sm hover:bg-sky-700"
-              type="button"
-            >
-              <Link
-                to="/workflow-instances/$instanceId"
-                params={{ instanceId: workflowId }}
-              >
-                Full workflow detail
-              </Link>
-            </Button>
+          canEditAndResubmit || workflowId ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {canEditAndResubmit ? (
+                <Button
+                  className="border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+                  type="button"
+                >
+                  <Link
+                    className="inline-flex items-center gap-2"
+                    to="/expenses/$expenseId/edit"
+                    params={{ expenseId }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Edit and resubmit
+                  </Link>
+                </Button>
+              ) : null}
+              {workflowId ? (
+                <Button
+                  className="border-sky-700 bg-sky-600 text-white shadow-sm hover:bg-sky-700"
+                  type="button"
+                >
+                  <Link
+                    to="/workflow-instances/$instanceId"
+                    params={{ instanceId: workflowId }}
+                  >
+                    Full workflow detail
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
           ) : null
         }
       />
@@ -3615,7 +3775,6 @@ export function LeavesPage() {
   const user = useAuthStore((state) => state.user)
   const query = useLeavesControllerList({ params: { page: 1, limit: 50 } })
   const submit = useLeavesControllerSubmit({ mutation: { onSuccess: () => void query.refetch() } })
-  const resubmit = useLeavesControllerResubmit({ mutation: { onSuccess: () => void query.refetch() } })
   const deleteLeave = useLeavesControllerDelete({ mutation: { onSuccess: () => void query.refetch() } })
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   const canWriteLeaves = hasPermission(
@@ -3636,7 +3795,7 @@ export function LeavesPage() {
           ) : undefined
         }
       />
-      <ErrorNotice error={query.error ?? submit.error ?? resubmit.error ?? deleteLeave.error} />
+      <ErrorNotice error={query.error ?? submit.error ?? deleteLeave.error} />
       <DataTable
         data={rows}
         empty={
@@ -3685,16 +3844,14 @@ export function LeavesPage() {
                     </Button>
                   ) : null}
                   {canWriteLeaves && status === 'REJECTED' && canResubmit ? (
-                    <Button
-                      className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
-                      disabled={resubmit.isPending}
-                      size="sm"
-                      type="button"
-                      onClick={() => resubmit.mutate({ id: String(row.original.id), data: {} })}
+                    <Link
+                      className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-emerald-600 bg-emerald-600 px-3 text-xs font-medium text-white shadow-sm transition hover:bg-emerald-700"
+                      to="/leaves/$leaveId/edit"
+                      params={{ leaveId: String(row.original.id) }}
                     >
-                      <Send className="h-4 w-4" />
-                      Resubmit
-                    </Button>
+                      <Pencil className="h-4 w-4" />
+                      Edit and resubmit
+                    </Link>
                   ) : null}
                   {canWriteLeaves && status !== 'DRAFT' && !(status === 'REJECTED' && canResubmit) ? (
                     <Button className="whitespace-nowrap" disabled size="sm" type="button" variant="secondary">
@@ -3797,6 +3954,130 @@ export function LeaveCreatePage() {
   )
 }
 
+export function LeaveEditPage() {
+  const { leaveId } = useParams({ strict: false }) as { leaveId: string }
+  const navigate = useNavigate()
+  const query = useLeavesControllerFindOne({ id: leaveId })
+  const leave = unwrapData(query.data) as LeaveResponseDto | undefined
+  const resubmitLeave = useLeavesControllerResubmit({
+    mutation: {
+      onSuccess: async () => navigate({ to: '/leaves/$leaveId', params: { leaveId } }),
+    },
+  })
+  const isEditable = leave?.status === 'REJECTED' && leave.canResubmit === true
+
+  return (
+    <div className="max-w-3xl">
+      <PageHeader
+        title={leave ? `Edit ${leave.leaveType} leave` : `Edit leave ${leaveId}`}
+        kicker="Leave request"
+      />
+      <ErrorNotice error={query.error ?? resubmitLeave.error} />
+      {leave && !isEditable ? (
+        <EmptyState message="This leave request cannot be edited and resubmitted." />
+      ) : null}
+      {leave && isEditable ? (
+        <LeaveEditForm
+          error={resubmitLeave.error}
+          isPending={resubmitLeave.isPending}
+          leave={leave}
+          onSubmit={(data) => resubmitLeave.mutate({ id: leaveId, data })}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+function LeaveEditForm({
+  error,
+  isPending,
+  leave,
+  onSubmit,
+}: {
+  error: unknown
+  isPending: boolean
+  leave: LeaveResponseDto
+  onSubmit: (data: ResubmitLeaveDto) => void
+}) {
+  const [form, setForm] = useState({
+    leaveType: leave.leaveType,
+    leaveDays: leave.leaveDays,
+    startDate: leave.startDate,
+    endDate: leave.endDate,
+    reason: leave.reason ?? '',
+  })
+  const leavePayload: ResubmitLeaveDto = {
+    leaveType: form.leaveType,
+    leaveDays: form.leaveDays,
+    startDate: form.startDate,
+    endDate: form.endDate,
+    reason: form.reason || undefined,
+  }
+
+  return (
+    <CreatePanel
+      title="Edit leave"
+      kicker="Rejected request"
+      description="Update leave type, dates, duration, and reason before sending it back through workflow."
+      error={error}
+      onSubmit={() => onSubmit(leavePayload)}
+      submitLabel={isPending ? 'Resubmitting...' : 'Resubmit leave'}
+    >
+      <FormSection index="01" title="Leave type">
+        <FormField label="Type" htmlFor="leave-type">
+          <FormSelect
+            id="leave-type"
+            value={form.leaveType}
+            onChange={(event) => setForm({ ...form, leaveType: event.target.value })}
+          >
+            <option value="ANNUAL">Annual</option>
+            <option value="SICK">Sick</option>
+            <option value="CASUAL">Casual</option>
+            <option value="UNPAID">Unpaid</option>
+          </FormSelect>
+        </FormField>
+      </FormSection>
+      <FormSection index="02" title="Dates and duration">
+        <div className="grid gap-3 md:grid-cols-3">
+          <FormField label="Start date" htmlFor="leave-start-date">
+            <FormInput
+              id="leave-start-date"
+              type="date"
+              value={form.startDate}
+              onChange={(event) => setForm({ ...form, startDate: event.target.value })}
+            />
+          </FormField>
+          <FormField label="End date" htmlFor="leave-end-date">
+            <FormInput
+              id="leave-end-date"
+              type="date"
+              value={form.endDate}
+              onChange={(event) => setForm({ ...form, endDate: event.target.value })}
+            />
+          </FormField>
+          <FormField label="Leave days" htmlFor="leave-days">
+            <FormInput
+              id="leave-days"
+              type="number"
+              value={form.leaveDays}
+              onChange={(event) => setForm({ ...form, leaveDays: Number(event.target.value) })}
+            />
+          </FormField>
+        </div>
+      </FormSection>
+      <FormSection index="03" title="Reason">
+        <FormField label="Reason" htmlFor="leave-reason">
+          <FormTextarea
+            id="leave-reason"
+            value={form.reason}
+            onChange={(event) => setForm({ ...form, reason: event.target.value })}
+          />
+        </FormField>
+      </FormSection>
+    </CreatePanel>
+  )
+}
+
 export function LeaveDetailPage() {
   const { leaveId } = useParams({ strict: false }) as { leaveId: string }
   const query = useLeavesControllerFindOne({ id: leaveId })
@@ -3806,6 +4087,7 @@ export function LeaveDetailPage() {
   const workflow = workflowId
     ? (unwrapData(workflowQuery.data) as WorkflowInstanceResponseDto | undefined)
     : undefined
+  const canEditAndResubmit = leave?.status === 'REJECTED' && leave.canResubmit === true
 
   return (
     <>
@@ -3813,18 +4095,37 @@ export function LeaveDetailPage() {
         title={leave ? `Leave ${leave.leaveType}` : `Leave ${leaveId}`}
         kicker="Leave detail"
         action={
-          workflowId ? (
-            <Button
-              className="border-sky-700 bg-sky-600 text-white shadow-sm hover:bg-sky-700"
-              type="button"
-            >
-              <Link
-                to="/workflow-instances/$instanceId"
-                params={{ instanceId: workflowId }}
-              >
-                Full workflow detail
-              </Link>
-            </Button>
+          canEditAndResubmit || workflowId ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {canEditAndResubmit ? (
+                <Button
+                  className="border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+                  type="button"
+                >
+                  <Link
+                    className="inline-flex items-center gap-2"
+                    to="/leaves/$leaveId/edit"
+                    params={{ leaveId }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Edit and resubmit
+                  </Link>
+                </Button>
+              ) : null}
+              {workflowId ? (
+                <Button
+                  className="border-sky-700 bg-sky-600 text-white shadow-sm hover:bg-sky-700"
+                  type="button"
+                >
+                  <Link
+                    to="/workflow-instances/$instanceId"
+                    params={{ instanceId: workflowId }}
+                  >
+                    Full workflow detail
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
           ) : null
         }
       />

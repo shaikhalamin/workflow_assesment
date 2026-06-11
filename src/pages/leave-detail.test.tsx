@@ -60,6 +60,11 @@ vi.mock('@/lib/api/gen', () => ({
     error: null,
   }),
   useLeavesControllerList: () => ({ data: { data: [] }, error: null }),
+  useLeavesControllerResubmit: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+  }),
   useLeavesControllerSubmit: () => ({ mutate: vi.fn() }),
   usePaymentsControllerList: () => ({ data: { data: [] }, error: null }),
   usePaymentsControllerMarkPaid: () => ({ mutate: vi.fn() }),
@@ -284,5 +289,41 @@ describe('LeaveDetailPage', () => {
 
     expect(screen.getByText('No workflow has been started for this leave request.')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /full workflow detail/i })).not.toBeInTheDocument()
+  })
+
+  it('shows edit and resubmit for rejected resubmittable leave requests', () => {
+    leaveResponse = {
+      ...baseLeave,
+      status: 'REJECTED',
+      canResubmit: true,
+      rejectionReason: 'Insufficient balance',
+      rejectedAt: '2026-06-12T08:00:00.000Z',
+    }
+    workflowResponse = undefined
+
+    render(<LeaveDetailPage />)
+
+    expect(
+      screen.getByRole('link', { name: /edit and resubmit/i }),
+    ).toHaveAttribute('href', '/leaves/$leaveId/edit')
+    expect(screen.getByText(/rejection reason: insufficient balance/i)).toBeInTheDocument()
+  })
+
+  it('does not show edit and resubmit for rejected non-resubmittable leave requests', () => {
+    leaveResponse = {
+      ...baseLeave,
+      status: 'REJECTED',
+      canResubmit: false,
+      rejectionReason: 'Insufficient balance',
+      rejectedAt: '2026-06-12T08:00:00.000Z',
+    }
+    workflowResponse = undefined
+
+    render(<LeaveDetailPage />)
+
+    expect(
+      screen.queryByRole('link', { name: /edit and resubmit/i }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByText(/rejection reason: insufficient balance/i)).toBeInTheDocument()
   })
 })
