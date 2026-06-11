@@ -325,6 +325,128 @@ describe('LeavesService', () => {
     expect(leave.status).toBe(LeaveRequestStatus.DRAFT);
   });
 
+  it('resubmits a rejected leave request with edited fields and triggers workflow', async () => {
+    const leave = {
+      id: 'leave-1',
+      requesterId: 'user-1',
+      requester: null,
+      createdById: 'user-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      leaveType: 'ANNUAL',
+      leaveDays: 2,
+      startDate: '2026-06-10',
+      endDate: '2026-06-11',
+      reason: 'Old reason',
+      employeeGrade: 'G5',
+      status: LeaveRequestStatus.REJECTED,
+      workflowInstanceId: 'workflow-1',
+      rejectionReason: 'Insufficient balance',
+      approvedPeriodJson: null,
+      customFieldsJson: {},
+      submittedAt: null,
+      approvedAt: null,
+      rejectedAt: null,
+      createdAt: new Date('2026-06-10T09:30:00.000Z'),
+      updatedAt: new Date('2026-06-11T09:30:00.000Z'),
+    };
+    const savedValues: unknown[] = [];
+    const repo = {
+      findOneBy: jest.fn().mockResolvedValue(leave),
+      findOne: jest.fn().mockResolvedValue(leave),
+      save: jest.fn().mockImplementation((value) => {
+        savedValues.push({ ...value });
+        return Promise.resolve(value);
+      }),
+    };
+    const runtime: {
+      allowsResubmission: jest.Mock<Promise<boolean>, [string]>;
+      trigger: jest.Mock<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>;
+    } = {
+      allowsResubmission: jest.fn<Promise<boolean>, [string]>().mockResolvedValue(true),
+      trigger: jest.fn<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>().mockResolvedValue({
+        status: 'triggered',
+        workflowInstanceId: 'workflow-2',
+        activeStep: {
+          id: 'step-1',
+          stepName: 'Review',
+          stepOrder: 1,
+          assignedUserId: null,
+          assignedRoleSlug: 'manager',
+          status: WorkflowStepStatus.ACTIVE,
+        },
+      }),
+    };
+    const service = new LeavesService(repo as never, runtime as never, {} as never);
+
+    await service.resubmit(
+      'leave-1',
+      {
+        leaveType: 'CASUAL',
+        leaveDays: 1,
+        startDate: '2026-06-12',
+        endDate: '2026-06-12',
+        reason: 'Updated reason',
+      },
+      { userId: 'user-1', roles: [] } as never,
+    );
+
+    expect(runtime.allowsResubmission).toHaveBeenCalledWith('workflow-1');
+    expect(leave.leaveType).toBe('CASUAL');
+    expect(leave.leaveDays).toBe(1);
+    expect(leave.startDate).toBe('2026-06-12');
+    expect(leave.endDate).toBe('2026-06-12');
+    expect(leave.reason).toBe('Updated reason');
+    expect(leave.rejectionReason).toBeNull();
+    expect(leave.status).toBe(LeaveRequestStatus.UNDER_REVIEW);
+    expect(leave.workflowInstanceId).toBe('workflow-2');
+    expect(runtime.trigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        moduleName: 'leaves',
+        eventName: 'leave.submitted',
+        entityId: 'leave-1',
+        metadata: expect.objectContaining({
+          title: 'Casual leave request',
+          leaveType: 'CASUAL',
+          leaveDays: 1,
+        }),
+      }),
+    );
+    expect(savedValues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          leaveType: 'CASUAL',
+          leaveDays: 1,
+        }),
+        expect.objectContaining({
+          status: LeaveRequestStatus.DRAFT,
+          rejectionReason: null,
+        }),
+        expect.objectContaining({
+          status: LeaveRequestStatus.UNDER_REVIEW,
+          workflowInstanceId: 'workflow-2',
+        }),
+      ]),
+    );
+  });
+
+  it('rejects resubmit by a non-owner', async () => {
+    const service = new LeavesService(
+      {
+        findOneBy: jest.fn().mockResolvedValue({
+          requesterId: 'owner-1',
+          status: LeaveRequestStatus.REJECTED,
+        }),
+      } as never,
+      {} as never,
+      {} as never,
+    );
+
+    await expect(
+      service.resubmit('leave-1', {}, { userId: 'other-1', roles: [] } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
   it('rejects resubmitting a leave request when the workflow disallows it', async () => {
     const leave = {
       id: 'leave-1',

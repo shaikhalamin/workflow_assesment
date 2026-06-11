@@ -319,6 +319,134 @@ describe('ExpensesService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
+  it('rejects resubmit by a non-owner', async () => {
+    const service = new ExpensesService(
+      {
+        findOneBy: jest.fn().mockResolvedValue({
+          requesterId: 'owner-1',
+          status: ExpenseStatus.REJECTED,
+        }),
+      } as never,
+      {} as never,
+      {} as never,
+    );
+
+    await expect(
+      service.resubmit('expense-1', {}, { userId: 'other-1', roles: [] } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('resubmits a rejected expense with edited fields and triggers workflow', async () => {
+    const expense = {
+      id: 'expense-1',
+      requesterId: 'user-1',
+      departmentId: 'dept-1',
+      title: 'Old title',
+      description: 'Old note',
+      amount: '1000',
+      currency: 'BDT',
+      category: 'Travel',
+      vendor: 'Old vendor',
+      itemValue: null,
+      price: null,
+      quantity: null,
+      status: ExpenseStatus.REJECTED,
+      workflowInstanceId: 'workflow-1',
+      rejectionReason: 'Receipt missing',
+      customFieldsJson: {},
+    };
+    const savedValues: unknown[] = [];
+    const repo = {
+      findOneBy: jest.fn().mockResolvedValue(expense),
+      findOne: jest.fn().mockResolvedValue({
+        ...expense,
+        requester: null,
+        createdById: 'user-1',
+        createdBy: null,
+        submittedAt: new Date('2026-06-11T08:00:00.000Z'),
+        approvedAt: null,
+        rejectedAt: null,
+        paidAt: null,
+        createdAt: new Date('2026-06-10T08:00:00.000Z'),
+        updatedAt: new Date('2026-06-11T08:00:00.000Z'),
+      }),
+      save: jest.fn().mockImplementation((value) => {
+        savedValues.push({ ...value });
+        return Promise.resolve(value);
+      }),
+    };
+    const runtime: {
+      allowsResubmission: jest.Mock<Promise<boolean>, [string]>;
+      trigger: jest.Mock<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>;
+    } = {
+      allowsResubmission: jest.fn<Promise<boolean>, [string]>().mockResolvedValue(true),
+      trigger: jest.fn<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>().mockResolvedValue({
+        status: 'triggered',
+        workflowInstanceId: 'workflow-2',
+        activeStep: {
+          id: 'step-1',
+          stepName: 'Review',
+          stepOrder: 1,
+          assignedUserId: null,
+          assignedRoleSlug: 'manager',
+          status: WorkflowStepStatus.ACTIVE,
+        },
+      }),
+    };
+    const service = new ExpensesService(repo as never, runtime as never, {} as never);
+
+    await service.resubmit(
+      'expense-1',
+      {
+        title: 'Updated title',
+        amount: 1250,
+        category: 'Meal',
+        vendor: 'Updated vendor',
+        description: 'Updated note',
+      },
+      { userId: 'user-1', roles: [] } as never,
+    );
+
+    expect(runtime.allowsResubmission).toHaveBeenCalledWith('workflow-1');
+    expect(expense.title).toBe('Updated title');
+    expect(expense.amount).toBe('1250');
+    expect(expense.category).toBe('Meal');
+    expect(expense.vendor).toBe('Updated vendor');
+    expect(expense.description).toBe('Updated note');
+    expect(expense.rejectionReason).toBeNull();
+    expect(expense.status).toBe(ExpenseStatus.UNDER_REVIEW);
+    expect(expense.workflowInstanceId).toBe('workflow-2');
+    expect(runtime.trigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        moduleName: 'expenses',
+        eventName: 'expense.submitted',
+        entityId: 'expense-1',
+        metadata: expect.objectContaining({
+          title: 'Updated title',
+          amount: 1250,
+          category: 'Meal',
+          vendor: 'Updated vendor',
+        }),
+      }),
+    );
+    expect(savedValues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Updated title',
+          amount: '1250',
+        }),
+        expect.objectContaining({
+          status: ExpenseStatus.DRAFT,
+          rejectionReason: null,
+        }),
+        expect.objectContaining({
+          status: ExpenseStatus.UNDER_REVIEW,
+          workflowInstanceId: 'workflow-2',
+        }),
+      ]),
+    );
+  });
+
   it('rejects resubmitting an expense when the workflow disallows it', async () => {
     const expense = {
       id: 'expense-1',
