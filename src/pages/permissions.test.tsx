@@ -35,6 +35,12 @@ const leaveListState = vi.hoisted((): { leaves: unknown[] } => ({
   ],
 }))
 const submitLeave = vi.hoisted(() => vi.fn())
+const submitExpense = vi.hoisted(() => vi.fn())
+const resubmitExpense = vi.hoisted(() => vi.fn())
+const resubmitLeave = vi.hoisted(() => vi.fn())
+const submitExpenseState = vi.hoisted((): { error: unknown } => ({
+  error: null,
+}))
 const submitLeaveState = vi.hoisted((): { error: unknown } => ({
   error: null,
 }))
@@ -94,7 +100,16 @@ vi.mock('@/lib/api/gen', () => ({
     isPending: false,
     mutate: deleteExpense,
   }),
-  useExpensesControllerSubmit: () => ({ mutate: vi.fn() }),
+  useExpensesControllerSubmit: () => ({
+    error: submitExpenseState.error,
+    isPending: false,
+    mutate: submitExpense,
+  }),
+  useExpensesControllerResubmit: () => ({
+    error: null,
+    isPending: false,
+    mutate: resubmitExpense,
+  }),
   useLeavesControllerCreate: () => ({
     error: null,
     isPending: false,
@@ -117,6 +132,11 @@ vi.mock('@/lib/api/gen', () => ({
     error: submitLeaveState.error,
     isPending: false,
     mutate: submitLeave,
+  }),
+  useLeavesControllerResubmit: () => ({
+    error: null,
+    isPending: false,
+    mutate: resubmitLeave,
   }),
   usePaymentsControllerList: () => ({
     data: {
@@ -220,9 +240,13 @@ describe('workspace page permissions', () => {
       },
     ]
     pendingTasksState.pendingTasks = []
+    submitExpense.mockClear()
+    resubmitExpense.mockClear()
     submitLeave.mockClear()
+    resubmitLeave.mockClear()
     deleteExpense.mockClear()
     deleteLeave.mockClear()
+    submitExpenseState.error = null
     submitLeaveState.error = null
   })
 
@@ -286,6 +310,63 @@ describe('workspace page permissions', () => {
     render(<ExpensesPage />)
 
     expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+  })
+
+  it('shows expense submit failures on the list page', () => {
+    submitExpenseState.error = new Error('Only requester can submit expense')
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableExpenseUser,
+    })
+
+    render(<ExpensesPage />)
+
+    expect(screen.getByText('Only requester can submit expense')).toBeInTheDocument()
+  })
+
+  it('disables submitted expense rows with submitted text', () => {
+    expenseListState.expenses = [
+      {
+        id: 'expense-1',
+        title: 'Fuel',
+        amount: 1200,
+        currency: 'BDT',
+        category: 'Travel',
+        status: 'UNDER_REVIEW',
+      },
+    ]
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableExpenseUser,
+    })
+
+    render(<ExpensesPage />)
+
+    expect(screen.getByRole('button', { name: /submitted/i })).toBeDisabled()
+  })
+
+  it('resubmits rejected expense rows when the workflow allows resubmission', () => {
+    expenseListState.expenses = [
+      {
+        id: 'expense-1',
+        title: 'Fuel',
+        amount: 1200,
+        currency: 'BDT',
+        category: 'Travel',
+        status: 'REJECTED',
+        canResubmit: true,
+      },
+    ]
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableExpenseUser,
+    })
+
+    render(<ExpensesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /resubmit/i }))
+
+    expect(resubmitExpense).toHaveBeenCalledWith({ id: 'expense-1', data: {} })
   })
 
   it('hides payment write actions from users with read-only payment access', () => {
@@ -361,6 +442,51 @@ describe('workspace page permissions', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
 
     expect(submitLeave).toHaveBeenCalledWith({ id: 'leave-1' })
+  })
+
+  it('disables submitted leave rows with submitted text', () => {
+    leaveListState.leaves = [
+      {
+        id: 'leave-1',
+        leaveType: 'ANNUAL',
+        leaveDays: 2,
+        startDate: '2026-06-10',
+        endDate: '2026-06-11',
+        status: 'UNDER_REVIEW',
+      },
+    ]
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableLeaveUser,
+    })
+
+    render(<LeavesPage />)
+
+    expect(screen.getByRole('button', { name: /submitted/i })).toBeDisabled()
+  })
+
+  it('resubmits rejected leave rows when the workflow allows resubmission', () => {
+    leaveListState.leaves = [
+      {
+        id: 'leave-1',
+        leaveType: 'ANNUAL',
+        leaveDays: 2,
+        startDate: '2026-06-10',
+        endDate: '2026-06-11',
+        status: 'REJECTED',
+        canResubmit: true,
+      },
+    ]
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableLeaveUser,
+    })
+
+    render(<LeavesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /resubmit/i }))
+
+    expect(resubmitLeave).toHaveBeenCalledWith({ id: 'leave-1', data: {} })
   })
 
   it('deletes a draft leave from the list row', () => {

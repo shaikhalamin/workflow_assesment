@@ -15,6 +15,13 @@ const statusColor: Record<string, string> = {
   INACTIVE: 'bg-stone-200 text-stone-700',
 }
 
+function formatBadgeLabel(value: string) {
+  return value
+    .replaceAll('_', ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
 export function Badge({
   children,
   className,
@@ -30,7 +37,7 @@ export function Badge({
         className,
       )}
     >
-      {children.replaceAll('_', ' ')}
+      {formatBadgeLabel(children)}
     </span>
   )
 }

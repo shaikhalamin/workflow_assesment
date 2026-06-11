@@ -26,11 +26,13 @@ import { useExpensesControllerCreate } from '@/lib/api/gen'
 import { useExpensesControllerDelete } from '@/lib/api/gen'
 import { useExpensesControllerFindOne } from '@/lib/api/gen'
 import { useExpensesControllerList } from '@/lib/api/gen'
+import { useExpensesControllerResubmit } from '@/lib/api/gen'
 import { useExpensesControllerSubmit } from '@/lib/api/gen'
 import { useLeavesControllerCreate } from '@/lib/api/gen'
 import { useLeavesControllerDelete } from '@/lib/api/gen'
 import { useLeavesControllerFindOne } from '@/lib/api/gen'
 import { useLeavesControllerList } from '@/lib/api/gen'
+import { useLeavesControllerResubmit } from '@/lib/api/gen'
 import { useLeavesControllerSubmit } from '@/lib/api/gen'
 import { usePaymentsControllerList } from '@/lib/api/gen'
 import { usePaymentsControllerMarkPaid } from '@/lib/api/gen'
@@ -3110,6 +3112,7 @@ export function ExpensesPage() {
   const user = useAuthStore((state) => state.user)
   const query = useExpensesControllerList({ params: { page: 1, limit: 50 } })
   const submit = useExpensesControllerSubmit({ mutation: { onSuccess: () => void query.refetch() } })
+  const resubmit = useExpensesControllerResubmit({ mutation: { onSuccess: () => void query.refetch() } })
   const deleteExpense = useExpensesControllerDelete({ mutation: { onSuccess: () => void query.refetch() } })
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   const canWriteExpenses = hasPermission(
@@ -3130,7 +3133,7 @@ export function ExpensesPage() {
           ) : undefined
         }
       />
-      <ErrorNotice error={query.error ?? deleteExpense.error} />
+      <ErrorNotice error={query.error ?? submit.error ?? resubmit.error ?? deleteExpense.error} />
       <DataTable
         data={rows}
         empty={
@@ -3152,42 +3155,65 @@ export function ExpensesPage() {
           { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
           {
             header: 'Actions',
-            cell: ({ row }) => (
-              <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
-                  to="/expenses/$expenseId"
-                  params={{ expenseId: String(row.original.id) }}
-                >
-                  <Eye className="h-4 w-4" />
-                  Open
-                </Link>
-                {canWriteExpenses ? (
-                  <Button
-                    className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
-                    size="sm"
-                    type="button"
-                    onClick={() => submit.mutate({ id: String(row.original.id) })}
+            cell: ({ row }) => {
+              const status = String(row.original.status)
+              const canResubmit = row.original.canResubmit === true
+
+              return (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+                    to="/expenses/$expenseId"
+                    params={{ expenseId: String(row.original.id) }}
                   >
-                    <Send className="h-4 w-4" />
-                    Submit
-                  </Button>
-                ) : null}
-                {canWriteExpenses && String(row.original.status) === 'DRAFT' ? (
-                  <Button
-                    className="whitespace-nowrap"
-                    disabled={deleteExpense.isPending}
-                    size="sm"
-                    type="button"
-                    variant="destructive"
-                    onClick={() => deleteExpense.mutate({ id: String(row.original.id) })}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
-                  </Button>
-                ) : null}
-              </div>
-            ),
+                    <Eye className="h-4 w-4" />
+                    Open
+                  </Link>
+                  {canWriteExpenses && status === 'DRAFT' ? (
+                    <Button
+                      className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+                      disabled={submit.isPending}
+                      size="sm"
+                      type="button"
+                      onClick={() => submit.mutate({ id: String(row.original.id) })}
+                    >
+                      <Send className="h-4 w-4" />
+                      Submit
+                    </Button>
+                  ) : null}
+                  {canWriteExpenses && status === 'REJECTED' && canResubmit ? (
+                    <Button
+                      className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+                      disabled={resubmit.isPending}
+                      size="sm"
+                      type="button"
+                      onClick={() => resubmit.mutate({ id: String(row.original.id), data: {} })}
+                    >
+                      <Send className="h-4 w-4" />
+                      Resubmit
+                    </Button>
+                  ) : null}
+                  {canWriteExpenses && status !== 'DRAFT' && !(status === 'REJECTED' && canResubmit) ? (
+                    <Button className="whitespace-nowrap" disabled size="sm" type="button" variant="secondary">
+                      Submitted
+                    </Button>
+                  ) : null}
+                  {canWriteExpenses && status === 'DRAFT' ? (
+                    <Button
+                      className="whitespace-nowrap"
+                      disabled={deleteExpense.isPending}
+                      size="sm"
+                      type="button"
+                      variant="destructive"
+                      onClick={() => deleteExpense.mutate({ id: String(row.original.id) })}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </Button>
+                  ) : null}
+                </div>
+              )
+            },
           },
         ]}
       />
@@ -3413,6 +3439,7 @@ export function LeavesPage() {
   const user = useAuthStore((state) => state.user)
   const query = useLeavesControllerList({ params: { page: 1, limit: 50 } })
   const submit = useLeavesControllerSubmit({ mutation: { onSuccess: () => void query.refetch() } })
+  const resubmit = useLeavesControllerResubmit({ mutation: { onSuccess: () => void query.refetch() } })
   const deleteLeave = useLeavesControllerDelete({ mutation: { onSuccess: () => void query.refetch() } })
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   const canWriteLeaves = hasPermission(
@@ -3433,7 +3460,7 @@ export function LeavesPage() {
           ) : undefined
         }
       />
-      <ErrorNotice error={query.error ?? submit.error ?? deleteLeave.error} />
+      <ErrorNotice error={query.error ?? submit.error ?? resubmit.error ?? deleteLeave.error} />
       <DataTable
         data={rows}
         empty={
@@ -3455,42 +3482,65 @@ export function LeavesPage() {
           { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
           {
             header: 'Actions',
-            cell: ({ row }) => (
-              <div className="flex flex-wrap items-center gap-2">
-                <Link
-                  className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
-                  to="/leaves/$leaveId"
-                  params={{ leaveId: String(row.original.id) }}
-                >
-                  <Eye className="h-4 w-4" />
-                  Open
-                </Link>
-                {canWriteLeaves ? (
-                  <Button
-                    className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
-                    size="sm"
-                    type="button"
-                    onClick={() => submit.mutate({ id: String(row.original.id) })}
+            cell: ({ row }) => {
+              const status = String(row.original.status)
+              const canResubmit = row.original.canResubmit === true
+
+              return (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+                    to="/leaves/$leaveId"
+                    params={{ leaveId: String(row.original.id) }}
                   >
-                    <Send className="h-4 w-4" />
-                    Submit
-                  </Button>
-                ) : null}
-                {canWriteLeaves && String(row.original.status) === 'DRAFT' ? (
-                  <Button
-                    className="whitespace-nowrap"
-                    disabled={deleteLeave.isPending}
-                    size="sm"
-                    type="button"
-                    variant="destructive"
-                    onClick={() => deleteLeave.mutate({ id: String(row.original.id) })}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
-                  </Button>
-                ) : null}
-              </div>
-            ),
+                    <Eye className="h-4 w-4" />
+                    Open
+                  </Link>
+                  {canWriteLeaves && status === 'DRAFT' ? (
+                    <Button
+                      className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+                      disabled={submit.isPending}
+                      size="sm"
+                      type="button"
+                      onClick={() => submit.mutate({ id: String(row.original.id) })}
+                    >
+                      <Send className="h-4 w-4" />
+                      Submit
+                    </Button>
+                  ) : null}
+                  {canWriteLeaves && status === 'REJECTED' && canResubmit ? (
+                    <Button
+                      className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+                      disabled={resubmit.isPending}
+                      size="sm"
+                      type="button"
+                      onClick={() => resubmit.mutate({ id: String(row.original.id), data: {} })}
+                    >
+                      <Send className="h-4 w-4" />
+                      Resubmit
+                    </Button>
+                  ) : null}
+                  {canWriteLeaves && status !== 'DRAFT' && !(status === 'REJECTED' && canResubmit) ? (
+                    <Button className="whitespace-nowrap" disabled size="sm" type="button" variant="secondary">
+                      Submitted
+                    </Button>
+                  ) : null}
+                  {canWriteLeaves && status === 'DRAFT' ? (
+                    <Button
+                      className="whitespace-nowrap"
+                      disabled={deleteLeave.isPending}
+                      size="sm"
+                      type="button"
+                      variant="destructive"
+                      onClick={() => deleteLeave.mutate({ id: String(row.original.id) })}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </Button>
+                  ) : null}
+                </div>
+              )
+            },
           },
         ]}
       />

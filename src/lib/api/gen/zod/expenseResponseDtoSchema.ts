@@ -37,6 +37,7 @@ export const expenseResponseDtoSchema = z.object({
     "CANCELLED",
   ]),
   workflowInstanceId: z.nullable(z.string()),
+  canResubmit: z.boolean(),
   rejectionReason: z.nullable(z.string()),
   customFieldsJson: z.nullable(z.object({})),
   submittedAt: z.nullable(z.iso.datetime()),

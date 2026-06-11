@@ -32,6 +32,7 @@ export const leaveResponseDtoSchema = z.object({
     "CANCELLED",
   ]),
   workflowInstanceId: z.nullable(z.string()),
+  canResubmit: z.boolean(),
   rejectionReason: z.nullable(z.string()),
   approvedPeriodJson: z.nullable(z.object({})),
   customFieldsJson: z.nullable(z.object({})),

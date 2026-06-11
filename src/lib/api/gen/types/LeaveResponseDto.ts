@@ -71,6 +71,10 @@ export type LeaveResponseDto = {
    */
   workflowInstanceId: string | null;
   /**
+   * @type boolean
+   */
+  canResubmit: boolean;
+  /**
    * @type string
    */
   rejectionReason: string | null;

@@ -143,6 +143,8 @@ describe('WorkflowTemplatesPage actions', () => {
     })
     expect(screen.getByRole('row', { name: /draft workflow/i })).toBeInTheDocument()
     expect(screen.getByRole('row', { name: /published workflow/i })).toBeInTheDocument()
+    expect(screen.getByText('Draft')).toBeInTheDocument()
+    expect(screen.queryByText('DRAFT')).not.toBeInTheDocument()
   })
 
   it('renders list actions with detail label and without duplicate action', () => {

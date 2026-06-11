@@ -86,6 +86,7 @@
       "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2",
       "nullable": true
     },
+    "canResubmit": { "type": "boolean", "example": false },
     "rejectionReason": {
       "type": "string",
       "example": "Receipt missing",
@@ -141,6 +142,7 @@
     "quantity",
     "status",
     "workflowInstanceId",
+    "canResubmit",
     "rejectionReason",
     "customFieldsJson",
     "submittedAt",
