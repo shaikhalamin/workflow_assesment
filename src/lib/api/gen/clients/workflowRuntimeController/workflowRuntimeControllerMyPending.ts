@@ -4,7 +4,11 @@
  */
 
 import fetch from "@/lib/api/client.ts";
-import type { WorkflowRuntimeControllerMyPendingQueryResponse } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerMyPending.ts";
+import type {
+  WorkflowRuntimeControllerMyPendingQueryResponse,
+  WorkflowRuntimeControllerMyPending401,
+  WorkflowRuntimeControllerMyPending403,
+} from "../../types/workflowRuntimeController/WorkflowRuntimeControllerMyPending.ts";
 import type {
   Client,
   RequestConfig,
@@ -26,7 +30,10 @@ export async function workflowRuntimeControllerMyPending(
 
   const res = await request<
     WorkflowRuntimeControllerMyPendingQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerMyPending401
+      | WorkflowRuntimeControllerMyPending403
+    >,
     unknown
   >({
     method: "GET",

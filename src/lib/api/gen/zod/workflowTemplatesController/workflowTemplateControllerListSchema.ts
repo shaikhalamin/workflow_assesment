@@ -4,6 +4,7 @@
  */
 
 import { apiErrorDtoSchema } from "../apiErrorDtoSchema.ts";
+import { apiResponseDtoSchema } from "../apiResponseDtoSchema.ts";
 import { paginatedResponseDtoSchema } from "../paginatedResponseDtoSchema.ts";
 import { paginationMetaDtoSchema } from "../paginationMetaDtoSchema.ts";
 import { workflowTemplateResponseDtoSchema } from "../workflowTemplateResponseDtoSchema.ts";
@@ -26,6 +27,48 @@ export const workflowTemplateControllerList200Schema = z
       },
       get error() {
         return apiErrorDtoSchema.nullable();
+      },
+    }),
+  );
+
+/**
+ * @description Validation failed or malformed request
+ */
+export const workflowTemplateControllerList400Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Unauthenticated
+ */
+export const workflowTemplateControllerList401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const workflowTemplateControllerList403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
       },
     }),
   );

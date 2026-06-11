@@ -7,6 +7,9 @@ import fetch from "@/lib/api/client.ts";
 import type {
   PaymentsControllerListQueryResponse,
   PaymentsControllerListQueryParams,
+  PaymentsControllerList400,
+  PaymentsControllerList401,
+  PaymentsControllerList403,
 } from "../../types/paymentRequestsController/PaymentsControllerList.ts";
 import type {
   Client,
@@ -30,7 +33,11 @@ export async function paymentsControllerList(
 
   const res = await request<
     PaymentsControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | PaymentsControllerList400
+      | PaymentsControllerList401
+      | PaymentsControllerList403
+    >,
     unknown
   >({
     method: "GET",

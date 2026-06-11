@@ -25,6 +25,62 @@ export const workflowTemplateControllerFindOne200Schema = z
     }),
   );
 
+/**
+ * @description Validation failed or malformed request
+ */
+export const workflowTemplateControllerFindOne400Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Unauthenticated
+ */
+export const workflowTemplateControllerFindOne401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const workflowTemplateControllerFindOne403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Resource not found
+ */
+export const workflowTemplateControllerFindOne404Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
 export const workflowTemplateControllerFindOneQueryResponseSchema = z.lazy(
   () => workflowTemplateControllerFindOne200Schema,
 );

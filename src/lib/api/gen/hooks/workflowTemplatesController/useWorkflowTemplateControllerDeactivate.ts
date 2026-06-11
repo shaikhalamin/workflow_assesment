@@ -6,6 +6,10 @@
 import type {
   WorkflowTemplateControllerDeactivateMutationResponse,
   WorkflowTemplateControllerDeactivatePathParams,
+  WorkflowTemplateControllerDeactivate400,
+  WorkflowTemplateControllerDeactivate401,
+  WorkflowTemplateControllerDeactivate403,
+  WorkflowTemplateControllerDeactivate404,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerDeactivate.ts";
 import type {
   Client,
@@ -33,7 +37,12 @@ export function workflowTemplateControllerDeactivateMutationOptions<
   const mutationKey = workflowTemplateControllerDeactivateMutationKey();
   return mutationOptions<
     WorkflowTemplateControllerDeactivateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerDeactivate400
+      | WorkflowTemplateControllerDeactivate401
+      | WorkflowTemplateControllerDeactivate403
+      | WorkflowTemplateControllerDeactivate404
+    >,
     { id: WorkflowTemplateControllerDeactivatePathParams["id"] },
     TContext
   >({
@@ -51,7 +60,12 @@ export function useWorkflowTemplateControllerDeactivate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowTemplateControllerDeactivateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowTemplateControllerDeactivate400
+        | WorkflowTemplateControllerDeactivate401
+        | WorkflowTemplateControllerDeactivate403
+        | WorkflowTemplateControllerDeactivate404
+      >,
       { id: WorkflowTemplateControllerDeactivatePathParams["id"] },
       TContext
     > & { client?: QueryClient };
@@ -68,14 +82,24 @@ export function useWorkflowTemplateControllerDeactivate<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowTemplateControllerDeactivateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerDeactivate400
+      | WorkflowTemplateControllerDeactivate401
+      | WorkflowTemplateControllerDeactivate403
+      | WorkflowTemplateControllerDeactivate404
+    >,
     { id: WorkflowTemplateControllerDeactivatePathParams["id"] },
     TContext
   >;
 
   return useMutation<
     WorkflowTemplateControllerDeactivateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerDeactivate400
+      | WorkflowTemplateControllerDeactivate401
+      | WorkflowTemplateControllerDeactivate403
+      | WorkflowTemplateControllerDeactivate404
+    >,
     { id: WorkflowTemplateControllerDeactivatePathParams["id"] },
     TContext
   >(
@@ -87,7 +111,12 @@ export function useWorkflowTemplateControllerDeactivate<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowTemplateControllerDeactivateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerDeactivate400
+      | WorkflowTemplateControllerDeactivate401
+      | WorkflowTemplateControllerDeactivate403
+      | WorkflowTemplateControllerDeactivate404
+    >,
     { id: WorkflowTemplateControllerDeactivatePathParams["id"] },
     TContext
   >;

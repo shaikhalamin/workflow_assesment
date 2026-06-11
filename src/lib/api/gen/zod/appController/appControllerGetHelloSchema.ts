@@ -3,9 +3,37 @@
  * Do not edit manually.
  */
 
+import { apiErrorDtoSchema } from "../apiErrorDtoSchema.ts";
+import { apiResponseDtoSchema } from "../apiResponseDtoSchema.ts";
+import { appResponseDtoSchema } from "../appResponseDtoSchema.ts";
 import { z } from "zod/v4";
 
-export const appControllerGetHello200Schema = z.any();
+export const appControllerGetHello200Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      get data() {
+        return appResponseDtoSchema;
+      },
+      get error() {
+        return apiErrorDtoSchema.nullable();
+      },
+    }),
+  );
+
+/**
+ * @description Too many requests
+ */
+export const appControllerGetHello429Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
 
 export const appControllerGetHelloQueryResponseSchema = z.lazy(
   () => appControllerGetHello200Schema,

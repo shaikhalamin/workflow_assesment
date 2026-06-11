@@ -7,6 +7,10 @@ import type {
   WorkflowRuntimeControllerRejectMutationRequest,
   WorkflowRuntimeControllerRejectMutationResponse,
   WorkflowRuntimeControllerRejectPathParams,
+  WorkflowRuntimeControllerReject400,
+  WorkflowRuntimeControllerReject401,
+  WorkflowRuntimeControllerReject403,
+  WorkflowRuntimeControllerReject404,
 } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerReject.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function workflowRuntimeControllerRejectMutationOptions<
   const mutationKey = workflowRuntimeControllerRejectMutationKey();
   return mutationOptions<
     WorkflowRuntimeControllerRejectMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerReject400
+      | WorkflowRuntimeControllerReject401
+      | WorkflowRuntimeControllerReject403
+      | WorkflowRuntimeControllerReject404
+    >,
     {
       id: WorkflowRuntimeControllerRejectPathParams["id"];
       data: WorkflowRuntimeControllerRejectMutationRequest;
@@ -59,7 +68,12 @@ export function useWorkflowRuntimeControllerReject<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowRuntimeControllerRejectMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowRuntimeControllerReject400
+        | WorkflowRuntimeControllerReject401
+        | WorkflowRuntimeControllerReject403
+        | WorkflowRuntimeControllerReject404
+      >,
       {
         id: WorkflowRuntimeControllerRejectPathParams["id"];
         data: WorkflowRuntimeControllerRejectMutationRequest;
@@ -80,7 +94,12 @@ export function useWorkflowRuntimeControllerReject<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowRuntimeControllerRejectMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerReject400
+      | WorkflowRuntimeControllerReject401
+      | WorkflowRuntimeControllerReject403
+      | WorkflowRuntimeControllerReject404
+    >,
     {
       id: WorkflowRuntimeControllerRejectPathParams["id"];
       data: WorkflowRuntimeControllerRejectMutationRequest;
@@ -90,7 +109,12 @@ export function useWorkflowRuntimeControllerReject<TContext>(
 
   return useMutation<
     WorkflowRuntimeControllerRejectMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerReject400
+      | WorkflowRuntimeControllerReject401
+      | WorkflowRuntimeControllerReject403
+      | WorkflowRuntimeControllerReject404
+    >,
     {
       id: WorkflowRuntimeControllerRejectPathParams["id"];
       data: WorkflowRuntimeControllerRejectMutationRequest;
@@ -105,7 +129,12 @@ export function useWorkflowRuntimeControllerReject<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowRuntimeControllerRejectMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerReject400
+      | WorkflowRuntimeControllerReject401
+      | WorkflowRuntimeControllerReject403
+      | WorkflowRuntimeControllerReject404
+    >,
     {
       id: WorkflowRuntimeControllerRejectPathParams["id"];
       data: WorkflowRuntimeControllerRejectMutationRequest;

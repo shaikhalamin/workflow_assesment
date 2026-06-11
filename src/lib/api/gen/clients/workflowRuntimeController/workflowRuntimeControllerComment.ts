@@ -8,6 +8,10 @@ import type {
   WorkflowRuntimeControllerCommentMutationRequest,
   WorkflowRuntimeControllerCommentMutationResponse,
   WorkflowRuntimeControllerCommentPathParams,
+  WorkflowRuntimeControllerComment400,
+  WorkflowRuntimeControllerComment401,
+  WorkflowRuntimeControllerComment403,
+  WorkflowRuntimeControllerComment404,
 } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerComment.ts";
 import type {
   Client,
@@ -48,7 +52,12 @@ export async function workflowRuntimeControllerComment(
 
   const res = await request<
     WorkflowRuntimeControllerCommentMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerComment400
+      | WorkflowRuntimeControllerComment401
+      | WorkflowRuntimeControllerComment403
+      | WorkflowRuntimeControllerComment404
+    >,
     WorkflowRuntimeControllerCommentMutationRequest
   >({
     method: "POST",

@@ -6,6 +6,9 @@
 import type {
   PaymentsControllerListQueryResponse,
   PaymentsControllerListQueryParams,
+  PaymentsControllerList400,
+  PaymentsControllerList401,
+  PaymentsControllerList403,
 } from "../../types/paymentRequestsController/PaymentsControllerList.ts";
 import type {
   Client,
@@ -36,7 +39,11 @@ export function paymentsControllerListQueryOptions(
   const queryKey = paymentsControllerListQueryKey(params);
   return queryOptions<
     PaymentsControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | PaymentsControllerList400
+      | PaymentsControllerList401
+      | PaymentsControllerList403
+    >,
     PaymentsControllerListQueryResponse,
     typeof queryKey
   >({
@@ -63,7 +70,11 @@ export function usePaymentsControllerList<
     query?: Partial<
       QueryObserverOptions<
         PaymentsControllerListQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | PaymentsControllerList400
+          | PaymentsControllerList401
+          | PaymentsControllerList403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -84,9 +95,14 @@ export function usePaymentsControllerList<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | PaymentsControllerList400
+      | PaymentsControllerList401
+      | PaymentsControllerList403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

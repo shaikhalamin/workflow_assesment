@@ -4,6 +4,7 @@
  */
 
 import type { ApiErrorDto } from "../ApiErrorDto.ts";
+import type { ApiResponseDto } from "../ApiResponseDto.ts";
 import type { AuditLogResponseDto } from "../AuditLogResponseDto.ts";
 import type { PaginatedResponseDto } from "../PaginatedResponseDto.ts";
 import type { PaginationMetaDto } from "../PaginationMetaDto.ts";
@@ -50,6 +51,48 @@ export type AuditLogsControllerListForEntity200 = PaginatedResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type AuditLogsControllerListForEntity400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type AuditLogsControllerListForEntity401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type AuditLogsControllerListForEntity403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type AuditLogsControllerListForEntityQueryResponse =
   AuditLogsControllerListForEntity200;
 
@@ -57,5 +100,8 @@ export type AuditLogsControllerListForEntityQuery = {
   Response: AuditLogsControllerListForEntity200;
   PathParams: AuditLogsControllerListForEntityPathParams;
   QueryParams: AuditLogsControllerListForEntityQueryParams;
-  Errors: any;
+  Errors:
+    | AuditLogsControllerListForEntity400
+    | AuditLogsControllerListForEntity401
+    | AuditLogsControllerListForEntity403;
 };

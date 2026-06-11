@@ -4,6 +4,7 @@
  */
 
 import type { AdminWorkflowSummaryDto } from "./AdminWorkflowSummaryDto.ts";
+import type { DashboardRecentItemDto } from "./DashboardRecentItemDto.ts";
 
 export type AdminDashboardResponseDto = {
   /**
@@ -13,7 +14,7 @@ export type AdminDashboardResponseDto = {
   /**
    * @type array
    */
-  recentWorkflowChanges: string[];
+  recentWorkflowChanges: DashboardRecentItemDto[];
   /**
    * @type number
    */

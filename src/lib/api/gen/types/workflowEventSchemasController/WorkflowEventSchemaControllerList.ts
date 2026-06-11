@@ -4,6 +4,7 @@
  */
 
 import type { ApiErrorDto } from "../ApiErrorDto.ts";
+import type { ApiResponseDto } from "../ApiResponseDto.ts";
 import type { PaginatedResponseDto } from "../PaginatedResponseDto.ts";
 import type { PaginationMetaDto } from "../PaginationMetaDto.ts";
 import type { WorkflowEventSchemaResponseDto } from "../WorkflowEventSchemaResponseDto.ts";
@@ -39,11 +40,56 @@ export type WorkflowEventSchemaControllerList200 = PaginatedResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowEventSchemaControllerList400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowEventSchemaControllerList401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowEventSchemaControllerList403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowEventSchemaControllerListQueryResponse =
   WorkflowEventSchemaControllerList200;
 
 export type WorkflowEventSchemaControllerListQuery = {
   Response: WorkflowEventSchemaControllerList200;
   QueryParams: WorkflowEventSchemaControllerListQueryParams;
-  Errors: any;
+  Errors:
+    | WorkflowEventSchemaControllerList400
+    | WorkflowEventSchemaControllerList401
+    | WorkflowEventSchemaControllerList403;
 };

@@ -6,6 +6,9 @@
 import type {
   WorkflowTemplateControllerCreateWizardMutationRequest,
   WorkflowTemplateControllerCreateWizardMutationResponse,
+  WorkflowTemplateControllerCreateWizard400,
+  WorkflowTemplateControllerCreateWizard401,
+  WorkflowTemplateControllerCreateWizard403,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerCreateWizard.ts";
 import type {
   Client,
@@ -37,7 +40,11 @@ export function workflowTemplateControllerCreateWizardMutationOptions<
   const mutationKey = workflowTemplateControllerCreateWizardMutationKey();
   return mutationOptions<
     WorkflowTemplateControllerCreateWizardMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreateWizard400
+      | WorkflowTemplateControllerCreateWizard401
+      | WorkflowTemplateControllerCreateWizard403
+    >,
     { data: WorkflowTemplateControllerCreateWizardMutationRequest },
     TContext
   >({
@@ -55,7 +62,11 @@ export function useWorkflowTemplateControllerCreateWizard<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowTemplateControllerCreateWizardMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowTemplateControllerCreateWizard400
+        | WorkflowTemplateControllerCreateWizard401
+        | WorkflowTemplateControllerCreateWizard403
+      >,
       { data: WorkflowTemplateControllerCreateWizardMutationRequest },
       TContext
     > & { client?: QueryClient };
@@ -74,14 +85,22 @@ export function useWorkflowTemplateControllerCreateWizard<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowTemplateControllerCreateWizardMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreateWizard400
+      | WorkflowTemplateControllerCreateWizard401
+      | WorkflowTemplateControllerCreateWizard403
+    >,
     { data: WorkflowTemplateControllerCreateWizardMutationRequest },
     TContext
   >;
 
   return useMutation<
     WorkflowTemplateControllerCreateWizardMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreateWizard400
+      | WorkflowTemplateControllerCreateWizard401
+      | WorkflowTemplateControllerCreateWizard403
+    >,
     { data: WorkflowTemplateControllerCreateWizardMutationRequest },
     TContext
   >(
@@ -93,7 +112,11 @@ export function useWorkflowTemplateControllerCreateWizard<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowTemplateControllerCreateWizardMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreateWizard400
+      | WorkflowTemplateControllerCreateWizard401
+      | WorkflowTemplateControllerCreateWizard403
+    >,
     { data: WorkflowTemplateControllerCreateWizardMutationRequest },
     TContext
   >;

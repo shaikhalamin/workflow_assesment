@@ -20,9 +20,24 @@
       "x-readme-ref-name": "EmployeeLeaveSummaryDto"
     },
     "recentItems": {
-      "example": [],
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "expense-2026-0001" },
+          "type": { "type": "string", "example": "Expense" },
+          "title": {
+            "type": "string",
+            "example": "Laptop charger reimbursement"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-10T09:30:00.000Z"
+          }
+        },
+        "required": ["id", "type", "title", "createdAt"],
+        "x-readme-ref-name": "DashboardRecentItemDto"
+      }
     }
   },
   "required": ["expenses", "leaves", "recentItems"],

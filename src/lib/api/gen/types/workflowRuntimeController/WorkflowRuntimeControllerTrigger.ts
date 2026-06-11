@@ -19,6 +19,48 @@ export type WorkflowRuntimeControllerTrigger201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowRuntimeControllerTrigger400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowRuntimeControllerTrigger401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowRuntimeControllerTrigger403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowRuntimeControllerTriggerMutationRequest =
   TriggerWorkflowDto;
 
@@ -28,5 +70,8 @@ export type WorkflowRuntimeControllerTriggerMutationResponse =
 export type WorkflowRuntimeControllerTriggerMutation = {
   Response: WorkflowRuntimeControllerTrigger201;
   Request: WorkflowRuntimeControllerTriggerMutationRequest;
-  Errors: any;
+  Errors:
+    | WorkflowRuntimeControllerTrigger400
+    | WorkflowRuntimeControllerTrigger401
+    | WorkflowRuntimeControllerTrigger403;
 };

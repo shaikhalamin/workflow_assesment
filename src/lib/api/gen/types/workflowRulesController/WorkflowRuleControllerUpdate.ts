@@ -26,6 +26,62 @@ export type WorkflowRuleControllerUpdate200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowRuleControllerUpdate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowRuleControllerUpdate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowRuleControllerUpdate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowRuleControllerUpdate404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowRuleControllerUpdateMutationRequest = UpdateWorkflowRuleDto;
 
 export type WorkflowRuleControllerUpdateMutationResponse =
@@ -35,5 +91,9 @@ export type WorkflowRuleControllerUpdateMutation = {
   Response: WorkflowRuleControllerUpdate200;
   Request: WorkflowRuleControllerUpdateMutationRequest;
   PathParams: WorkflowRuleControllerUpdatePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowRuleControllerUpdate400
+    | WorkflowRuleControllerUpdate401
+    | WorkflowRuleControllerUpdate403
+    | WorkflowRuleControllerUpdate404;
 };

@@ -21,6 +21,34 @@ export const dashboardControllerApprover200Schema = z
     }),
   );
 
+/**
+ * @description Unauthenticated
+ */
+export const dashboardControllerApprover401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const dashboardControllerApprover403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
 export const dashboardControllerApproverQueryResponseSchema = z.lazy(
   () => dashboardControllerApprover200Schema,
 );

@@ -6,6 +6,10 @@
 import type {
   WorkflowTemplateControllerFindOneQueryResponse,
   WorkflowTemplateControllerFindOnePathParams,
+  WorkflowTemplateControllerFindOne400,
+  WorkflowTemplateControllerFindOne401,
+  WorkflowTemplateControllerFindOne403,
+  WorkflowTemplateControllerFindOne404,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerFindOne.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function workflowTemplateControllerFindOneQueryOptions(
   const queryKey = workflowTemplateControllerFindOneQueryKey({ id });
   return queryOptions<
     WorkflowTemplateControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerFindOne400
+      | WorkflowTemplateControllerFindOne401
+      | WorkflowTemplateControllerFindOne403
+      | WorkflowTemplateControllerFindOne404
+    >,
     WorkflowTemplateControllerFindOneQueryResponse,
     typeof queryKey
   >({
@@ -66,7 +75,12 @@ export function useWorkflowTemplateControllerFindOne<
     query?: Partial<
       QueryObserverOptions<
         WorkflowTemplateControllerFindOneQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | WorkflowTemplateControllerFindOne400
+          | WorkflowTemplateControllerFindOne401
+          | WorkflowTemplateControllerFindOne403
+          | WorkflowTemplateControllerFindOne404
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -88,9 +102,15 @@ export function useWorkflowTemplateControllerFindOne<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerFindOne400
+      | WorkflowTemplateControllerFindOne401
+      | WorkflowTemplateControllerFindOne403
+      | WorkflowTemplateControllerFindOne404
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

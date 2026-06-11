@@ -4,6 +4,7 @@
  */
 
 import type { ApiErrorDto } from "../ApiErrorDto.ts";
+import type { ApiResponseDto } from "../ApiResponseDto.ts";
 import type { PaginatedResponseDto } from "../PaginatedResponseDto.ts";
 import type { PaginationMetaDto } from "../PaginationMetaDto.ts";
 import type { UserResponseDto } from "../UserResponseDto.ts";
@@ -43,10 +44,55 @@ export type UsersControllerGetUsers200 = PaginatedResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type UsersControllerGetUsers400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type UsersControllerGetUsers401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type UsersControllerGetUsers403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type UsersControllerGetUsersQueryResponse = UsersControllerGetUsers200;
 
 export type UsersControllerGetUsersQuery = {
   Response: UsersControllerGetUsers200;
   QueryParams: UsersControllerGetUsersQueryParams;
-  Errors: any;
+  Errors:
+    | UsersControllerGetUsers400
+    | UsersControllerGetUsers401
+    | UsersControllerGetUsers403;
 };

@@ -5,24 +5,35 @@ export { apiErrorDtoSchema } from "./apiErrorDtoSchema.ts";
 export { apiResponseDtoSchema } from "./apiResponseDtoSchema.ts";
 export {
   appControllerGetHello200Schema,
+  appControllerGetHello429Schema,
   appControllerGetHelloQueryResponseSchema,
 } from "./appController/appControllerGetHelloSchema.ts";
+export { appResponseDtoSchema } from "./appResponseDtoSchema.ts";
 export { approverDashboardResponseDtoSchema } from "./approverDashboardResponseDtoSchema.ts";
 export { auditLogResponseDtoSchema } from "./auditLogResponseDtoSchema.ts";
 export {
   auditLogsControllerListForEntity200Schema,
+  auditLogsControllerListForEntity400Schema,
+  auditLogsControllerListForEntity401Schema,
+  auditLogsControllerListForEntity403Schema,
   auditLogsControllerListForEntityPathParamsSchema,
   auditLogsControllerListForEntityQueryParamsSchema,
   auditLogsControllerListForEntityQueryResponseSchema,
 } from "./auditLogsController/auditLogsControllerListForEntitySchema.ts";
 export {
   auditLogsControllerListForWorkflow200Schema,
+  auditLogsControllerListForWorkflow400Schema,
+  auditLogsControllerListForWorkflow401Schema,
+  auditLogsControllerListForWorkflow403Schema,
   auditLogsControllerListForWorkflowPathParamsSchema,
   auditLogsControllerListForWorkflowQueryParamsSchema,
   auditLogsControllerListForWorkflowQueryResponseSchema,
 } from "./auditLogsController/auditLogsControllerListForWorkflowSchema.ts";
 export {
   auditLogsControllerList200Schema,
+  auditLogsControllerList400Schema,
+  auditLogsControllerList401Schema,
+  auditLogsControllerList403Schema,
   auditLogsControllerListQueryParamsSchema,
   auditLogsControllerListQueryResponseSchema,
 } from "./auditLogsController/auditLogsControllerListSchema.ts";
@@ -70,24 +81,35 @@ export { createWorkflowStepConfigDtoSchema } from "./createWorkflowStepConfigDto
 export { createWorkflowTemplateDtoSchema } from "./createWorkflowTemplateDtoSchema.ts";
 export {
   dashboardControllerAccounts200Schema,
+  dashboardControllerAccounts401Schema,
+  dashboardControllerAccounts403Schema,
   dashboardControllerAccountsQueryResponseSchema,
 } from "./dashboardController/dashboardControllerAccountsSchema.ts";
 export {
   dashboardControllerAdmin200Schema,
+  dashboardControllerAdmin401Schema,
+  dashboardControllerAdmin403Schema,
   dashboardControllerAdminQueryResponseSchema,
 } from "./dashboardController/dashboardControllerAdminSchema.ts";
 export {
   dashboardControllerApprover200Schema,
+  dashboardControllerApprover401Schema,
+  dashboardControllerApprover403Schema,
   dashboardControllerApproverQueryResponseSchema,
 } from "./dashboardController/dashboardControllerApproverSchema.ts";
 export {
   dashboardControllerEmployee200Schema,
+  dashboardControllerEmployee401Schema,
+  dashboardControllerEmployee403Schema,
   dashboardControllerEmployeeQueryResponseSchema,
 } from "./dashboardController/dashboardControllerEmployeeSchema.ts";
 export {
   dashboardControllerHr200Schema,
+  dashboardControllerHr401Schema,
+  dashboardControllerHr403Schema,
   dashboardControllerHrQueryResponseSchema,
 } from "./dashboardController/dashboardControllerHrSchema.ts";
+export { dashboardRecentItemDtoSchema } from "./dashboardRecentItemDtoSchema.ts";
 export { employeeDashboardResponseDtoSchema } from "./employeeDashboardResponseDtoSchema.ts";
 export { employeeExpenseSummaryDtoSchema } from "./employeeExpenseSummaryDtoSchema.ts";
 export { employeeLeaveSummaryDtoSchema } from "./employeeLeaveSummaryDtoSchema.ts";
@@ -228,16 +250,27 @@ export { paginationMetaDtoSchema } from "./paginationMetaDtoSchema.ts";
 export { paymentRequestResponseDtoSchema } from "./paymentRequestResponseDtoSchema.ts";
 export {
   paymentsControllerFindOne200Schema,
+  paymentsControllerFindOne400Schema,
+  paymentsControllerFindOne401Schema,
+  paymentsControllerFindOne403Schema,
+  paymentsControllerFindOne404Schema,
   paymentsControllerFindOnePathParamsSchema,
   paymentsControllerFindOneQueryResponseSchema,
 } from "./paymentRequestsController/paymentsControllerFindOneSchema.ts";
 export {
   paymentsControllerList200Schema,
+  paymentsControllerList400Schema,
+  paymentsControllerList401Schema,
+  paymentsControllerList403Schema,
   paymentsControllerListQueryParamsSchema,
   paymentsControllerListQueryResponseSchema,
 } from "./paymentRequestsController/paymentsControllerListSchema.ts";
 export {
   paymentsControllerMarkPaid201Schema,
+  paymentsControllerMarkPaid400Schema,
+  paymentsControllerMarkPaid401Schema,
+  paymentsControllerMarkPaid403Schema,
+  paymentsControllerMarkPaid404Schema,
   paymentsControllerMarkPaidMutationRequestSchema,
   paymentsControllerMarkPaidMutationResponseSchema,
   paymentsControllerMarkPaidPathParamsSchema,
@@ -256,6 +289,9 @@ export { updateWorkflowTemplateDtoSchema } from "./updateWorkflowTemplateDtoSche
 export { userResponseDtoSchema } from "./userResponseDtoSchema.ts";
 export {
   usersControllerGetUsers200Schema,
+  usersControllerGetUsers400Schema,
+  usersControllerGetUsers401Schema,
+  usersControllerGetUsers403Schema,
   usersControllerGetUsersQueryParamsSchema,
   usersControllerGetUsersQueryResponseSchema,
 } from "./usersController/usersControllerGetUsersSchema.ts";
@@ -266,26 +302,44 @@ export { workflowApprovalStepConfigResponseDtoSchema } from "./workflowApprovalS
 export { workflowEventSchemaResponseDtoSchema } from "./workflowEventSchemaResponseDtoSchema.ts";
 export {
   workflowEventSchemaControllerCreate201Schema,
+  workflowEventSchemaControllerCreate400Schema,
+  workflowEventSchemaControllerCreate401Schema,
+  workflowEventSchemaControllerCreate403Schema,
   workflowEventSchemaControllerCreateMutationRequestSchema,
   workflowEventSchemaControllerCreateMutationResponseSchema,
 } from "./workflowEventSchemasController/workflowEventSchemaControllerCreateSchema.ts";
 export {
   workflowEventSchemaControllerDeactivate201Schema,
+  workflowEventSchemaControllerDeactivate400Schema,
+  workflowEventSchemaControllerDeactivate401Schema,
+  workflowEventSchemaControllerDeactivate403Schema,
+  workflowEventSchemaControllerDeactivate404Schema,
   workflowEventSchemaControllerDeactivateMutationResponseSchema,
   workflowEventSchemaControllerDeactivatePathParamsSchema,
 } from "./workflowEventSchemasController/workflowEventSchemaControllerDeactivateSchema.ts";
 export {
   workflowEventSchemaControllerFindOne200Schema,
+  workflowEventSchemaControllerFindOne400Schema,
+  workflowEventSchemaControllerFindOne401Schema,
+  workflowEventSchemaControllerFindOne403Schema,
+  workflowEventSchemaControllerFindOne404Schema,
   workflowEventSchemaControllerFindOnePathParamsSchema,
   workflowEventSchemaControllerFindOneQueryResponseSchema,
 } from "./workflowEventSchemasController/workflowEventSchemaControllerFindOneSchema.ts";
 export {
   workflowEventSchemaControllerList200Schema,
+  workflowEventSchemaControllerList400Schema,
+  workflowEventSchemaControllerList401Schema,
+  workflowEventSchemaControllerList403Schema,
   workflowEventSchemaControllerListQueryParamsSchema,
   workflowEventSchemaControllerListQueryResponseSchema,
 } from "./workflowEventSchemasController/workflowEventSchemaControllerListSchema.ts";
 export {
   workflowEventSchemaControllerUpdate200Schema,
+  workflowEventSchemaControllerUpdate400Schema,
+  workflowEventSchemaControllerUpdate401Schema,
+  workflowEventSchemaControllerUpdate403Schema,
+  workflowEventSchemaControllerUpdate404Schema,
   workflowEventSchemaControllerUpdateMutationRequestSchema,
   workflowEventSchemaControllerUpdateMutationResponseSchema,
   workflowEventSchemaControllerUpdatePathParamsSchema,
@@ -295,65 +349,109 @@ export { workflowOutcomeConfigResponseDtoSchema } from "./workflowOutcomeConfigR
 export { workflowRequestSummaryResponseDtoSchema } from "./workflowRequestSummaryResponseDtoSchema.ts";
 export {
   workflowRuleControllerDelete200Schema,
+  workflowRuleControllerDelete400Schema,
+  workflowRuleControllerDelete401Schema,
+  workflowRuleControllerDelete403Schema,
+  workflowRuleControllerDelete404Schema,
   workflowRuleControllerDeleteMutationResponseSchema,
   workflowRuleControllerDeletePathParamsSchema,
 } from "./workflowRulesController/workflowRuleControllerDeleteSchema.ts";
 export {
   workflowRuleControllerUpdate200Schema,
+  workflowRuleControllerUpdate400Schema,
+  workflowRuleControllerUpdate401Schema,
+  workflowRuleControllerUpdate403Schema,
+  workflowRuleControllerUpdate404Schema,
   workflowRuleControllerUpdateMutationRequestSchema,
   workflowRuleControllerUpdateMutationResponseSchema,
   workflowRuleControllerUpdatePathParamsSchema,
 } from "./workflowRulesController/workflowRuleControllerUpdateSchema.ts";
 export {
   workflowRuntimeControllerApprove201Schema,
+  workflowRuntimeControllerApprove400Schema,
+  workflowRuntimeControllerApprove401Schema,
+  workflowRuntimeControllerApprove403Schema,
+  workflowRuntimeControllerApprove404Schema,
   workflowRuntimeControllerApproveMutationRequestSchema,
   workflowRuntimeControllerApproveMutationResponseSchema,
   workflowRuntimeControllerApprovePathParamsSchema,
 } from "./workflowRuntimeController/workflowRuntimeControllerApproveSchema.ts";
 export {
   workflowRuntimeControllerComment201Schema,
+  workflowRuntimeControllerComment400Schema,
+  workflowRuntimeControllerComment401Schema,
+  workflowRuntimeControllerComment403Schema,
+  workflowRuntimeControllerComment404Schema,
   workflowRuntimeControllerCommentMutationRequestSchema,
   workflowRuntimeControllerCommentMutationResponseSchema,
   workflowRuntimeControllerCommentPathParamsSchema,
 } from "./workflowRuntimeController/workflowRuntimeControllerCommentSchema.ts";
 export {
   workflowRuntimeControllerFindOne200Schema,
+  workflowRuntimeControllerFindOne400Schema,
+  workflowRuntimeControllerFindOne401Schema,
+  workflowRuntimeControllerFindOne403Schema,
+  workflowRuntimeControllerFindOne404Schema,
   workflowRuntimeControllerFindOnePathParamsSchema,
   workflowRuntimeControllerFindOneQueryResponseSchema,
 } from "./workflowRuntimeController/workflowRuntimeControllerFindOneSchema.ts";
 export {
   workflowRuntimeControllerList200Schema,
+  workflowRuntimeControllerList400Schema,
+  workflowRuntimeControllerList401Schema,
+  workflowRuntimeControllerList403Schema,
   workflowRuntimeControllerListQueryParamsSchema,
   workflowRuntimeControllerListQueryResponseSchema,
 } from "./workflowRuntimeController/workflowRuntimeControllerListSchema.ts";
 export {
   workflowRuntimeControllerMyPending200Schema,
+  workflowRuntimeControllerMyPending401Schema,
+  workflowRuntimeControllerMyPending403Schema,
   workflowRuntimeControllerMyPendingQueryResponseSchema,
 } from "./workflowRuntimeController/workflowRuntimeControllerMyPendingSchema.ts";
 export {
   workflowRuntimeControllerReject201Schema,
+  workflowRuntimeControllerReject400Schema,
+  workflowRuntimeControllerReject401Schema,
+  workflowRuntimeControllerReject403Schema,
+  workflowRuntimeControllerReject404Schema,
   workflowRuntimeControllerRejectMutationRequestSchema,
   workflowRuntimeControllerRejectMutationResponseSchema,
   workflowRuntimeControllerRejectPathParamsSchema,
 } from "./workflowRuntimeController/workflowRuntimeControllerRejectSchema.ts";
 export {
   workflowRuntimeControllerTrigger201Schema,
+  workflowRuntimeControllerTrigger400Schema,
+  workflowRuntimeControllerTrigger401Schema,
+  workflowRuntimeControllerTrigger403Schema,
   workflowRuntimeControllerTriggerMutationRequestSchema,
   workflowRuntimeControllerTriggerMutationResponseSchema,
 } from "./workflowRuntimeController/workflowRuntimeControllerTriggerSchema.ts";
 export {
   workflowStepConfigControllerCreate201Schema,
+  workflowStepConfigControllerCreate400Schema,
+  workflowStepConfigControllerCreate401Schema,
+  workflowStepConfigControllerCreate403Schema,
+  workflowStepConfigControllerCreate404Schema,
   workflowStepConfigControllerCreateMutationRequestSchema,
   workflowStepConfigControllerCreateMutationResponseSchema,
   workflowStepConfigControllerCreatePathParamsSchema,
 } from "./workflowStepConfigsController/workflowStepConfigControllerCreateSchema.ts";
 export {
   workflowStepConfigControllerDelete200Schema,
+  workflowStepConfigControllerDelete400Schema,
+  workflowStepConfigControllerDelete401Schema,
+  workflowStepConfigControllerDelete403Schema,
+  workflowStepConfigControllerDelete404Schema,
   workflowStepConfigControllerDeleteMutationResponseSchema,
   workflowStepConfigControllerDeletePathParamsSchema,
 } from "./workflowStepConfigsController/workflowStepConfigControllerDeleteSchema.ts";
 export {
   workflowStepConfigControllerUpdate200Schema,
+  workflowStepConfigControllerUpdate400Schema,
+  workflowStepConfigControllerUpdate401Schema,
+  workflowStepConfigControllerUpdate403Schema,
+  workflowStepConfigControllerUpdate404Schema,
   workflowStepConfigControllerUpdateMutationRequestSchema,
   workflowStepConfigControllerUpdateMutationResponseSchema,
   workflowStepConfigControllerUpdatePathParamsSchema,
@@ -362,47 +460,80 @@ export { workflowStepResponseDtoSchema } from "./workflowStepResponseDtoSchema.t
 export { workflowTemplateResponseDtoSchema } from "./workflowTemplateResponseDtoSchema.ts";
 export {
   workflowTemplateControllerCreateRule201Schema,
+  workflowTemplateControllerCreateRule400Schema,
+  workflowTemplateControllerCreateRule401Schema,
+  workflowTemplateControllerCreateRule403Schema,
+  workflowTemplateControllerCreateRule404Schema,
   workflowTemplateControllerCreateRuleMutationRequestSchema,
   workflowTemplateControllerCreateRuleMutationResponseSchema,
   workflowTemplateControllerCreateRulePathParamsSchema,
 } from "./workflowTemplatesController/workflowTemplateControllerCreateRuleSchema.ts";
 export {
   workflowTemplateControllerCreate201Schema,
+  workflowTemplateControllerCreate400Schema,
+  workflowTemplateControllerCreate401Schema,
+  workflowTemplateControllerCreate403Schema,
   workflowTemplateControllerCreateMutationRequestSchema,
   workflowTemplateControllerCreateMutationResponseSchema,
 } from "./workflowTemplatesController/workflowTemplateControllerCreateSchema.ts";
 export {
   workflowTemplateControllerCreateWizard201Schema,
+  workflowTemplateControllerCreateWizard400Schema,
+  workflowTemplateControllerCreateWizard401Schema,
+  workflowTemplateControllerCreateWizard403Schema,
   workflowTemplateControllerCreateWizardMutationRequestSchema,
   workflowTemplateControllerCreateWizardMutationResponseSchema,
 } from "./workflowTemplatesController/workflowTemplateControllerCreateWizardSchema.ts";
 export {
   workflowTemplateControllerDeactivate201Schema,
+  workflowTemplateControllerDeactivate400Schema,
+  workflowTemplateControllerDeactivate401Schema,
+  workflowTemplateControllerDeactivate403Schema,
+  workflowTemplateControllerDeactivate404Schema,
   workflowTemplateControllerDeactivateMutationResponseSchema,
   workflowTemplateControllerDeactivatePathParamsSchema,
 } from "./workflowTemplatesController/workflowTemplateControllerDeactivateSchema.ts";
 export {
   workflowTemplateControllerDuplicate201Schema,
+  workflowTemplateControllerDuplicate400Schema,
+  workflowTemplateControllerDuplicate401Schema,
+  workflowTemplateControllerDuplicate403Schema,
+  workflowTemplateControllerDuplicate404Schema,
   workflowTemplateControllerDuplicateMutationResponseSchema,
   workflowTemplateControllerDuplicatePathParamsSchema,
 } from "./workflowTemplatesController/workflowTemplateControllerDuplicateSchema.ts";
 export {
   workflowTemplateControllerFindOne200Schema,
+  workflowTemplateControllerFindOne400Schema,
+  workflowTemplateControllerFindOne401Schema,
+  workflowTemplateControllerFindOne403Schema,
+  workflowTemplateControllerFindOne404Schema,
   workflowTemplateControllerFindOnePathParamsSchema,
   workflowTemplateControllerFindOneQueryResponseSchema,
 } from "./workflowTemplatesController/workflowTemplateControllerFindOneSchema.ts";
 export {
   workflowTemplateControllerList200Schema,
+  workflowTemplateControllerList400Schema,
+  workflowTemplateControllerList401Schema,
+  workflowTemplateControllerList403Schema,
   workflowTemplateControllerListQueryParamsSchema,
   workflowTemplateControllerListQueryResponseSchema,
 } from "./workflowTemplatesController/workflowTemplateControllerListSchema.ts";
 export {
   workflowTemplateControllerPublish201Schema,
+  workflowTemplateControllerPublish400Schema,
+  workflowTemplateControllerPublish401Schema,
+  workflowTemplateControllerPublish403Schema,
+  workflowTemplateControllerPublish404Schema,
   workflowTemplateControllerPublishMutationResponseSchema,
   workflowTemplateControllerPublishPathParamsSchema,
 } from "./workflowTemplatesController/workflowTemplateControllerPublishSchema.ts";
 export {
   workflowTemplateControllerUpdate200Schema,
+  workflowTemplateControllerUpdate400Schema,
+  workflowTemplateControllerUpdate401Schema,
+  workflowTemplateControllerUpdate403Schema,
+  workflowTemplateControllerUpdate404Schema,
   workflowTemplateControllerUpdateMutationRequestSchema,
   workflowTemplateControllerUpdateMutationResponseSchema,
   workflowTemplateControllerUpdatePathParamsSchema,

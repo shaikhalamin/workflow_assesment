@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   PaymentsControllerFindOneQueryResponse,
   PaymentsControllerFindOnePathParams,
+  PaymentsControllerFindOne400,
+  PaymentsControllerFindOne401,
+  PaymentsControllerFindOne403,
+  PaymentsControllerFindOne404,
 } from "../../types/paymentRequestsController/PaymentsControllerFindOne.ts";
 import type {
   Client,
@@ -34,7 +38,12 @@ export async function paymentsControllerFindOne(
 
   const res = await request<
     PaymentsControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | PaymentsControllerFindOne400
+      | PaymentsControllerFindOne401
+      | PaymentsControllerFindOne403
+      | PaymentsControllerFindOne404
+    >,
     unknown
   >({
     method: "GET",

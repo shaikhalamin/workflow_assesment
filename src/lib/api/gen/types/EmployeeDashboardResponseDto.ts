@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { DashboardRecentItemDto } from "./DashboardRecentItemDto.ts";
 import type { EmployeeExpenseSummaryDto } from "./EmployeeExpenseSummaryDto.ts";
 import type { EmployeeLeaveSummaryDto } from "./EmployeeLeaveSummaryDto.ts";
 
@@ -18,5 +19,5 @@ export type EmployeeDashboardResponseDto = {
   /**
    * @type array
    */
-  recentItems: string[];
+  recentItems: DashboardRecentItemDto[];
 };

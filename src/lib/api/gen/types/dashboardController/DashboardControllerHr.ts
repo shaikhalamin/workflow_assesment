@@ -18,9 +18,37 @@ export type DashboardControllerHr200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Unauthenticated
+ */
+export type DashboardControllerHr401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type DashboardControllerHr403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type DashboardControllerHrQueryResponse = DashboardControllerHr200;
 
 export type DashboardControllerHrQuery = {
   Response: DashboardControllerHr200;
-  Errors: any;
+  Errors: DashboardControllerHr401 | DashboardControllerHr403;
 };

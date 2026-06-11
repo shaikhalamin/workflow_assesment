@@ -26,6 +26,62 @@ export type WorkflowTemplateControllerCreateRule201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowTemplateControllerCreateRule400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowTemplateControllerCreateRule401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowTemplateControllerCreateRule403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowTemplateControllerCreateRule404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowTemplateControllerCreateRuleMutationRequest =
   CreateWorkflowRuleDto;
 
@@ -36,5 +92,9 @@ export type WorkflowTemplateControllerCreateRuleMutation = {
   Response: WorkflowTemplateControllerCreateRule201;
   Request: WorkflowTemplateControllerCreateRuleMutationRequest;
   PathParams: WorkflowTemplateControllerCreateRulePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowTemplateControllerCreateRule400
+    | WorkflowTemplateControllerCreateRule401
+    | WorkflowTemplateControllerCreateRule403
+    | WorkflowTemplateControllerCreateRule404;
 };

@@ -8,6 +8,10 @@ import type {
   WorkflowTemplateControllerCreateRuleMutationRequest,
   WorkflowTemplateControllerCreateRuleMutationResponse,
   WorkflowTemplateControllerCreateRulePathParams,
+  WorkflowTemplateControllerCreateRule400,
+  WorkflowTemplateControllerCreateRule401,
+  WorkflowTemplateControllerCreateRule403,
+  WorkflowTemplateControllerCreateRule404,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerCreateRule.ts";
 import type {
   Client,
@@ -48,7 +52,12 @@ export async function workflowTemplateControllerCreateRule(
 
   const res = await request<
     WorkflowTemplateControllerCreateRuleMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreateRule400
+      | WorkflowTemplateControllerCreateRule401
+      | WorkflowTemplateControllerCreateRule403
+      | WorkflowTemplateControllerCreateRule404
+    >,
     WorkflowTemplateControllerCreateRuleMutationRequest
   >({
     method: "POST",

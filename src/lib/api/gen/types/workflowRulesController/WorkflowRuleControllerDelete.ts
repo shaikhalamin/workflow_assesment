@@ -25,11 +25,71 @@ export type WorkflowRuleControllerDelete200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowRuleControllerDelete400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowRuleControllerDelete401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowRuleControllerDelete403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowRuleControllerDelete404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowRuleControllerDeleteMutationResponse =
   WorkflowRuleControllerDelete200;
 
 export type WorkflowRuleControllerDeleteMutation = {
   Response: WorkflowRuleControllerDelete200;
   PathParams: WorkflowRuleControllerDeletePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowRuleControllerDelete400
+    | WorkflowRuleControllerDelete401
+    | WorkflowRuleControllerDelete403
+    | WorkflowRuleControllerDelete404;
 };

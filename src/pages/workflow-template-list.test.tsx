@@ -1,10 +1,11 @@
 import { render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WorkflowTemplatesPage } from './index'
 
 let workflowTemplateRows: Array<Record<string, unknown>> = []
+const workflowTemplateControllerListMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -87,15 +88,63 @@ vi.mock('@/lib/api/gen', () => ({
   useWorkflowTemplateControllerDeactivate: () => ({ mutate: vi.fn() }),
   useWorkflowTemplateControllerDuplicate: () => ({ mutate: vi.fn() }),
   useWorkflowTemplateControllerFindOne: () => ({ data: undefined, error: null }),
-  useWorkflowTemplateControllerList: () => ({
-    data: { data: workflowTemplateRows },
-    error: null,
-    refetch: vi.fn(),
-  }),
+  useWorkflowTemplateControllerList: workflowTemplateControllerListMock,
   useWorkflowTemplateControllerPublish: () => ({ mutate: vi.fn() }),
 }))
 
 describe('WorkflowTemplatesPage actions', () => {
+  beforeEach(() => {
+    workflowTemplateRows = []
+    workflowTemplateControllerListMock.mockClear()
+    workflowTemplateControllerListMock.mockImplementation(() => ({
+      data: {
+        data: workflowTemplateRows,
+        meta: {
+          page: 1,
+          limit: 100,
+          total: workflowTemplateRows.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        },
+        error: null,
+      },
+      error: null,
+      refetch: vi.fn(),
+    }))
+  })
+
+  it('requests the full workflow template page and renders draft templates', () => {
+    workflowTemplateRows = [
+      {
+        id: 'template-1',
+        name: 'Draft workflow',
+        moduleName: 'expenses',
+        eventName: 'expense.submitted',
+        status: 'DRAFT',
+        priority: 5,
+        workflowInstanceCount: 0,
+      },
+      {
+        id: 'template-2',
+        name: 'Published workflow',
+        moduleName: 'leaves',
+        eventName: 'leave.submitted',
+        status: 'PUBLISHED',
+        priority: 3,
+        workflowInstanceCount: 1,
+      },
+    ]
+
+    render(<WorkflowTemplatesPage />)
+
+    expect(workflowTemplateControllerListMock).toHaveBeenCalledWith({
+      params: { page: 1, limit: 100 },
+    })
+    expect(screen.getByRole('row', { name: /draft workflow/i })).toBeInTheDocument()
+    expect(screen.getByRole('row', { name: /published workflow/i })).toBeInTheDocument()
+  })
+
   it('renders list actions with detail label and without duplicate action', () => {
     workflowTemplateRows = [
       {

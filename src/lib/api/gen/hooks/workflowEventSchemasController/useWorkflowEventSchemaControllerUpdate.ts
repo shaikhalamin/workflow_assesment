@@ -7,6 +7,10 @@ import type {
   WorkflowEventSchemaControllerUpdateMutationRequest,
   WorkflowEventSchemaControllerUpdateMutationResponse,
   WorkflowEventSchemaControllerUpdatePathParams,
+  WorkflowEventSchemaControllerUpdate400,
+  WorkflowEventSchemaControllerUpdate401,
+  WorkflowEventSchemaControllerUpdate403,
+  WorkflowEventSchemaControllerUpdate404,
 } from "../../types/workflowEventSchemasController/WorkflowEventSchemaControllerUpdate.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function workflowEventSchemaControllerUpdateMutationOptions<
   const mutationKey = workflowEventSchemaControllerUpdateMutationKey();
   return mutationOptions<
     WorkflowEventSchemaControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerUpdate400
+      | WorkflowEventSchemaControllerUpdate401
+      | WorkflowEventSchemaControllerUpdate403
+      | WorkflowEventSchemaControllerUpdate404
+    >,
     {
       id: WorkflowEventSchemaControllerUpdatePathParams["id"];
       data: WorkflowEventSchemaControllerUpdateMutationRequest;
@@ -59,7 +68,12 @@ export function useWorkflowEventSchemaControllerUpdate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowEventSchemaControllerUpdateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowEventSchemaControllerUpdate400
+        | WorkflowEventSchemaControllerUpdate401
+        | WorkflowEventSchemaControllerUpdate403
+        | WorkflowEventSchemaControllerUpdate404
+      >,
       {
         id: WorkflowEventSchemaControllerUpdatePathParams["id"];
         data: WorkflowEventSchemaControllerUpdateMutationRequest;
@@ -81,7 +95,12 @@ export function useWorkflowEventSchemaControllerUpdate<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowEventSchemaControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerUpdate400
+      | WorkflowEventSchemaControllerUpdate401
+      | WorkflowEventSchemaControllerUpdate403
+      | WorkflowEventSchemaControllerUpdate404
+    >,
     {
       id: WorkflowEventSchemaControllerUpdatePathParams["id"];
       data: WorkflowEventSchemaControllerUpdateMutationRequest;
@@ -91,7 +110,12 @@ export function useWorkflowEventSchemaControllerUpdate<TContext>(
 
   return useMutation<
     WorkflowEventSchemaControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerUpdate400
+      | WorkflowEventSchemaControllerUpdate401
+      | WorkflowEventSchemaControllerUpdate403
+      | WorkflowEventSchemaControllerUpdate404
+    >,
     {
       id: WorkflowEventSchemaControllerUpdatePathParams["id"];
       data: WorkflowEventSchemaControllerUpdateMutationRequest;
@@ -106,7 +130,12 @@ export function useWorkflowEventSchemaControllerUpdate<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowEventSchemaControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerUpdate400
+      | WorkflowEventSchemaControllerUpdate401
+      | WorkflowEventSchemaControllerUpdate403
+      | WorkflowEventSchemaControllerUpdate404
+    >,
     {
       id: WorkflowEventSchemaControllerUpdatePathParams["id"];
       data: WorkflowEventSchemaControllerUpdateMutationRequest;

@@ -26,6 +26,62 @@ export type WorkflowStepConfigControllerUpdate200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowStepConfigControllerUpdate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowStepConfigControllerUpdate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowStepConfigControllerUpdate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowStepConfigControllerUpdate404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowStepConfigControllerUpdateMutationRequest =
   UpdateWorkflowStepConfigDto;
 
@@ -36,5 +92,9 @@ export type WorkflowStepConfigControllerUpdateMutation = {
   Response: WorkflowStepConfigControllerUpdate200;
   Request: WorkflowStepConfigControllerUpdateMutationRequest;
   PathParams: WorkflowStepConfigControllerUpdatePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowStepConfigControllerUpdate400
+    | WorkflowStepConfigControllerUpdate401
+    | WorkflowStepConfigControllerUpdate403
+    | WorkflowStepConfigControllerUpdate404;
 };

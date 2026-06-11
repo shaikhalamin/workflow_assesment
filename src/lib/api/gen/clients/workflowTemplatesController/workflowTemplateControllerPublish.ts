@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   WorkflowTemplateControllerPublishMutationResponse,
   WorkflowTemplateControllerPublishPathParams,
+  WorkflowTemplateControllerPublish400,
+  WorkflowTemplateControllerPublish401,
+  WorkflowTemplateControllerPublish403,
+  WorkflowTemplateControllerPublish404,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerPublish.ts";
 import type {
   Client,
@@ -37,7 +41,12 @@ export async function workflowTemplateControllerPublish(
 
   const res = await request<
     WorkflowTemplateControllerPublishMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerPublish400
+      | WorkflowTemplateControllerPublish401
+      | WorkflowTemplateControllerPublish403
+      | WorkflowTemplateControllerPublish404
+    >,
     unknown
   >({
     method: "POST",

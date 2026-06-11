@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   WorkflowRuleControllerDeleteMutationResponse,
   WorkflowRuleControllerDeletePathParams,
+  WorkflowRuleControllerDelete400,
+  WorkflowRuleControllerDelete401,
+  WorkflowRuleControllerDelete403,
+  WorkflowRuleControllerDelete404,
 } from "../../types/workflowRulesController/WorkflowRuleControllerDelete.ts";
 import type {
   Client,
@@ -34,7 +38,12 @@ export async function workflowRuleControllerDelete(
 
   const res = await request<
     WorkflowRuleControllerDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuleControllerDelete400
+      | WorkflowRuleControllerDelete401
+      | WorkflowRuleControllerDelete403
+      | WorkflowRuleControllerDelete404
+    >,
     unknown
   >({
     method: "DELETE",

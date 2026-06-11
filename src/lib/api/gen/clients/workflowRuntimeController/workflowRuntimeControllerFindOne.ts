@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   WorkflowRuntimeControllerFindOneQueryResponse,
   WorkflowRuntimeControllerFindOnePathParams,
+  WorkflowRuntimeControllerFindOne400,
+  WorkflowRuntimeControllerFindOne401,
+  WorkflowRuntimeControllerFindOne403,
+  WorkflowRuntimeControllerFindOne404,
 } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerFindOne.ts";
 import type {
   Client,
@@ -34,7 +38,12 @@ export async function workflowRuntimeControllerFindOne(
 
   const res = await request<
     WorkflowRuntimeControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerFindOne400
+      | WorkflowRuntimeControllerFindOne401
+      | WorkflowRuntimeControllerFindOne403
+      | WorkflowRuntimeControllerFindOne404
+    >,
     unknown
   >({
     method: "GET",

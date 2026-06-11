@@ -7,6 +7,10 @@ import type {
   WorkflowStepConfigControllerCreateMutationRequest,
   WorkflowStepConfigControllerCreateMutationResponse,
   WorkflowStepConfigControllerCreatePathParams,
+  WorkflowStepConfigControllerCreate400,
+  WorkflowStepConfigControllerCreate401,
+  WorkflowStepConfigControllerCreate403,
+  WorkflowStepConfigControllerCreate404,
 } from "../../types/workflowStepConfigsController/WorkflowStepConfigControllerCreate.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function workflowStepConfigControllerCreateMutationOptions<
   const mutationKey = workflowStepConfigControllerCreateMutationKey();
   return mutationOptions<
     WorkflowStepConfigControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowStepConfigControllerCreate400
+      | WorkflowStepConfigControllerCreate401
+      | WorkflowStepConfigControllerCreate403
+      | WorkflowStepConfigControllerCreate404
+    >,
     {
       id: WorkflowStepConfigControllerCreatePathParams["id"];
       data: WorkflowStepConfigControllerCreateMutationRequest;
@@ -59,7 +68,12 @@ export function useWorkflowStepConfigControllerCreate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowStepConfigControllerCreateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowStepConfigControllerCreate400
+        | WorkflowStepConfigControllerCreate401
+        | WorkflowStepConfigControllerCreate403
+        | WorkflowStepConfigControllerCreate404
+      >,
       {
         id: WorkflowStepConfigControllerCreatePathParams["id"];
         data: WorkflowStepConfigControllerCreateMutationRequest;
@@ -81,7 +95,12 @@ export function useWorkflowStepConfigControllerCreate<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowStepConfigControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowStepConfigControllerCreate400
+      | WorkflowStepConfigControllerCreate401
+      | WorkflowStepConfigControllerCreate403
+      | WorkflowStepConfigControllerCreate404
+    >,
     {
       id: WorkflowStepConfigControllerCreatePathParams["id"];
       data: WorkflowStepConfigControllerCreateMutationRequest;
@@ -91,7 +110,12 @@ export function useWorkflowStepConfigControllerCreate<TContext>(
 
   return useMutation<
     WorkflowStepConfigControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowStepConfigControllerCreate400
+      | WorkflowStepConfigControllerCreate401
+      | WorkflowStepConfigControllerCreate403
+      | WorkflowStepConfigControllerCreate404
+    >,
     {
       id: WorkflowStepConfigControllerCreatePathParams["id"];
       data: WorkflowStepConfigControllerCreateMutationRequest;
@@ -106,7 +130,12 @@ export function useWorkflowStepConfigControllerCreate<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowStepConfigControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowStepConfigControllerCreate400
+      | WorkflowStepConfigControllerCreate401
+      | WorkflowStepConfigControllerCreate403
+      | WorkflowStepConfigControllerCreate404
+    >,
     {
       id: WorkflowStepConfigControllerCreatePathParams["id"];
       data: WorkflowStepConfigControllerCreateMutationRequest;

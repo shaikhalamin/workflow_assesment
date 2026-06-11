@@ -6,6 +6,10 @@
 import type {
   WorkflowRuntimeControllerFindOneQueryResponse,
   WorkflowRuntimeControllerFindOnePathParams,
+  WorkflowRuntimeControllerFindOne400,
+  WorkflowRuntimeControllerFindOne401,
+  WorkflowRuntimeControllerFindOne403,
+  WorkflowRuntimeControllerFindOne404,
 } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerFindOne.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function workflowRuntimeControllerFindOneQueryOptions(
   const queryKey = workflowRuntimeControllerFindOneQueryKey({ id });
   return queryOptions<
     WorkflowRuntimeControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerFindOne400
+      | WorkflowRuntimeControllerFindOne401
+      | WorkflowRuntimeControllerFindOne403
+      | WorkflowRuntimeControllerFindOne404
+    >,
     WorkflowRuntimeControllerFindOneQueryResponse,
     typeof queryKey
   >({
@@ -66,7 +75,12 @@ export function useWorkflowRuntimeControllerFindOne<
     query?: Partial<
       QueryObserverOptions<
         WorkflowRuntimeControllerFindOneQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | WorkflowRuntimeControllerFindOne400
+          | WorkflowRuntimeControllerFindOne401
+          | WorkflowRuntimeControllerFindOne403
+          | WorkflowRuntimeControllerFindOne404
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -88,9 +102,15 @@ export function useWorkflowRuntimeControllerFindOne<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerFindOne400
+      | WorkflowRuntimeControllerFindOne401
+      | WorkflowRuntimeControllerFindOne403
+      | WorkflowRuntimeControllerFindOne404
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

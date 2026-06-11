@@ -6,6 +6,10 @@
 import type {
   WorkflowTemplateControllerDuplicateMutationResponse,
   WorkflowTemplateControllerDuplicatePathParams,
+  WorkflowTemplateControllerDuplicate400,
+  WorkflowTemplateControllerDuplicate401,
+  WorkflowTemplateControllerDuplicate403,
+  WorkflowTemplateControllerDuplicate404,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerDuplicate.ts";
 import type {
   Client,
@@ -33,7 +37,12 @@ export function workflowTemplateControllerDuplicateMutationOptions<
   const mutationKey = workflowTemplateControllerDuplicateMutationKey();
   return mutationOptions<
     WorkflowTemplateControllerDuplicateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerDuplicate400
+      | WorkflowTemplateControllerDuplicate401
+      | WorkflowTemplateControllerDuplicate403
+      | WorkflowTemplateControllerDuplicate404
+    >,
     { id: WorkflowTemplateControllerDuplicatePathParams["id"] },
     TContext
   >({
@@ -51,7 +60,12 @@ export function useWorkflowTemplateControllerDuplicate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowTemplateControllerDuplicateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowTemplateControllerDuplicate400
+        | WorkflowTemplateControllerDuplicate401
+        | WorkflowTemplateControllerDuplicate403
+        | WorkflowTemplateControllerDuplicate404
+      >,
       { id: WorkflowTemplateControllerDuplicatePathParams["id"] },
       TContext
     > & { client?: QueryClient };
@@ -68,14 +82,24 @@ export function useWorkflowTemplateControllerDuplicate<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowTemplateControllerDuplicateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerDuplicate400
+      | WorkflowTemplateControllerDuplicate401
+      | WorkflowTemplateControllerDuplicate403
+      | WorkflowTemplateControllerDuplicate404
+    >,
     { id: WorkflowTemplateControllerDuplicatePathParams["id"] },
     TContext
   >;
 
   return useMutation<
     WorkflowTemplateControllerDuplicateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerDuplicate400
+      | WorkflowTemplateControllerDuplicate401
+      | WorkflowTemplateControllerDuplicate403
+      | WorkflowTemplateControllerDuplicate404
+    >,
     { id: WorkflowTemplateControllerDuplicatePathParams["id"] },
     TContext
   >(
@@ -87,7 +111,12 @@ export function useWorkflowTemplateControllerDuplicate<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowTemplateControllerDuplicateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerDuplicate400
+      | WorkflowTemplateControllerDuplicate401
+      | WorkflowTemplateControllerDuplicate403
+      | WorkflowTemplateControllerDuplicate404
+    >,
     { id: WorkflowTemplateControllerDuplicatePathParams["id"] },
     TContext
   >;

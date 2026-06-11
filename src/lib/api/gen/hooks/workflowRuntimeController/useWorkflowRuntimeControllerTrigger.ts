@@ -6,6 +6,9 @@
 import type {
   WorkflowRuntimeControllerTriggerMutationRequest,
   WorkflowRuntimeControllerTriggerMutationResponse,
+  WorkflowRuntimeControllerTrigger400,
+  WorkflowRuntimeControllerTrigger401,
+  WorkflowRuntimeControllerTrigger403,
 } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerTrigger.ts";
 import type {
   Client,
@@ -37,7 +40,11 @@ export function workflowRuntimeControllerTriggerMutationOptions<
   const mutationKey = workflowRuntimeControllerTriggerMutationKey();
   return mutationOptions<
     WorkflowRuntimeControllerTriggerMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerTrigger400
+      | WorkflowRuntimeControllerTrigger401
+      | WorkflowRuntimeControllerTrigger403
+    >,
     { data: WorkflowRuntimeControllerTriggerMutationRequest },
     TContext
   >({
@@ -55,7 +62,11 @@ export function useWorkflowRuntimeControllerTrigger<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowRuntimeControllerTriggerMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowRuntimeControllerTrigger400
+        | WorkflowRuntimeControllerTrigger401
+        | WorkflowRuntimeControllerTrigger403
+      >,
       { data: WorkflowRuntimeControllerTriggerMutationRequest },
       TContext
     > & { client?: QueryClient };
@@ -74,14 +85,22 @@ export function useWorkflowRuntimeControllerTrigger<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowRuntimeControllerTriggerMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerTrigger400
+      | WorkflowRuntimeControllerTrigger401
+      | WorkflowRuntimeControllerTrigger403
+    >,
     { data: WorkflowRuntimeControllerTriggerMutationRequest },
     TContext
   >;
 
   return useMutation<
     WorkflowRuntimeControllerTriggerMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerTrigger400
+      | WorkflowRuntimeControllerTrigger401
+      | WorkflowRuntimeControllerTrigger403
+    >,
     { data: WorkflowRuntimeControllerTriggerMutationRequest },
     TContext
   >(
@@ -93,7 +112,11 @@ export function useWorkflowRuntimeControllerTrigger<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowRuntimeControllerTriggerMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerTrigger400
+      | WorkflowRuntimeControllerTrigger401
+      | WorkflowRuntimeControllerTrigger403
+    >,
     { data: WorkflowRuntimeControllerTriggerMutationRequest },
     TContext
   >;

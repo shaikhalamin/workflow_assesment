@@ -3,7 +3,11 @@
  * Do not edit manually.
  */
 
-import type { DashboardControllerAdminQueryResponse } from "../../types/dashboardController/DashboardControllerAdmin.ts";
+import type {
+  DashboardControllerAdminQueryResponse,
+  DashboardControllerAdmin401,
+  DashboardControllerAdmin403,
+} from "../../types/dashboardController/DashboardControllerAdmin.ts";
 import type {
   Client,
   RequestConfig,
@@ -31,7 +35,9 @@ export function dashboardControllerAdminQueryOptions(
   const queryKey = dashboardControllerAdminQueryKey();
   return queryOptions<
     DashboardControllerAdminQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      DashboardControllerAdmin401 | DashboardControllerAdmin403
+    >,
     DashboardControllerAdminQueryResponse,
     typeof queryKey
   >({
@@ -57,7 +63,9 @@ export function useDashboardControllerAdmin<
     query?: Partial<
       QueryObserverOptions<
         DashboardControllerAdminQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          DashboardControllerAdmin401 | DashboardControllerAdmin403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -78,9 +86,12 @@ export function useDashboardControllerAdmin<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      DashboardControllerAdmin401 | DashboardControllerAdmin403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

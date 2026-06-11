@@ -7,6 +7,9 @@ import fetch from "@/lib/api/client.ts";
 import type {
   WorkflowRuntimeControllerTriggerMutationRequest,
   WorkflowRuntimeControllerTriggerMutationResponse,
+  WorkflowRuntimeControllerTrigger400,
+  WorkflowRuntimeControllerTrigger401,
+  WorkflowRuntimeControllerTrigger403,
 } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerTrigger.ts";
 import type {
   Client,
@@ -34,7 +37,11 @@ export async function workflowRuntimeControllerTrigger(
 
   const res = await request<
     WorkflowRuntimeControllerTriggerMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerTrigger400
+      | WorkflowRuntimeControllerTrigger401
+      | WorkflowRuntimeControllerTrigger403
+    >,
     WorkflowRuntimeControllerTriggerMutationRequest
   >({
     method: "POST",

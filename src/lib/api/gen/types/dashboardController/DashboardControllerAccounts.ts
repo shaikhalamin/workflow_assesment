@@ -18,10 +18,38 @@ export type DashboardControllerAccounts200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Unauthenticated
+ */
+export type DashboardControllerAccounts401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type DashboardControllerAccounts403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type DashboardControllerAccountsQueryResponse =
   DashboardControllerAccounts200;
 
 export type DashboardControllerAccountsQuery = {
   Response: DashboardControllerAccounts200;
-  Errors: any;
+  Errors: DashboardControllerAccounts401 | DashboardControllerAccounts403;
 };

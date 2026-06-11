@@ -26,6 +26,62 @@ export type WorkflowStepConfigControllerCreate201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowStepConfigControllerCreate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowStepConfigControllerCreate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowStepConfigControllerCreate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowStepConfigControllerCreate404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowStepConfigControllerCreateMutationRequest =
   CreateWorkflowStepConfigDto;
 
@@ -36,5 +92,9 @@ export type WorkflowStepConfigControllerCreateMutation = {
   Response: WorkflowStepConfigControllerCreate201;
   Request: WorkflowStepConfigControllerCreateMutationRequest;
   PathParams: WorkflowStepConfigControllerCreatePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowStepConfigControllerCreate400
+    | WorkflowStepConfigControllerCreate401
+    | WorkflowStepConfigControllerCreate403
+    | WorkflowStepConfigControllerCreate404;
 };

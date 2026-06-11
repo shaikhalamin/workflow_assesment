@@ -26,6 +26,62 @@ export type WorkflowRuntimeControllerReject201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowRuntimeControllerReject400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowRuntimeControllerReject401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowRuntimeControllerReject403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowRuntimeControllerReject404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowRuntimeControllerRejectMutationRequest = WorkflowActionDto;
 
 export type WorkflowRuntimeControllerRejectMutationResponse =
@@ -35,5 +91,9 @@ export type WorkflowRuntimeControllerRejectMutation = {
   Response: WorkflowRuntimeControllerReject201;
   Request: WorkflowRuntimeControllerRejectMutationRequest;
   PathParams: WorkflowRuntimeControllerRejectPathParams;
-  Errors: any;
+  Errors:
+    | WorkflowRuntimeControllerReject400
+    | WorkflowRuntimeControllerReject401
+    | WorkflowRuntimeControllerReject403
+    | WorkflowRuntimeControllerReject404;
 };

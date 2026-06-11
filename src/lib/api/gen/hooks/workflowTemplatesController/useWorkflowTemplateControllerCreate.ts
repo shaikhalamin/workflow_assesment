@@ -6,6 +6,9 @@
 import type {
   WorkflowTemplateControllerCreateMutationRequest,
   WorkflowTemplateControllerCreateMutationResponse,
+  WorkflowTemplateControllerCreate400,
+  WorkflowTemplateControllerCreate401,
+  WorkflowTemplateControllerCreate403,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerCreate.ts";
 import type {
   Client,
@@ -37,7 +40,11 @@ export function workflowTemplateControllerCreateMutationOptions<
   const mutationKey = workflowTemplateControllerCreateMutationKey();
   return mutationOptions<
     WorkflowTemplateControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreate400
+      | WorkflowTemplateControllerCreate401
+      | WorkflowTemplateControllerCreate403
+    >,
     { data: WorkflowTemplateControllerCreateMutationRequest },
     TContext
   >({
@@ -55,7 +62,11 @@ export function useWorkflowTemplateControllerCreate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowTemplateControllerCreateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowTemplateControllerCreate400
+        | WorkflowTemplateControllerCreate401
+        | WorkflowTemplateControllerCreate403
+      >,
       { data: WorkflowTemplateControllerCreateMutationRequest },
       TContext
     > & { client?: QueryClient };
@@ -74,14 +85,22 @@ export function useWorkflowTemplateControllerCreate<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowTemplateControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreate400
+      | WorkflowTemplateControllerCreate401
+      | WorkflowTemplateControllerCreate403
+    >,
     { data: WorkflowTemplateControllerCreateMutationRequest },
     TContext
   >;
 
   return useMutation<
     WorkflowTemplateControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreate400
+      | WorkflowTemplateControllerCreate401
+      | WorkflowTemplateControllerCreate403
+    >,
     { data: WorkflowTemplateControllerCreateMutationRequest },
     TContext
   >(
@@ -93,7 +112,11 @@ export function useWorkflowTemplateControllerCreate<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowTemplateControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreate400
+      | WorkflowTemplateControllerCreate401
+      | WorkflowTemplateControllerCreate403
+    >,
     { data: WorkflowTemplateControllerCreateMutationRequest },
     TContext
   >;

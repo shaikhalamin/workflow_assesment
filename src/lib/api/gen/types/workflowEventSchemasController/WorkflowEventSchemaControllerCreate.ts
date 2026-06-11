@@ -19,6 +19,48 @@ export type WorkflowEventSchemaControllerCreate201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowEventSchemaControllerCreate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowEventSchemaControllerCreate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowEventSchemaControllerCreate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowEventSchemaControllerCreateMutationRequest =
   CreateWorkflowEventSchemaDto;
 
@@ -28,5 +70,8 @@ export type WorkflowEventSchemaControllerCreateMutationResponse =
 export type WorkflowEventSchemaControllerCreateMutation = {
   Response: WorkflowEventSchemaControllerCreate201;
   Request: WorkflowEventSchemaControllerCreateMutationRequest;
-  Errors: any;
+  Errors:
+    | WorkflowEventSchemaControllerCreate400
+    | WorkflowEventSchemaControllerCreate401
+    | WorkflowEventSchemaControllerCreate403;
 };

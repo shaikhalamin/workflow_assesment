@@ -4,7 +4,11 @@
  */
 
 import fetch from "@/lib/api/client.ts";
-import type { DashboardControllerAdminQueryResponse } from "../../types/dashboardController/DashboardControllerAdmin.ts";
+import type {
+  DashboardControllerAdminQueryResponse,
+  DashboardControllerAdmin401,
+  DashboardControllerAdmin403,
+} from "../../types/dashboardController/DashboardControllerAdmin.ts";
 import type {
   Client,
   RequestConfig,
@@ -26,7 +30,9 @@ export async function dashboardControllerAdmin(
 
   const res = await request<
     DashboardControllerAdminQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      DashboardControllerAdmin401 | DashboardControllerAdmin403
+    >,
     unknown
   >({
     method: "GET",

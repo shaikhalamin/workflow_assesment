@@ -4,6 +4,7 @@
  */
 
 import { apiErrorDtoSchema } from "../apiErrorDtoSchema.ts";
+import { apiResponseDtoSchema } from "../apiResponseDtoSchema.ts";
 import { auditLogResponseDtoSchema } from "../auditLogResponseDtoSchema.ts";
 import { paginatedResponseDtoSchema } from "../paginatedResponseDtoSchema.ts";
 import { paginationMetaDtoSchema } from "../paginationMetaDtoSchema.ts";
@@ -31,6 +32,48 @@ export const auditLogsControllerListForEntity200Schema = z
       },
       get error() {
         return apiErrorDtoSchema.nullable();
+      },
+    }),
+  );
+
+/**
+ * @description Validation failed or malformed request
+ */
+export const auditLogsControllerListForEntity400Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Unauthenticated
+ */
+export const auditLogsControllerListForEntity401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const auditLogsControllerListForEntity403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
       },
     }),
   );

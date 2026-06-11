@@ -22,6 +22,48 @@ export const workflowEventSchemaControllerCreate201Schema = z
     }),
   );
 
+/**
+ * @description Validation failed or malformed request
+ */
+export const workflowEventSchemaControllerCreate400Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Unauthenticated
+ */
+export const workflowEventSchemaControllerCreate401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const workflowEventSchemaControllerCreate403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
 export const workflowEventSchemaControllerCreateMutationRequestSchema = z.lazy(
   () => createWorkflowEventSchemaDtoSchema,
 );

@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   WorkflowTemplateControllerDuplicateMutationResponse,
   WorkflowTemplateControllerDuplicatePathParams,
+  WorkflowTemplateControllerDuplicate400,
+  WorkflowTemplateControllerDuplicate401,
+  WorkflowTemplateControllerDuplicate403,
+  WorkflowTemplateControllerDuplicate404,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerDuplicate.ts";
 import type {
   Client,
@@ -37,7 +41,12 @@ export async function workflowTemplateControllerDuplicate(
 
   const res = await request<
     WorkflowTemplateControllerDuplicateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerDuplicate400
+      | WorkflowTemplateControllerDuplicate401
+      | WorkflowTemplateControllerDuplicate403
+      | WorkflowTemplateControllerDuplicate404
+    >,
     unknown
   >({
     method: "POST",

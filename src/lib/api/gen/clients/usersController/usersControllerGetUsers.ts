@@ -7,6 +7,9 @@ import fetch from "@/lib/api/client.ts";
 import type {
   UsersControllerGetUsersQueryResponse,
   UsersControllerGetUsersQueryParams,
+  UsersControllerGetUsers400,
+  UsersControllerGetUsers401,
+  UsersControllerGetUsers403,
 } from "../../types/usersController/UsersControllerGetUsers.ts";
 import type {
   Client,
@@ -30,7 +33,11 @@ export async function usersControllerGetUsers(
 
   const res = await request<
     UsersControllerGetUsersQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | UsersControllerGetUsers400
+      | UsersControllerGetUsers401
+      | UsersControllerGetUsers403
+    >,
     unknown
   >({
     method: "GET",

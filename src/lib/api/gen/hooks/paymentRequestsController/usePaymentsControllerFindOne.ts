@@ -6,6 +6,10 @@
 import type {
   PaymentsControllerFindOneQueryResponse,
   PaymentsControllerFindOnePathParams,
+  PaymentsControllerFindOne400,
+  PaymentsControllerFindOne401,
+  PaymentsControllerFindOne403,
+  PaymentsControllerFindOne404,
 } from "../../types/paymentRequestsController/PaymentsControllerFindOne.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function paymentsControllerFindOneQueryOptions(
   const queryKey = paymentsControllerFindOneQueryKey({ id });
   return queryOptions<
     PaymentsControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | PaymentsControllerFindOne400
+      | PaymentsControllerFindOne401
+      | PaymentsControllerFindOne403
+      | PaymentsControllerFindOne404
+    >,
     PaymentsControllerFindOneQueryResponse,
     typeof queryKey
   >({
@@ -66,7 +75,12 @@ export function usePaymentsControllerFindOne<
     query?: Partial<
       QueryObserverOptions<
         PaymentsControllerFindOneQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | PaymentsControllerFindOne400
+          | PaymentsControllerFindOne401
+          | PaymentsControllerFindOne403
+          | PaymentsControllerFindOne404
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -87,9 +101,15 @@ export function usePaymentsControllerFindOne<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | PaymentsControllerFindOne400
+      | PaymentsControllerFindOne401
+      | PaymentsControllerFindOne403
+      | PaymentsControllerFindOne404
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

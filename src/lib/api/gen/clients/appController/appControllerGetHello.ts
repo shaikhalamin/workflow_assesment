@@ -4,7 +4,10 @@
  */
 
 import fetch from "@/lib/api/client.ts";
-import type { AppControllerGetHelloQueryResponse } from "../../types/appController/AppControllerGetHello.ts";
+import type {
+  AppControllerGetHelloQueryResponse,
+  AppControllerGetHello429,
+} from "../../types/appController/AppControllerGetHello.ts";
 import type {
   Client,
   RequestConfig,
@@ -26,7 +29,7 @@ export async function appControllerGetHello(
 
   const res = await request<
     AppControllerGetHelloQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<AppControllerGetHello429>,
     unknown
   >({
     method: "GET",

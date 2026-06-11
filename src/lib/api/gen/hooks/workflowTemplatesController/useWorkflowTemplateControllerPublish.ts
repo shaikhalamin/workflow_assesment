@@ -6,6 +6,10 @@
 import type {
   WorkflowTemplateControllerPublishMutationResponse,
   WorkflowTemplateControllerPublishPathParams,
+  WorkflowTemplateControllerPublish400,
+  WorkflowTemplateControllerPublish401,
+  WorkflowTemplateControllerPublish403,
+  WorkflowTemplateControllerPublish404,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerPublish.ts";
 import type {
   Client,
@@ -33,7 +37,12 @@ export function workflowTemplateControllerPublishMutationOptions<
   const mutationKey = workflowTemplateControllerPublishMutationKey();
   return mutationOptions<
     WorkflowTemplateControllerPublishMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerPublish400
+      | WorkflowTemplateControllerPublish401
+      | WorkflowTemplateControllerPublish403
+      | WorkflowTemplateControllerPublish404
+    >,
     { id: WorkflowTemplateControllerPublishPathParams["id"] },
     TContext
   >({
@@ -51,7 +60,12 @@ export function useWorkflowTemplateControllerPublish<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowTemplateControllerPublishMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowTemplateControllerPublish400
+        | WorkflowTemplateControllerPublish401
+        | WorkflowTemplateControllerPublish403
+        | WorkflowTemplateControllerPublish404
+      >,
       { id: WorkflowTemplateControllerPublishPathParams["id"] },
       TContext
     > & { client?: QueryClient };
@@ -68,14 +82,24 @@ export function useWorkflowTemplateControllerPublish<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowTemplateControllerPublishMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerPublish400
+      | WorkflowTemplateControllerPublish401
+      | WorkflowTemplateControllerPublish403
+      | WorkflowTemplateControllerPublish404
+    >,
     { id: WorkflowTemplateControllerPublishPathParams["id"] },
     TContext
   >;
 
   return useMutation<
     WorkflowTemplateControllerPublishMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerPublish400
+      | WorkflowTemplateControllerPublish401
+      | WorkflowTemplateControllerPublish403
+      | WorkflowTemplateControllerPublish404
+    >,
     { id: WorkflowTemplateControllerPublishPathParams["id"] },
     TContext
   >(
@@ -87,7 +111,12 @@ export function useWorkflowTemplateControllerPublish<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowTemplateControllerPublishMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerPublish400
+      | WorkflowTemplateControllerPublish401
+      | WorkflowTemplateControllerPublish403
+      | WorkflowTemplateControllerPublish404
+    >,
     { id: WorkflowTemplateControllerPublishPathParams["id"] },
     TContext
   >;

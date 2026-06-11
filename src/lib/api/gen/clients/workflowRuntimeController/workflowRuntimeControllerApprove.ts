@@ -8,6 +8,10 @@ import type {
   WorkflowRuntimeControllerApproveMutationRequest,
   WorkflowRuntimeControllerApproveMutationResponse,
   WorkflowRuntimeControllerApprovePathParams,
+  WorkflowRuntimeControllerApprove400,
+  WorkflowRuntimeControllerApprove401,
+  WorkflowRuntimeControllerApprove403,
+  WorkflowRuntimeControllerApprove404,
 } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerApprove.ts";
 import type {
   Client,
@@ -48,7 +52,12 @@ export async function workflowRuntimeControllerApprove(
 
   const res = await request<
     WorkflowRuntimeControllerApproveMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerApprove400
+      | WorkflowRuntimeControllerApprove401
+      | WorkflowRuntimeControllerApprove403
+      | WorkflowRuntimeControllerApprove404
+    >,
     WorkflowRuntimeControllerApproveMutationRequest
   >({
     method: "POST",

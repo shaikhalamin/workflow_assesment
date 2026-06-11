@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   WorkflowEventSchemaControllerDeactivateMutationResponse,
   WorkflowEventSchemaControllerDeactivatePathParams,
+  WorkflowEventSchemaControllerDeactivate400,
+  WorkflowEventSchemaControllerDeactivate401,
+  WorkflowEventSchemaControllerDeactivate403,
+  WorkflowEventSchemaControllerDeactivate404,
 } from "../../types/workflowEventSchemasController/WorkflowEventSchemaControllerDeactivate.ts";
 import type {
   Client,
@@ -37,7 +41,12 @@ export async function workflowEventSchemaControllerDeactivate(
 
   const res = await request<
     WorkflowEventSchemaControllerDeactivateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerDeactivate400
+      | WorkflowEventSchemaControllerDeactivate401
+      | WorkflowEventSchemaControllerDeactivate403
+      | WorkflowEventSchemaControllerDeactivate404
+    >,
     unknown
   >({
     method: "POST",

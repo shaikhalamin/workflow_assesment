@@ -8,6 +8,10 @@ import type {
   PaymentsControllerMarkPaidMutationRequest,
   PaymentsControllerMarkPaidMutationResponse,
   PaymentsControllerMarkPaidPathParams,
+  PaymentsControllerMarkPaid400,
+  PaymentsControllerMarkPaid401,
+  PaymentsControllerMarkPaid403,
+  PaymentsControllerMarkPaid404,
 } from "../../types/paymentRequestsController/PaymentsControllerMarkPaid.ts";
 import type {
   Client,
@@ -48,7 +52,12 @@ export async function paymentsControllerMarkPaid(
 
   const res = await request<
     PaymentsControllerMarkPaidMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | PaymentsControllerMarkPaid400
+      | PaymentsControllerMarkPaid401
+      | PaymentsControllerMarkPaid403
+      | PaymentsControllerMarkPaid404
+    >,
     PaymentsControllerMarkPaidMutationRequest
   >({
     method: "POST",

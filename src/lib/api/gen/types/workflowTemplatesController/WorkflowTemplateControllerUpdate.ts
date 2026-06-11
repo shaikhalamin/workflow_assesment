@@ -26,6 +26,62 @@ export type WorkflowTemplateControllerUpdate200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowTemplateControllerUpdate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowTemplateControllerUpdate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowTemplateControllerUpdate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowTemplateControllerUpdate404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowTemplateControllerUpdateMutationRequest =
   UpdateWorkflowTemplateDto;
 
@@ -36,5 +92,9 @@ export type WorkflowTemplateControllerUpdateMutation = {
   Response: WorkflowTemplateControllerUpdate200;
   Request: WorkflowTemplateControllerUpdateMutationRequest;
   PathParams: WorkflowTemplateControllerUpdatePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowTemplateControllerUpdate400
+    | WorkflowTemplateControllerUpdate401
+    | WorkflowTemplateControllerUpdate403
+    | WorkflowTemplateControllerUpdate404;
 };

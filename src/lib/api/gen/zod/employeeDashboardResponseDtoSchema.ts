@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import { dashboardRecentItemDtoSchema } from "./dashboardRecentItemDtoSchema.ts";
 import { employeeExpenseSummaryDtoSchema } from "./employeeExpenseSummaryDtoSchema.ts";
 import { employeeLeaveSummaryDtoSchema } from "./employeeLeaveSummaryDtoSchema.ts";
 import { z } from "zod/v4";
@@ -14,5 +15,7 @@ export const employeeDashboardResponseDtoSchema = z.object({
   get leaves() {
     return employeeLeaveSummaryDtoSchema;
   },
-  recentItems: z.array(z.string()),
+  get recentItems() {
+    return z.array(dashboardRecentItemDtoSchema);
+  },
 });

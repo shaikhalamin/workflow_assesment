@@ -7,6 +7,9 @@ import fetch from "@/lib/api/client.ts";
 import type {
   AuditLogsControllerListQueryResponse,
   AuditLogsControllerListQueryParams,
+  AuditLogsControllerList400,
+  AuditLogsControllerList401,
+  AuditLogsControllerList403,
 } from "../../types/auditLogsController/AuditLogsControllerList.ts";
 import type {
   Client,
@@ -30,7 +33,11 @@ export async function auditLogsControllerList(
 
   const res = await request<
     AuditLogsControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | AuditLogsControllerList400
+      | AuditLogsControllerList401
+      | AuditLogsControllerList403
+    >,
     unknown
   >({
     method: "GET",

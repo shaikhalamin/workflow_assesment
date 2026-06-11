@@ -8,6 +8,10 @@ import type {
   WorkflowStepConfigControllerCreateMutationRequest,
   WorkflowStepConfigControllerCreateMutationResponse,
   WorkflowStepConfigControllerCreatePathParams,
+  WorkflowStepConfigControllerCreate400,
+  WorkflowStepConfigControllerCreate401,
+  WorkflowStepConfigControllerCreate403,
+  WorkflowStepConfigControllerCreate404,
 } from "../../types/workflowStepConfigsController/WorkflowStepConfigControllerCreate.ts";
 import type {
   Client,
@@ -48,7 +52,12 @@ export async function workflowStepConfigControllerCreate(
 
   const res = await request<
     WorkflowStepConfigControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowStepConfigControllerCreate400
+      | WorkflowStepConfigControllerCreate401
+      | WorkflowStepConfigControllerCreate403
+      | WorkflowStepConfigControllerCreate404
+    >,
     WorkflowStepConfigControllerCreateMutationRequest
   >({
     method: "POST",

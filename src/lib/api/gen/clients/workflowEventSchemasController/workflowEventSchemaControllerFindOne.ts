@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   WorkflowEventSchemaControllerFindOneQueryResponse,
   WorkflowEventSchemaControllerFindOnePathParams,
+  WorkflowEventSchemaControllerFindOne400,
+  WorkflowEventSchemaControllerFindOne401,
+  WorkflowEventSchemaControllerFindOne403,
+  WorkflowEventSchemaControllerFindOne404,
 } from "../../types/workflowEventSchemasController/WorkflowEventSchemaControllerFindOne.ts";
 import type {
   Client,
@@ -37,7 +41,12 @@ export async function workflowEventSchemaControllerFindOne(
 
   const res = await request<
     WorkflowEventSchemaControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerFindOne400
+      | WorkflowEventSchemaControllerFindOne401
+      | WorkflowEventSchemaControllerFindOne403
+      | WorkflowEventSchemaControllerFindOne404
+    >,
     unknown
   >({
     method: "GET",

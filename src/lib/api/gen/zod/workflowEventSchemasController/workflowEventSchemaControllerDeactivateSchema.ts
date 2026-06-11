@@ -27,5 +27,61 @@ export const workflowEventSchemaControllerDeactivate201Schema = z
     }),
   );
 
+/**
+ * @description Validation failed or malformed request
+ */
+export const workflowEventSchemaControllerDeactivate400Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Unauthenticated
+ */
+export const workflowEventSchemaControllerDeactivate401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const workflowEventSchemaControllerDeactivate403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Resource not found
+ */
+export const workflowEventSchemaControllerDeactivate404Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
 export const workflowEventSchemaControllerDeactivateMutationResponseSchema =
   z.lazy(() => workflowEventSchemaControllerDeactivate201Schema);

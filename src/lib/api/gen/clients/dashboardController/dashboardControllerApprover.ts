@@ -4,7 +4,11 @@
  */
 
 import fetch from "@/lib/api/client.ts";
-import type { DashboardControllerApproverQueryResponse } from "../../types/dashboardController/DashboardControllerApprover.ts";
+import type {
+  DashboardControllerApproverQueryResponse,
+  DashboardControllerApprover401,
+  DashboardControllerApprover403,
+} from "../../types/dashboardController/DashboardControllerApprover.ts";
 import type {
   Client,
   RequestConfig,
@@ -26,7 +30,9 @@ export async function dashboardControllerApprover(
 
   const res = await request<
     DashboardControllerApproverQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      DashboardControllerApprover401 | DashboardControllerApprover403
+    >,
     unknown
   >({
     method: "GET",

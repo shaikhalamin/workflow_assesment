@@ -7,6 +7,9 @@ import type {
   AuditLogsControllerListForWorkflowQueryResponse,
   AuditLogsControllerListForWorkflowPathParams,
   AuditLogsControllerListForWorkflowQueryParams,
+  AuditLogsControllerListForWorkflow400,
+  AuditLogsControllerListForWorkflow401,
+  AuditLogsControllerListForWorkflow403,
 } from "../../types/auditLogsController/AuditLogsControllerListForWorkflow.ts";
 import type {
   Client,
@@ -62,7 +65,11 @@ export function auditLogsControllerListForWorkflowQueryOptions(
   );
   return queryOptions<
     AuditLogsControllerListForWorkflowQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | AuditLogsControllerListForWorkflow400
+      | AuditLogsControllerListForWorkflow401
+      | AuditLogsControllerListForWorkflow403
+    >,
     AuditLogsControllerListForWorkflowQueryResponse,
     typeof queryKey
   >({
@@ -98,7 +105,11 @@ export function useAuditLogsControllerListForWorkflow<
     query?: Partial<
       QueryObserverOptions<
         AuditLogsControllerListForWorkflowQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | AuditLogsControllerListForWorkflow400
+          | AuditLogsControllerListForWorkflow401
+          | AuditLogsControllerListForWorkflow403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -123,9 +134,14 @@ export function useAuditLogsControllerListForWorkflow<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | AuditLogsControllerListForWorkflow400
+      | AuditLogsControllerListForWorkflow401
+      | AuditLogsControllerListForWorkflow403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

@@ -26,6 +26,62 @@ export type WorkflowEventSchemaControllerUpdate200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowEventSchemaControllerUpdate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowEventSchemaControllerUpdate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowEventSchemaControllerUpdate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowEventSchemaControllerUpdate404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowEventSchemaControllerUpdateMutationRequest =
   UpdateWorkflowEventSchemaDto;
 
@@ -36,5 +92,9 @@ export type WorkflowEventSchemaControllerUpdateMutation = {
   Response: WorkflowEventSchemaControllerUpdate200;
   Request: WorkflowEventSchemaControllerUpdateMutationRequest;
   PathParams: WorkflowEventSchemaControllerUpdatePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowEventSchemaControllerUpdate400
+    | WorkflowEventSchemaControllerUpdate401
+    | WorkflowEventSchemaControllerUpdate403
+    | WorkflowEventSchemaControllerUpdate404;
 };

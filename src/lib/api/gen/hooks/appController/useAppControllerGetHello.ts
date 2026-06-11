@@ -3,7 +3,10 @@
  * Do not edit manually.
  */
 
-import type { AppControllerGetHelloQueryResponse } from "../../types/appController/AppControllerGetHello.ts";
+import type {
+  AppControllerGetHelloQueryResponse,
+  AppControllerGetHello429,
+} from "../../types/appController/AppControllerGetHello.ts";
 import type {
   Client,
   RequestConfig,
@@ -30,7 +33,7 @@ export function appControllerGetHelloQueryOptions(
   const queryKey = appControllerGetHelloQueryKey();
   return queryOptions<
     AppControllerGetHelloQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<AppControllerGetHello429>,
     AppControllerGetHelloQueryResponse,
     typeof queryKey
   >({
@@ -56,7 +59,7 @@ export function useAppControllerGetHello<
     query?: Partial<
       QueryObserverOptions<
         AppControllerGetHelloQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<AppControllerGetHello429>,
         TData,
         TQueryData,
         TQueryKey
@@ -76,7 +79,7 @@ export function useAppControllerGetHello<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
+  ) as UseQueryResult<TData, ResponseErrorConfig<AppControllerGetHello429>> & {
     queryKey: TQueryKey;
   };
 

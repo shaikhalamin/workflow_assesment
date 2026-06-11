@@ -25,11 +25,71 @@ export type WorkflowTemplateControllerFindOne200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowTemplateControllerFindOne400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowTemplateControllerFindOne401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowTemplateControllerFindOne403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowTemplateControllerFindOne404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowTemplateControllerFindOneQueryResponse =
   WorkflowTemplateControllerFindOne200;
 
 export type WorkflowTemplateControllerFindOneQuery = {
   Response: WorkflowTemplateControllerFindOne200;
   PathParams: WorkflowTemplateControllerFindOnePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowTemplateControllerFindOne400
+    | WorkflowTemplateControllerFindOne401
+    | WorkflowTemplateControllerFindOne403
+    | WorkflowTemplateControllerFindOne404;
 };

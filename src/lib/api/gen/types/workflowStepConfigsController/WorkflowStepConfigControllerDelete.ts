@@ -25,11 +25,71 @@ export type WorkflowStepConfigControllerDelete200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowStepConfigControllerDelete400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowStepConfigControllerDelete401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowStepConfigControllerDelete403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowStepConfigControllerDelete404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowStepConfigControllerDeleteMutationResponse =
   WorkflowStepConfigControllerDelete200;
 
 export type WorkflowStepConfigControllerDeleteMutation = {
   Response: WorkflowStepConfigControllerDelete200;
   PathParams: WorkflowStepConfigControllerDeletePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowStepConfigControllerDelete400
+    | WorkflowStepConfigControllerDelete401
+    | WorkflowStepConfigControllerDelete403
+    | WorkflowStepConfigControllerDelete404;
 };

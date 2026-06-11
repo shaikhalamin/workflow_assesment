@@ -21,6 +21,34 @@ export const workflowRuntimeControllerMyPending200Schema = z
     }),
   );
 
+/**
+ * @description Unauthenticated
+ */
+export const workflowRuntimeControllerMyPending401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const workflowRuntimeControllerMyPending403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
 export const workflowRuntimeControllerMyPendingQueryResponseSchema = z.lazy(
   () => workflowRuntimeControllerMyPending200Schema,
 );

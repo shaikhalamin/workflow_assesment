@@ -3,7 +3,11 @@
  * Do not edit manually.
  */
 
-import type { DashboardControllerApproverQueryResponse } from "../../types/dashboardController/DashboardControllerApprover.ts";
+import type {
+  DashboardControllerApproverQueryResponse,
+  DashboardControllerApprover401,
+  DashboardControllerApprover403,
+} from "../../types/dashboardController/DashboardControllerApprover.ts";
 import type {
   Client,
   RequestConfig,
@@ -31,7 +35,9 @@ export function dashboardControllerApproverQueryOptions(
   const queryKey = dashboardControllerApproverQueryKey();
   return queryOptions<
     DashboardControllerApproverQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      DashboardControllerApprover401 | DashboardControllerApprover403
+    >,
     DashboardControllerApproverQueryResponse,
     typeof queryKey
   >({
@@ -57,7 +63,9 @@ export function useDashboardControllerApprover<
     query?: Partial<
       QueryObserverOptions<
         DashboardControllerApproverQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          DashboardControllerApprover401 | DashboardControllerApprover403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -78,9 +86,12 @@ export function useDashboardControllerApprover<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      DashboardControllerApprover401 | DashboardControllerApprover403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

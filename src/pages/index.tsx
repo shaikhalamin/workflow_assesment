@@ -751,14 +751,14 @@ export function DashboardPage() {
 }
 
 export function WorkflowTemplatesPage() {
-  const query = useWorkflowTemplateControllerList({ params: { page: 1, limit: 50 } })
+  const query = useWorkflowTemplateControllerList({ params: { page: 1, limit: 100 } })
   const publish = useWorkflowTemplateControllerPublish({
     mutation: { onSuccess: () => void query.refetch() },
   })
   const deactivate = useWorkflowTemplateControllerDeactivate({
     mutation: { onSuccess: () => void query.refetch() },
   })
-  const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
+  const rows = rowsFrom(query.data)
   const columns = useMemo<ColumnDef<Row>[]>(
     () => [
       { header: 'Name', accessorKey: 'name' },

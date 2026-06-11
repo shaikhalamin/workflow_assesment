@@ -25,11 +25,71 @@ export type WorkflowEventSchemaControllerDeactivate201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowEventSchemaControllerDeactivate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowEventSchemaControllerDeactivate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowEventSchemaControllerDeactivate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowEventSchemaControllerDeactivate404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowEventSchemaControllerDeactivateMutationResponse =
   WorkflowEventSchemaControllerDeactivate201;
 
 export type WorkflowEventSchemaControllerDeactivateMutation = {
   Response: WorkflowEventSchemaControllerDeactivate201;
   PathParams: WorkflowEventSchemaControllerDeactivatePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowEventSchemaControllerDeactivate400
+    | WorkflowEventSchemaControllerDeactivate401
+    | WorkflowEventSchemaControllerDeactivate403
+    | WorkflowEventSchemaControllerDeactivate404;
 };

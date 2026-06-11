@@ -25,11 +25,71 @@ export type PaymentsControllerFindOne200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type PaymentsControllerFindOne400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type PaymentsControllerFindOne401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type PaymentsControllerFindOne403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type PaymentsControllerFindOne404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type PaymentsControllerFindOneQueryResponse =
   PaymentsControllerFindOne200;
 
 export type PaymentsControllerFindOneQuery = {
   Response: PaymentsControllerFindOne200;
   PathParams: PaymentsControllerFindOnePathParams;
-  Errors: any;
+  Errors:
+    | PaymentsControllerFindOne400
+    | PaymentsControllerFindOne401
+    | PaymentsControllerFindOne403
+    | PaymentsControllerFindOne404;
 };

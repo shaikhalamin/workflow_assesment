@@ -3,7 +3,11 @@
  * Do not edit manually.
  */
 
-import type { DashboardControllerHrQueryResponse } from "../../types/dashboardController/DashboardControllerHr.ts";
+import type {
+  DashboardControllerHrQueryResponse,
+  DashboardControllerHr401,
+  DashboardControllerHr403,
+} from "../../types/dashboardController/DashboardControllerHr.ts";
 import type {
   Client,
   RequestConfig,
@@ -31,7 +35,7 @@ export function dashboardControllerHrQueryOptions(
   const queryKey = dashboardControllerHrQueryKey();
   return queryOptions<
     DashboardControllerHrQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<DashboardControllerHr401 | DashboardControllerHr403>,
     DashboardControllerHrQueryResponse,
     typeof queryKey
   >({
@@ -57,7 +61,9 @@ export function useDashboardControllerHr<
     query?: Partial<
       QueryObserverOptions<
         DashboardControllerHrQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          DashboardControllerHr401 | DashboardControllerHr403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -77,9 +83,10 @@ export function useDashboardControllerHr<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<DashboardControllerHr401 | DashboardControllerHr403>
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

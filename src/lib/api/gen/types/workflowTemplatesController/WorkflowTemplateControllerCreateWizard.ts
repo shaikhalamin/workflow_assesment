@@ -19,6 +19,48 @@ export type WorkflowTemplateControllerCreateWizard201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowTemplateControllerCreateWizard400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowTemplateControllerCreateWizard401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowTemplateControllerCreateWizard403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowTemplateControllerCreateWizardMutationRequest =
   WorkflowWizardDto;
 
@@ -28,5 +70,8 @@ export type WorkflowTemplateControllerCreateWizardMutationResponse =
 export type WorkflowTemplateControllerCreateWizardMutation = {
   Response: WorkflowTemplateControllerCreateWizard201;
   Request: WorkflowTemplateControllerCreateWizardMutationRequest;
-  Errors: any;
+  Errors:
+    | WorkflowTemplateControllerCreateWizard400
+    | WorkflowTemplateControllerCreateWizard401
+    | WorkflowTemplateControllerCreateWizard403;
 };

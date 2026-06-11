@@ -7,6 +7,10 @@ import type {
   WorkflowTemplateControllerCreateRuleMutationRequest,
   WorkflowTemplateControllerCreateRuleMutationResponse,
   WorkflowTemplateControllerCreateRulePathParams,
+  WorkflowTemplateControllerCreateRule400,
+  WorkflowTemplateControllerCreateRule401,
+  WorkflowTemplateControllerCreateRule403,
+  WorkflowTemplateControllerCreateRule404,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerCreateRule.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function workflowTemplateControllerCreateRuleMutationOptions<
   const mutationKey = workflowTemplateControllerCreateRuleMutationKey();
   return mutationOptions<
     WorkflowTemplateControllerCreateRuleMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreateRule400
+      | WorkflowTemplateControllerCreateRule401
+      | WorkflowTemplateControllerCreateRule403
+      | WorkflowTemplateControllerCreateRule404
+    >,
     {
       id: WorkflowTemplateControllerCreateRulePathParams["id"];
       data: WorkflowTemplateControllerCreateRuleMutationRequest;
@@ -59,7 +68,12 @@ export function useWorkflowTemplateControllerCreateRule<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowTemplateControllerCreateRuleMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowTemplateControllerCreateRule400
+        | WorkflowTemplateControllerCreateRule401
+        | WorkflowTemplateControllerCreateRule403
+        | WorkflowTemplateControllerCreateRule404
+      >,
       {
         id: WorkflowTemplateControllerCreateRulePathParams["id"];
         data: WorkflowTemplateControllerCreateRuleMutationRequest;
@@ -81,7 +95,12 @@ export function useWorkflowTemplateControllerCreateRule<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowTemplateControllerCreateRuleMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreateRule400
+      | WorkflowTemplateControllerCreateRule401
+      | WorkflowTemplateControllerCreateRule403
+      | WorkflowTemplateControllerCreateRule404
+    >,
     {
       id: WorkflowTemplateControllerCreateRulePathParams["id"];
       data: WorkflowTemplateControllerCreateRuleMutationRequest;
@@ -91,7 +110,12 @@ export function useWorkflowTemplateControllerCreateRule<TContext>(
 
   return useMutation<
     WorkflowTemplateControllerCreateRuleMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreateRule400
+      | WorkflowTemplateControllerCreateRule401
+      | WorkflowTemplateControllerCreateRule403
+      | WorkflowTemplateControllerCreateRule404
+    >,
     {
       id: WorkflowTemplateControllerCreateRulePathParams["id"];
       data: WorkflowTemplateControllerCreateRuleMutationRequest;
@@ -106,7 +130,12 @@ export function useWorkflowTemplateControllerCreateRule<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowTemplateControllerCreateRuleMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerCreateRule400
+      | WorkflowTemplateControllerCreateRule401
+      | WorkflowTemplateControllerCreateRule403
+      | WorkflowTemplateControllerCreateRule404
+    >,
     {
       id: WorkflowTemplateControllerCreateRulePathParams["id"];
       data: WorkflowTemplateControllerCreateRuleMutationRequest;

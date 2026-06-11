@@ -7,6 +7,9 @@ import fetch from "@/lib/api/client.ts";
 import type {
   WorkflowEventSchemaControllerCreateMutationRequest,
   WorkflowEventSchemaControllerCreateMutationResponse,
+  WorkflowEventSchemaControllerCreate400,
+  WorkflowEventSchemaControllerCreate401,
+  WorkflowEventSchemaControllerCreate403,
 } from "../../types/workflowEventSchemasController/WorkflowEventSchemaControllerCreate.ts";
 import type {
   Client,
@@ -34,7 +37,11 @@ export async function workflowEventSchemaControllerCreate(
 
   const res = await request<
     WorkflowEventSchemaControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerCreate400
+      | WorkflowEventSchemaControllerCreate401
+      | WorkflowEventSchemaControllerCreate403
+    >,
     WorkflowEventSchemaControllerCreateMutationRequest
   >({
     method: "POST",

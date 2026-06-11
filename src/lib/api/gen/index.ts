@@ -61,6 +61,7 @@ export type { AdminDashboardResponseDto } from "./types/AdminDashboardResponseDt
 export type { AdminWorkflowSummaryDto } from "./types/AdminWorkflowSummaryDto.ts";
 export type { ApiErrorDto } from "./types/ApiErrorDto.ts";
 export type { ApiResponseDto } from "./types/ApiResponseDto.ts";
+export type { AppResponseDto } from "./types/AppResponseDto.ts";
 export type { ApproverDashboardResponseDto } from "./types/ApproverDashboardResponseDto.ts";
 export type { AuditLogResponseDto } from "./types/AuditLogResponseDto.ts";
 export type { AuthResponseDto } from "./types/AuthResponseDto.ts";
@@ -79,6 +80,7 @@ export type {
   CreateWorkflowTemplateDto,
   CreateWorkflowTemplateDtoStatusEnum,
 } from "./types/CreateWorkflowTemplateDto.ts";
+export type { DashboardRecentItemDto } from "./types/DashboardRecentItemDto.ts";
 export type { EmployeeDashboardResponseDto } from "./types/EmployeeDashboardResponseDto.ts";
 export type { EmployeeExpenseSummaryDto } from "./types/EmployeeExpenseSummaryDto.ts";
 export type { EmployeeLeaveSummaryDto } from "./types/EmployeeLeaveSummaryDto.ts";
@@ -154,17 +156,24 @@ export type { WorkflowUserResponseDto } from "./types/WorkflowUserResponseDto.ts
 export type { WorkflowWizardDto } from "./types/WorkflowWizardDto.ts";
 export type {
   AppControllerGetHello200,
+  AppControllerGetHello429,
   AppControllerGetHelloQuery,
   AppControllerGetHelloQueryResponse,
 } from "./types/appController/AppControllerGetHello.ts";
 export type {
   AuditLogsControllerList200,
+  AuditLogsControllerList400,
+  AuditLogsControllerList401,
+  AuditLogsControllerList403,
   AuditLogsControllerListQuery,
   AuditLogsControllerListQueryParams,
   AuditLogsControllerListQueryResponse,
 } from "./types/auditLogsController/AuditLogsControllerList.ts";
 export type {
   AuditLogsControllerListForEntity200,
+  AuditLogsControllerListForEntity400,
+  AuditLogsControllerListForEntity401,
+  AuditLogsControllerListForEntity403,
   AuditLogsControllerListForEntityPathParams,
   AuditLogsControllerListForEntityQuery,
   AuditLogsControllerListForEntityQueryParams,
@@ -172,6 +181,9 @@ export type {
 } from "./types/auditLogsController/AuditLogsControllerListForEntity.ts";
 export type {
   AuditLogsControllerListForWorkflow200,
+  AuditLogsControllerListForWorkflow400,
+  AuditLogsControllerListForWorkflow401,
+  AuditLogsControllerListForWorkflow403,
   AuditLogsControllerListForWorkflowPathParams,
   AuditLogsControllerListForWorkflowQuery,
   AuditLogsControllerListForWorkflowQueryParams,
@@ -218,26 +230,36 @@ export type {
 } from "./types/authController/AuthControllerSignup.ts";
 export type {
   DashboardControllerAccounts200,
+  DashboardControllerAccounts401,
+  DashboardControllerAccounts403,
   DashboardControllerAccountsQuery,
   DashboardControllerAccountsQueryResponse,
 } from "./types/dashboardController/DashboardControllerAccounts.ts";
 export type {
   DashboardControllerAdmin200,
+  DashboardControllerAdmin401,
+  DashboardControllerAdmin403,
   DashboardControllerAdminQuery,
   DashboardControllerAdminQueryResponse,
 } from "./types/dashboardController/DashboardControllerAdmin.ts";
 export type {
   DashboardControllerApprover200,
+  DashboardControllerApprover401,
+  DashboardControllerApprover403,
   DashboardControllerApproverQuery,
   DashboardControllerApproverQueryResponse,
 } from "./types/dashboardController/DashboardControllerApprover.ts";
 export type {
   DashboardControllerEmployee200,
+  DashboardControllerEmployee401,
+  DashboardControllerEmployee403,
   DashboardControllerEmployeeQuery,
   DashboardControllerEmployeeQueryResponse,
 } from "./types/dashboardController/DashboardControllerEmployee.ts";
 export type {
   DashboardControllerHr200,
+  DashboardControllerHr401,
+  DashboardControllerHr403,
   DashboardControllerHrQuery,
   DashboardControllerHrQueryResponse,
 } from "./types/dashboardController/DashboardControllerHr.ts";
@@ -385,18 +407,29 @@ export type {
 } from "./types/leavesController/LeavesControllerUpdate.ts";
 export type {
   PaymentsControllerFindOne200,
+  PaymentsControllerFindOne400,
+  PaymentsControllerFindOne401,
+  PaymentsControllerFindOne403,
+  PaymentsControllerFindOne404,
   PaymentsControllerFindOnePathParams,
   PaymentsControllerFindOneQuery,
   PaymentsControllerFindOneQueryResponse,
 } from "./types/paymentRequestsController/PaymentsControllerFindOne.ts";
 export type {
   PaymentsControllerList200,
+  PaymentsControllerList400,
+  PaymentsControllerList401,
+  PaymentsControllerList403,
   PaymentsControllerListQuery,
   PaymentsControllerListQueryParams,
   PaymentsControllerListQueryResponse,
 } from "./types/paymentRequestsController/PaymentsControllerList.ts";
 export type {
   PaymentsControllerMarkPaid201,
+  PaymentsControllerMarkPaid400,
+  PaymentsControllerMarkPaid401,
+  PaymentsControllerMarkPaid403,
+  PaymentsControllerMarkPaid404,
   PaymentsControllerMarkPaidMutation,
   PaymentsControllerMarkPaidMutationRequest,
   PaymentsControllerMarkPaidMutationResponse,
@@ -404,36 +437,57 @@ export type {
 } from "./types/paymentRequestsController/PaymentsControllerMarkPaid.ts";
 export type {
   UsersControllerGetUsers200,
+  UsersControllerGetUsers400,
+  UsersControllerGetUsers401,
+  UsersControllerGetUsers403,
   UsersControllerGetUsersQuery,
   UsersControllerGetUsersQueryParams,
   UsersControllerGetUsersQueryResponse,
 } from "./types/usersController/UsersControllerGetUsers.ts";
 export type {
   WorkflowEventSchemaControllerCreate201,
+  WorkflowEventSchemaControllerCreate400,
+  WorkflowEventSchemaControllerCreate401,
+  WorkflowEventSchemaControllerCreate403,
   WorkflowEventSchemaControllerCreateMutation,
   WorkflowEventSchemaControllerCreateMutationRequest,
   WorkflowEventSchemaControllerCreateMutationResponse,
 } from "./types/workflowEventSchemasController/WorkflowEventSchemaControllerCreate.ts";
 export type {
   WorkflowEventSchemaControllerDeactivate201,
+  WorkflowEventSchemaControllerDeactivate400,
+  WorkflowEventSchemaControllerDeactivate401,
+  WorkflowEventSchemaControllerDeactivate403,
+  WorkflowEventSchemaControllerDeactivate404,
   WorkflowEventSchemaControllerDeactivateMutation,
   WorkflowEventSchemaControllerDeactivateMutationResponse,
   WorkflowEventSchemaControllerDeactivatePathParams,
 } from "./types/workflowEventSchemasController/WorkflowEventSchemaControllerDeactivate.ts";
 export type {
   WorkflowEventSchemaControllerFindOne200,
+  WorkflowEventSchemaControllerFindOne400,
+  WorkflowEventSchemaControllerFindOne401,
+  WorkflowEventSchemaControllerFindOne403,
+  WorkflowEventSchemaControllerFindOne404,
   WorkflowEventSchemaControllerFindOnePathParams,
   WorkflowEventSchemaControllerFindOneQuery,
   WorkflowEventSchemaControllerFindOneQueryResponse,
 } from "./types/workflowEventSchemasController/WorkflowEventSchemaControllerFindOne.ts";
 export type {
   WorkflowEventSchemaControllerList200,
+  WorkflowEventSchemaControllerList400,
+  WorkflowEventSchemaControllerList401,
+  WorkflowEventSchemaControllerList403,
   WorkflowEventSchemaControllerListQuery,
   WorkflowEventSchemaControllerListQueryParams,
   WorkflowEventSchemaControllerListQueryResponse,
 } from "./types/workflowEventSchemasController/WorkflowEventSchemaControllerList.ts";
 export type {
   WorkflowEventSchemaControllerUpdate200,
+  WorkflowEventSchemaControllerUpdate400,
+  WorkflowEventSchemaControllerUpdate401,
+  WorkflowEventSchemaControllerUpdate403,
+  WorkflowEventSchemaControllerUpdate404,
   WorkflowEventSchemaControllerUpdateMutation,
   WorkflowEventSchemaControllerUpdateMutationRequest,
   WorkflowEventSchemaControllerUpdateMutationResponse,
@@ -441,12 +495,20 @@ export type {
 } from "./types/workflowEventSchemasController/WorkflowEventSchemaControllerUpdate.ts";
 export type {
   WorkflowRuleControllerDelete200,
+  WorkflowRuleControllerDelete400,
+  WorkflowRuleControllerDelete401,
+  WorkflowRuleControllerDelete403,
+  WorkflowRuleControllerDelete404,
   WorkflowRuleControllerDeleteMutation,
   WorkflowRuleControllerDeleteMutationResponse,
   WorkflowRuleControllerDeletePathParams,
 } from "./types/workflowRulesController/WorkflowRuleControllerDelete.ts";
 export type {
   WorkflowRuleControllerUpdate200,
+  WorkflowRuleControllerUpdate400,
+  WorkflowRuleControllerUpdate401,
+  WorkflowRuleControllerUpdate403,
+  WorkflowRuleControllerUpdate404,
   WorkflowRuleControllerUpdateMutation,
   WorkflowRuleControllerUpdateMutationRequest,
   WorkflowRuleControllerUpdateMutationResponse,
@@ -454,6 +516,10 @@ export type {
 } from "./types/workflowRulesController/WorkflowRuleControllerUpdate.ts";
 export type {
   WorkflowRuntimeControllerApprove201,
+  WorkflowRuntimeControllerApprove400,
+  WorkflowRuntimeControllerApprove401,
+  WorkflowRuntimeControllerApprove403,
+  WorkflowRuntimeControllerApprove404,
   WorkflowRuntimeControllerApproveMutation,
   WorkflowRuntimeControllerApproveMutationRequest,
   WorkflowRuntimeControllerApproveMutationResponse,
@@ -461,6 +527,10 @@ export type {
 } from "./types/workflowRuntimeController/WorkflowRuntimeControllerApprove.ts";
 export type {
   WorkflowRuntimeControllerComment201,
+  WorkflowRuntimeControllerComment400,
+  WorkflowRuntimeControllerComment401,
+  WorkflowRuntimeControllerComment403,
+  WorkflowRuntimeControllerComment404,
   WorkflowRuntimeControllerCommentMutation,
   WorkflowRuntimeControllerCommentMutationRequest,
   WorkflowRuntimeControllerCommentMutationResponse,
@@ -468,23 +538,36 @@ export type {
 } from "./types/workflowRuntimeController/WorkflowRuntimeControllerComment.ts";
 export type {
   WorkflowRuntimeControllerFindOne200,
+  WorkflowRuntimeControllerFindOne400,
+  WorkflowRuntimeControllerFindOne401,
+  WorkflowRuntimeControllerFindOne403,
+  WorkflowRuntimeControllerFindOne404,
   WorkflowRuntimeControllerFindOnePathParams,
   WorkflowRuntimeControllerFindOneQuery,
   WorkflowRuntimeControllerFindOneQueryResponse,
 } from "./types/workflowRuntimeController/WorkflowRuntimeControllerFindOne.ts";
 export type {
   WorkflowRuntimeControllerList200,
+  WorkflowRuntimeControllerList400,
+  WorkflowRuntimeControllerList401,
+  WorkflowRuntimeControllerList403,
   WorkflowRuntimeControllerListQuery,
   WorkflowRuntimeControllerListQueryParams,
   WorkflowRuntimeControllerListQueryResponse,
 } from "./types/workflowRuntimeController/WorkflowRuntimeControllerList.ts";
 export type {
   WorkflowRuntimeControllerMyPending200,
+  WorkflowRuntimeControllerMyPending401,
+  WorkflowRuntimeControllerMyPending403,
   WorkflowRuntimeControllerMyPendingQuery,
   WorkflowRuntimeControllerMyPendingQueryResponse,
 } from "./types/workflowRuntimeController/WorkflowRuntimeControllerMyPending.ts";
 export type {
   WorkflowRuntimeControllerReject201,
+  WorkflowRuntimeControllerReject400,
+  WorkflowRuntimeControllerReject401,
+  WorkflowRuntimeControllerReject403,
+  WorkflowRuntimeControllerReject404,
   WorkflowRuntimeControllerRejectMutation,
   WorkflowRuntimeControllerRejectMutationRequest,
   WorkflowRuntimeControllerRejectMutationResponse,
@@ -492,12 +575,19 @@ export type {
 } from "./types/workflowRuntimeController/WorkflowRuntimeControllerReject.ts";
 export type {
   WorkflowRuntimeControllerTrigger201,
+  WorkflowRuntimeControllerTrigger400,
+  WorkflowRuntimeControllerTrigger401,
+  WorkflowRuntimeControllerTrigger403,
   WorkflowRuntimeControllerTriggerMutation,
   WorkflowRuntimeControllerTriggerMutationRequest,
   WorkflowRuntimeControllerTriggerMutationResponse,
 } from "./types/workflowRuntimeController/WorkflowRuntimeControllerTrigger.ts";
 export type {
   WorkflowStepConfigControllerCreate201,
+  WorkflowStepConfigControllerCreate400,
+  WorkflowStepConfigControllerCreate401,
+  WorkflowStepConfigControllerCreate403,
+  WorkflowStepConfigControllerCreate404,
   WorkflowStepConfigControllerCreateMutation,
   WorkflowStepConfigControllerCreateMutationRequest,
   WorkflowStepConfigControllerCreateMutationResponse,
@@ -505,12 +595,20 @@ export type {
 } from "./types/workflowStepConfigsController/WorkflowStepConfigControllerCreate.ts";
 export type {
   WorkflowStepConfigControllerDelete200,
+  WorkflowStepConfigControllerDelete400,
+  WorkflowStepConfigControllerDelete401,
+  WorkflowStepConfigControllerDelete403,
+  WorkflowStepConfigControllerDelete404,
   WorkflowStepConfigControllerDeleteMutation,
   WorkflowStepConfigControllerDeleteMutationResponse,
   WorkflowStepConfigControllerDeletePathParams,
 } from "./types/workflowStepConfigsController/WorkflowStepConfigControllerDelete.ts";
 export type {
   WorkflowStepConfigControllerUpdate200,
+  WorkflowStepConfigControllerUpdate400,
+  WorkflowStepConfigControllerUpdate401,
+  WorkflowStepConfigControllerUpdate403,
+  WorkflowStepConfigControllerUpdate404,
   WorkflowStepConfigControllerUpdateMutation,
   WorkflowStepConfigControllerUpdateMutationRequest,
   WorkflowStepConfigControllerUpdateMutationResponse,
@@ -518,12 +616,19 @@ export type {
 } from "./types/workflowStepConfigsController/WorkflowStepConfigControllerUpdate.ts";
 export type {
   WorkflowTemplateControllerCreate201,
+  WorkflowTemplateControllerCreate400,
+  WorkflowTemplateControllerCreate401,
+  WorkflowTemplateControllerCreate403,
   WorkflowTemplateControllerCreateMutation,
   WorkflowTemplateControllerCreateMutationRequest,
   WorkflowTemplateControllerCreateMutationResponse,
 } from "./types/workflowTemplatesController/WorkflowTemplateControllerCreate.ts";
 export type {
   WorkflowTemplateControllerCreateRule201,
+  WorkflowTemplateControllerCreateRule400,
+  WorkflowTemplateControllerCreateRule401,
+  WorkflowTemplateControllerCreateRule403,
+  WorkflowTemplateControllerCreateRule404,
   WorkflowTemplateControllerCreateRuleMutation,
   WorkflowTemplateControllerCreateRuleMutationRequest,
   WorkflowTemplateControllerCreateRuleMutationResponse,
@@ -531,42 +636,68 @@ export type {
 } from "./types/workflowTemplatesController/WorkflowTemplateControllerCreateRule.ts";
 export type {
   WorkflowTemplateControllerCreateWizard201,
+  WorkflowTemplateControllerCreateWizard400,
+  WorkflowTemplateControllerCreateWizard401,
+  WorkflowTemplateControllerCreateWizard403,
   WorkflowTemplateControllerCreateWizardMutation,
   WorkflowTemplateControllerCreateWizardMutationRequest,
   WorkflowTemplateControllerCreateWizardMutationResponse,
 } from "./types/workflowTemplatesController/WorkflowTemplateControllerCreateWizard.ts";
 export type {
   WorkflowTemplateControllerDeactivate201,
+  WorkflowTemplateControllerDeactivate400,
+  WorkflowTemplateControllerDeactivate401,
+  WorkflowTemplateControllerDeactivate403,
+  WorkflowTemplateControllerDeactivate404,
   WorkflowTemplateControllerDeactivateMutation,
   WorkflowTemplateControllerDeactivateMutationResponse,
   WorkflowTemplateControllerDeactivatePathParams,
 } from "./types/workflowTemplatesController/WorkflowTemplateControllerDeactivate.ts";
 export type {
   WorkflowTemplateControllerDuplicate201,
+  WorkflowTemplateControllerDuplicate400,
+  WorkflowTemplateControllerDuplicate401,
+  WorkflowTemplateControllerDuplicate403,
+  WorkflowTemplateControllerDuplicate404,
   WorkflowTemplateControllerDuplicateMutation,
   WorkflowTemplateControllerDuplicateMutationResponse,
   WorkflowTemplateControllerDuplicatePathParams,
 } from "./types/workflowTemplatesController/WorkflowTemplateControllerDuplicate.ts";
 export type {
   WorkflowTemplateControllerFindOne200,
+  WorkflowTemplateControllerFindOne400,
+  WorkflowTemplateControllerFindOne401,
+  WorkflowTemplateControllerFindOne403,
+  WorkflowTemplateControllerFindOne404,
   WorkflowTemplateControllerFindOnePathParams,
   WorkflowTemplateControllerFindOneQuery,
   WorkflowTemplateControllerFindOneQueryResponse,
 } from "./types/workflowTemplatesController/WorkflowTemplateControllerFindOne.ts";
 export type {
   WorkflowTemplateControllerList200,
+  WorkflowTemplateControllerList400,
+  WorkflowTemplateControllerList401,
+  WorkflowTemplateControllerList403,
   WorkflowTemplateControllerListQuery,
   WorkflowTemplateControllerListQueryParams,
   WorkflowTemplateControllerListQueryResponse,
 } from "./types/workflowTemplatesController/WorkflowTemplateControllerList.ts";
 export type {
   WorkflowTemplateControllerPublish201,
+  WorkflowTemplateControllerPublish400,
+  WorkflowTemplateControllerPublish401,
+  WorkflowTemplateControllerPublish403,
+  WorkflowTemplateControllerPublish404,
   WorkflowTemplateControllerPublishMutation,
   WorkflowTemplateControllerPublishMutationResponse,
   WorkflowTemplateControllerPublishPathParams,
 } from "./types/workflowTemplatesController/WorkflowTemplateControllerPublish.ts";
 export type {
   WorkflowTemplateControllerUpdate200,
+  WorkflowTemplateControllerUpdate400,
+  WorkflowTemplateControllerUpdate401,
+  WorkflowTemplateControllerUpdate403,
+  WorkflowTemplateControllerUpdate404,
   WorkflowTemplateControllerUpdateMutation,
   WorkflowTemplateControllerUpdateMutationRequest,
   WorkflowTemplateControllerUpdateMutationResponse,
@@ -811,24 +942,35 @@ export { apiErrorDtoSchema } from "./zod/apiErrorDtoSchema.ts";
 export { apiResponseDtoSchema } from "./zod/apiResponseDtoSchema.ts";
 export {
   appControllerGetHello200Schema,
+  appControllerGetHello429Schema,
   appControllerGetHelloQueryResponseSchema,
 } from "./zod/appController/appControllerGetHelloSchema.ts";
+export { appResponseDtoSchema } from "./zod/appResponseDtoSchema.ts";
 export { approverDashboardResponseDtoSchema } from "./zod/approverDashboardResponseDtoSchema.ts";
 export { auditLogResponseDtoSchema } from "./zod/auditLogResponseDtoSchema.ts";
 export {
   auditLogsControllerListForEntity200Schema,
+  auditLogsControllerListForEntity400Schema,
+  auditLogsControllerListForEntity401Schema,
+  auditLogsControllerListForEntity403Schema,
   auditLogsControllerListForEntityPathParamsSchema,
   auditLogsControllerListForEntityQueryParamsSchema,
   auditLogsControllerListForEntityQueryResponseSchema,
 } from "./zod/auditLogsController/auditLogsControllerListForEntitySchema.ts";
 export {
   auditLogsControllerListForWorkflow200Schema,
+  auditLogsControllerListForWorkflow400Schema,
+  auditLogsControllerListForWorkflow401Schema,
+  auditLogsControllerListForWorkflow403Schema,
   auditLogsControllerListForWorkflowPathParamsSchema,
   auditLogsControllerListForWorkflowQueryParamsSchema,
   auditLogsControllerListForWorkflowQueryResponseSchema,
 } from "./zod/auditLogsController/auditLogsControllerListForWorkflowSchema.ts";
 export {
   auditLogsControllerList200Schema,
+  auditLogsControllerList400Schema,
+  auditLogsControllerList401Schema,
+  auditLogsControllerList403Schema,
   auditLogsControllerListQueryParamsSchema,
   auditLogsControllerListQueryResponseSchema,
 } from "./zod/auditLogsController/auditLogsControllerListSchema.ts";
@@ -876,24 +1018,35 @@ export { createWorkflowStepConfigDtoSchema } from "./zod/createWorkflowStepConfi
 export { createWorkflowTemplateDtoSchema } from "./zod/createWorkflowTemplateDtoSchema.ts";
 export {
   dashboardControllerAccounts200Schema,
+  dashboardControllerAccounts401Schema,
+  dashboardControllerAccounts403Schema,
   dashboardControllerAccountsQueryResponseSchema,
 } from "./zod/dashboardController/dashboardControllerAccountsSchema.ts";
 export {
   dashboardControllerAdmin200Schema,
+  dashboardControllerAdmin401Schema,
+  dashboardControllerAdmin403Schema,
   dashboardControllerAdminQueryResponseSchema,
 } from "./zod/dashboardController/dashboardControllerAdminSchema.ts";
 export {
   dashboardControllerApprover200Schema,
+  dashboardControllerApprover401Schema,
+  dashboardControllerApprover403Schema,
   dashboardControllerApproverQueryResponseSchema,
 } from "./zod/dashboardController/dashboardControllerApproverSchema.ts";
 export {
   dashboardControllerEmployee200Schema,
+  dashboardControllerEmployee401Schema,
+  dashboardControllerEmployee403Schema,
   dashboardControllerEmployeeQueryResponseSchema,
 } from "./zod/dashboardController/dashboardControllerEmployeeSchema.ts";
 export {
   dashboardControllerHr200Schema,
+  dashboardControllerHr401Schema,
+  dashboardControllerHr403Schema,
   dashboardControllerHrQueryResponseSchema,
 } from "./zod/dashboardController/dashboardControllerHrSchema.ts";
+export { dashboardRecentItemDtoSchema } from "./zod/dashboardRecentItemDtoSchema.ts";
 export { employeeDashboardResponseDtoSchema } from "./zod/employeeDashboardResponseDtoSchema.ts";
 export { employeeExpenseSummaryDtoSchema } from "./zod/employeeExpenseSummaryDtoSchema.ts";
 export { employeeLeaveSummaryDtoSchema } from "./zod/employeeLeaveSummaryDtoSchema.ts";
@@ -1034,16 +1187,27 @@ export { paginationMetaDtoSchema } from "./zod/paginationMetaDtoSchema.ts";
 export { paymentRequestResponseDtoSchema } from "./zod/paymentRequestResponseDtoSchema.ts";
 export {
   paymentsControllerFindOne200Schema,
+  paymentsControllerFindOne400Schema,
+  paymentsControllerFindOne401Schema,
+  paymentsControllerFindOne403Schema,
+  paymentsControllerFindOne404Schema,
   paymentsControllerFindOnePathParamsSchema,
   paymentsControllerFindOneQueryResponseSchema,
 } from "./zod/paymentRequestsController/paymentsControllerFindOneSchema.ts";
 export {
   paymentsControllerList200Schema,
+  paymentsControllerList400Schema,
+  paymentsControllerList401Schema,
+  paymentsControllerList403Schema,
   paymentsControllerListQueryParamsSchema,
   paymentsControllerListQueryResponseSchema,
 } from "./zod/paymentRequestsController/paymentsControllerListSchema.ts";
 export {
   paymentsControllerMarkPaid201Schema,
+  paymentsControllerMarkPaid400Schema,
+  paymentsControllerMarkPaid401Schema,
+  paymentsControllerMarkPaid403Schema,
+  paymentsControllerMarkPaid404Schema,
   paymentsControllerMarkPaidMutationRequestSchema,
   paymentsControllerMarkPaidMutationResponseSchema,
   paymentsControllerMarkPaidPathParamsSchema,
@@ -1062,6 +1226,9 @@ export { updateWorkflowTemplateDtoSchema } from "./zod/updateWorkflowTemplateDto
 export { userResponseDtoSchema } from "./zod/userResponseDtoSchema.ts";
 export {
   usersControllerGetUsers200Schema,
+  usersControllerGetUsers400Schema,
+  usersControllerGetUsers401Schema,
+  usersControllerGetUsers403Schema,
   usersControllerGetUsersQueryParamsSchema,
   usersControllerGetUsersQueryResponseSchema,
 } from "./zod/usersController/usersControllerGetUsersSchema.ts";
@@ -1072,26 +1239,44 @@ export { workflowApprovalStepConfigResponseDtoSchema } from "./zod/workflowAppro
 export { workflowEventSchemaResponseDtoSchema } from "./zod/workflowEventSchemaResponseDtoSchema.ts";
 export {
   workflowEventSchemaControllerCreate201Schema,
+  workflowEventSchemaControllerCreate400Schema,
+  workflowEventSchemaControllerCreate401Schema,
+  workflowEventSchemaControllerCreate403Schema,
   workflowEventSchemaControllerCreateMutationRequestSchema,
   workflowEventSchemaControllerCreateMutationResponseSchema,
 } from "./zod/workflowEventSchemasController/workflowEventSchemaControllerCreateSchema.ts";
 export {
   workflowEventSchemaControllerDeactivate201Schema,
+  workflowEventSchemaControllerDeactivate400Schema,
+  workflowEventSchemaControllerDeactivate401Schema,
+  workflowEventSchemaControllerDeactivate403Schema,
+  workflowEventSchemaControllerDeactivate404Schema,
   workflowEventSchemaControllerDeactivateMutationResponseSchema,
   workflowEventSchemaControllerDeactivatePathParamsSchema,
 } from "./zod/workflowEventSchemasController/workflowEventSchemaControllerDeactivateSchema.ts";
 export {
   workflowEventSchemaControllerFindOne200Schema,
+  workflowEventSchemaControllerFindOne400Schema,
+  workflowEventSchemaControllerFindOne401Schema,
+  workflowEventSchemaControllerFindOne403Schema,
+  workflowEventSchemaControllerFindOne404Schema,
   workflowEventSchemaControllerFindOnePathParamsSchema,
   workflowEventSchemaControllerFindOneQueryResponseSchema,
 } from "./zod/workflowEventSchemasController/workflowEventSchemaControllerFindOneSchema.ts";
 export {
   workflowEventSchemaControllerList200Schema,
+  workflowEventSchemaControllerList400Schema,
+  workflowEventSchemaControllerList401Schema,
+  workflowEventSchemaControllerList403Schema,
   workflowEventSchemaControllerListQueryParamsSchema,
   workflowEventSchemaControllerListQueryResponseSchema,
 } from "./zod/workflowEventSchemasController/workflowEventSchemaControllerListSchema.ts";
 export {
   workflowEventSchemaControllerUpdate200Schema,
+  workflowEventSchemaControllerUpdate400Schema,
+  workflowEventSchemaControllerUpdate401Schema,
+  workflowEventSchemaControllerUpdate403Schema,
+  workflowEventSchemaControllerUpdate404Schema,
   workflowEventSchemaControllerUpdateMutationRequestSchema,
   workflowEventSchemaControllerUpdateMutationResponseSchema,
   workflowEventSchemaControllerUpdatePathParamsSchema,
@@ -1101,65 +1286,109 @@ export { workflowOutcomeConfigResponseDtoSchema } from "./zod/workflowOutcomeCon
 export { workflowRequestSummaryResponseDtoSchema } from "./zod/workflowRequestSummaryResponseDtoSchema.ts";
 export {
   workflowRuleControllerDelete200Schema,
+  workflowRuleControllerDelete400Schema,
+  workflowRuleControllerDelete401Schema,
+  workflowRuleControllerDelete403Schema,
+  workflowRuleControllerDelete404Schema,
   workflowRuleControllerDeleteMutationResponseSchema,
   workflowRuleControllerDeletePathParamsSchema,
 } from "./zod/workflowRulesController/workflowRuleControllerDeleteSchema.ts";
 export {
   workflowRuleControllerUpdate200Schema,
+  workflowRuleControllerUpdate400Schema,
+  workflowRuleControllerUpdate401Schema,
+  workflowRuleControllerUpdate403Schema,
+  workflowRuleControllerUpdate404Schema,
   workflowRuleControllerUpdateMutationRequestSchema,
   workflowRuleControllerUpdateMutationResponseSchema,
   workflowRuleControllerUpdatePathParamsSchema,
 } from "./zod/workflowRulesController/workflowRuleControllerUpdateSchema.ts";
 export {
   workflowRuntimeControllerApprove201Schema,
+  workflowRuntimeControllerApprove400Schema,
+  workflowRuntimeControllerApprove401Schema,
+  workflowRuntimeControllerApprove403Schema,
+  workflowRuntimeControllerApprove404Schema,
   workflowRuntimeControllerApproveMutationRequestSchema,
   workflowRuntimeControllerApproveMutationResponseSchema,
   workflowRuntimeControllerApprovePathParamsSchema,
 } from "./zod/workflowRuntimeController/workflowRuntimeControllerApproveSchema.ts";
 export {
   workflowRuntimeControllerComment201Schema,
+  workflowRuntimeControllerComment400Schema,
+  workflowRuntimeControllerComment401Schema,
+  workflowRuntimeControllerComment403Schema,
+  workflowRuntimeControllerComment404Schema,
   workflowRuntimeControllerCommentMutationRequestSchema,
   workflowRuntimeControllerCommentMutationResponseSchema,
   workflowRuntimeControllerCommentPathParamsSchema,
 } from "./zod/workflowRuntimeController/workflowRuntimeControllerCommentSchema.ts";
 export {
   workflowRuntimeControllerFindOne200Schema,
+  workflowRuntimeControllerFindOne400Schema,
+  workflowRuntimeControllerFindOne401Schema,
+  workflowRuntimeControllerFindOne403Schema,
+  workflowRuntimeControllerFindOne404Schema,
   workflowRuntimeControllerFindOnePathParamsSchema,
   workflowRuntimeControllerFindOneQueryResponseSchema,
 } from "./zod/workflowRuntimeController/workflowRuntimeControllerFindOneSchema.ts";
 export {
   workflowRuntimeControllerList200Schema,
+  workflowRuntimeControllerList400Schema,
+  workflowRuntimeControllerList401Schema,
+  workflowRuntimeControllerList403Schema,
   workflowRuntimeControllerListQueryParamsSchema,
   workflowRuntimeControllerListQueryResponseSchema,
 } from "./zod/workflowRuntimeController/workflowRuntimeControllerListSchema.ts";
 export {
   workflowRuntimeControllerMyPending200Schema,
+  workflowRuntimeControllerMyPending401Schema,
+  workflowRuntimeControllerMyPending403Schema,
   workflowRuntimeControllerMyPendingQueryResponseSchema,
 } from "./zod/workflowRuntimeController/workflowRuntimeControllerMyPendingSchema.ts";
 export {
   workflowRuntimeControllerReject201Schema,
+  workflowRuntimeControllerReject400Schema,
+  workflowRuntimeControllerReject401Schema,
+  workflowRuntimeControllerReject403Schema,
+  workflowRuntimeControllerReject404Schema,
   workflowRuntimeControllerRejectMutationRequestSchema,
   workflowRuntimeControllerRejectMutationResponseSchema,
   workflowRuntimeControllerRejectPathParamsSchema,
 } from "./zod/workflowRuntimeController/workflowRuntimeControllerRejectSchema.ts";
 export {
   workflowRuntimeControllerTrigger201Schema,
+  workflowRuntimeControllerTrigger400Schema,
+  workflowRuntimeControllerTrigger401Schema,
+  workflowRuntimeControllerTrigger403Schema,
   workflowRuntimeControllerTriggerMutationRequestSchema,
   workflowRuntimeControllerTriggerMutationResponseSchema,
 } from "./zod/workflowRuntimeController/workflowRuntimeControllerTriggerSchema.ts";
 export {
   workflowStepConfigControllerCreate201Schema,
+  workflowStepConfigControllerCreate400Schema,
+  workflowStepConfigControllerCreate401Schema,
+  workflowStepConfigControllerCreate403Schema,
+  workflowStepConfigControllerCreate404Schema,
   workflowStepConfigControllerCreateMutationRequestSchema,
   workflowStepConfigControllerCreateMutationResponseSchema,
   workflowStepConfigControllerCreatePathParamsSchema,
 } from "./zod/workflowStepConfigsController/workflowStepConfigControllerCreateSchema.ts";
 export {
   workflowStepConfigControllerDelete200Schema,
+  workflowStepConfigControllerDelete400Schema,
+  workflowStepConfigControllerDelete401Schema,
+  workflowStepConfigControllerDelete403Schema,
+  workflowStepConfigControllerDelete404Schema,
   workflowStepConfigControllerDeleteMutationResponseSchema,
   workflowStepConfigControllerDeletePathParamsSchema,
 } from "./zod/workflowStepConfigsController/workflowStepConfigControllerDeleteSchema.ts";
 export {
   workflowStepConfigControllerUpdate200Schema,
+  workflowStepConfigControllerUpdate400Schema,
+  workflowStepConfigControllerUpdate401Schema,
+  workflowStepConfigControllerUpdate403Schema,
+  workflowStepConfigControllerUpdate404Schema,
   workflowStepConfigControllerUpdateMutationRequestSchema,
   workflowStepConfigControllerUpdateMutationResponseSchema,
   workflowStepConfigControllerUpdatePathParamsSchema,
@@ -1168,47 +1397,80 @@ export { workflowStepResponseDtoSchema } from "./zod/workflowStepResponseDtoSche
 export { workflowTemplateResponseDtoSchema } from "./zod/workflowTemplateResponseDtoSchema.ts";
 export {
   workflowTemplateControllerCreateRule201Schema,
+  workflowTemplateControllerCreateRule400Schema,
+  workflowTemplateControllerCreateRule401Schema,
+  workflowTemplateControllerCreateRule403Schema,
+  workflowTemplateControllerCreateRule404Schema,
   workflowTemplateControllerCreateRuleMutationRequestSchema,
   workflowTemplateControllerCreateRuleMutationResponseSchema,
   workflowTemplateControllerCreateRulePathParamsSchema,
 } from "./zod/workflowTemplatesController/workflowTemplateControllerCreateRuleSchema.ts";
 export {
   workflowTemplateControllerCreate201Schema,
+  workflowTemplateControllerCreate400Schema,
+  workflowTemplateControllerCreate401Schema,
+  workflowTemplateControllerCreate403Schema,
   workflowTemplateControllerCreateMutationRequestSchema,
   workflowTemplateControllerCreateMutationResponseSchema,
 } from "./zod/workflowTemplatesController/workflowTemplateControllerCreateSchema.ts";
 export {
   workflowTemplateControllerCreateWizard201Schema,
+  workflowTemplateControllerCreateWizard400Schema,
+  workflowTemplateControllerCreateWizard401Schema,
+  workflowTemplateControllerCreateWizard403Schema,
   workflowTemplateControllerCreateWizardMutationRequestSchema,
   workflowTemplateControllerCreateWizardMutationResponseSchema,
 } from "./zod/workflowTemplatesController/workflowTemplateControllerCreateWizardSchema.ts";
 export {
   workflowTemplateControllerDeactivate201Schema,
+  workflowTemplateControllerDeactivate400Schema,
+  workflowTemplateControllerDeactivate401Schema,
+  workflowTemplateControllerDeactivate403Schema,
+  workflowTemplateControllerDeactivate404Schema,
   workflowTemplateControllerDeactivateMutationResponseSchema,
   workflowTemplateControllerDeactivatePathParamsSchema,
 } from "./zod/workflowTemplatesController/workflowTemplateControllerDeactivateSchema.ts";
 export {
   workflowTemplateControllerDuplicate201Schema,
+  workflowTemplateControllerDuplicate400Schema,
+  workflowTemplateControllerDuplicate401Schema,
+  workflowTemplateControllerDuplicate403Schema,
+  workflowTemplateControllerDuplicate404Schema,
   workflowTemplateControllerDuplicateMutationResponseSchema,
   workflowTemplateControllerDuplicatePathParamsSchema,
 } from "./zod/workflowTemplatesController/workflowTemplateControllerDuplicateSchema.ts";
 export {
   workflowTemplateControllerFindOne200Schema,
+  workflowTemplateControllerFindOne400Schema,
+  workflowTemplateControllerFindOne401Schema,
+  workflowTemplateControllerFindOne403Schema,
+  workflowTemplateControllerFindOne404Schema,
   workflowTemplateControllerFindOnePathParamsSchema,
   workflowTemplateControllerFindOneQueryResponseSchema,
 } from "./zod/workflowTemplatesController/workflowTemplateControllerFindOneSchema.ts";
 export {
   workflowTemplateControllerList200Schema,
+  workflowTemplateControllerList400Schema,
+  workflowTemplateControllerList401Schema,
+  workflowTemplateControllerList403Schema,
   workflowTemplateControllerListQueryParamsSchema,
   workflowTemplateControllerListQueryResponseSchema,
 } from "./zod/workflowTemplatesController/workflowTemplateControllerListSchema.ts";
 export {
   workflowTemplateControllerPublish201Schema,
+  workflowTemplateControllerPublish400Schema,
+  workflowTemplateControllerPublish401Schema,
+  workflowTemplateControllerPublish403Schema,
+  workflowTemplateControllerPublish404Schema,
   workflowTemplateControllerPublishMutationResponseSchema,
   workflowTemplateControllerPublishPathParamsSchema,
 } from "./zod/workflowTemplatesController/workflowTemplateControllerPublishSchema.ts";
 export {
   workflowTemplateControllerUpdate200Schema,
+  workflowTemplateControllerUpdate400Schema,
+  workflowTemplateControllerUpdate401Schema,
+  workflowTemplateControllerUpdate403Schema,
+  workflowTemplateControllerUpdate404Schema,
   workflowTemplateControllerUpdateMutationRequestSchema,
   workflowTemplateControllerUpdateMutationResponseSchema,
   workflowTemplateControllerUpdatePathParamsSchema,

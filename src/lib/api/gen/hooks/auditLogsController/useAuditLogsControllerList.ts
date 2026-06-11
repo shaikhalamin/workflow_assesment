@@ -6,6 +6,9 @@
 import type {
   AuditLogsControllerListQueryResponse,
   AuditLogsControllerListQueryParams,
+  AuditLogsControllerList400,
+  AuditLogsControllerList401,
+  AuditLogsControllerList403,
 } from "../../types/auditLogsController/AuditLogsControllerList.ts";
 import type {
   Client,
@@ -36,7 +39,11 @@ export function auditLogsControllerListQueryOptions(
   const queryKey = auditLogsControllerListQueryKey(params);
   return queryOptions<
     AuditLogsControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | AuditLogsControllerList400
+      | AuditLogsControllerList401
+      | AuditLogsControllerList403
+    >,
     AuditLogsControllerListQueryResponse,
     typeof queryKey
   >({
@@ -63,7 +70,11 @@ export function useAuditLogsControllerList<
     query?: Partial<
       QueryObserverOptions<
         AuditLogsControllerListQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | AuditLogsControllerList400
+          | AuditLogsControllerList401
+          | AuditLogsControllerList403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -84,9 +95,14 @@ export function useAuditLogsControllerList<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | AuditLogsControllerList400
+      | AuditLogsControllerList401
+      | AuditLogsControllerList403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

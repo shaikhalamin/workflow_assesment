@@ -8,6 +8,10 @@ import type {
   WorkflowEventSchemaControllerUpdateMutationRequest,
   WorkflowEventSchemaControllerUpdateMutationResponse,
   WorkflowEventSchemaControllerUpdatePathParams,
+  WorkflowEventSchemaControllerUpdate400,
+  WorkflowEventSchemaControllerUpdate401,
+  WorkflowEventSchemaControllerUpdate403,
+  WorkflowEventSchemaControllerUpdate404,
 } from "../../types/workflowEventSchemasController/WorkflowEventSchemaControllerUpdate.ts";
 import type {
   Client,
@@ -48,7 +52,12 @@ export async function workflowEventSchemaControllerUpdate(
 
   const res = await request<
     WorkflowEventSchemaControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerUpdate400
+      | WorkflowEventSchemaControllerUpdate401
+      | WorkflowEventSchemaControllerUpdate403
+      | WorkflowEventSchemaControllerUpdate404
+    >,
     WorkflowEventSchemaControllerUpdateMutationRequest
   >({
     method: "PATCH",

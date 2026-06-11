@@ -8,6 +8,9 @@ import type {
   AuditLogsControllerListForWorkflowQueryResponse,
   AuditLogsControllerListForWorkflowPathParams,
   AuditLogsControllerListForWorkflowQueryParams,
+  AuditLogsControllerListForWorkflow400,
+  AuditLogsControllerListForWorkflow401,
+  AuditLogsControllerListForWorkflow403,
 } from "../../types/auditLogsController/AuditLogsControllerListForWorkflow.ts";
 import type {
   Client,
@@ -44,7 +47,11 @@ export async function auditLogsControllerListForWorkflow(
 
   const res = await request<
     AuditLogsControllerListForWorkflowQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | AuditLogsControllerListForWorkflow400
+      | AuditLogsControllerListForWorkflow401
+      | AuditLogsControllerListForWorkflow403
+    >,
     unknown
   >({
     method: "GET",

@@ -25,11 +25,71 @@ export type WorkflowEventSchemaControllerFindOne200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowEventSchemaControllerFindOne400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowEventSchemaControllerFindOne401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowEventSchemaControllerFindOne403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowEventSchemaControllerFindOne404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowEventSchemaControllerFindOneQueryResponse =
   WorkflowEventSchemaControllerFindOne200;
 
 export type WorkflowEventSchemaControllerFindOneQuery = {
   Response: WorkflowEventSchemaControllerFindOne200;
   PathParams: WorkflowEventSchemaControllerFindOnePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowEventSchemaControllerFindOne400
+    | WorkflowEventSchemaControllerFindOne401
+    | WorkflowEventSchemaControllerFindOne403
+    | WorkflowEventSchemaControllerFindOne404;
 };

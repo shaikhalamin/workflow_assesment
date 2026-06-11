@@ -6,6 +6,9 @@
 import type {
   WorkflowEventSchemaControllerListQueryResponse,
   WorkflowEventSchemaControllerListQueryParams,
+  WorkflowEventSchemaControllerList400,
+  WorkflowEventSchemaControllerList401,
+  WorkflowEventSchemaControllerList403,
 } from "../../types/workflowEventSchemasController/WorkflowEventSchemaControllerList.ts";
 import type {
   Client,
@@ -40,7 +43,11 @@ export function workflowEventSchemaControllerListQueryOptions(
   const queryKey = workflowEventSchemaControllerListQueryKey(params);
   return queryOptions<
     WorkflowEventSchemaControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerList400
+      | WorkflowEventSchemaControllerList401
+      | WorkflowEventSchemaControllerList403
+    >,
     WorkflowEventSchemaControllerListQueryResponse,
     typeof queryKey
   >({
@@ -67,7 +74,11 @@ export function useWorkflowEventSchemaControllerList<
     query?: Partial<
       QueryObserverOptions<
         WorkflowEventSchemaControllerListQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | WorkflowEventSchemaControllerList400
+          | WorkflowEventSchemaControllerList401
+          | WorkflowEventSchemaControllerList403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -89,9 +100,14 @@ export function useWorkflowEventSchemaControllerList<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerList400
+      | WorkflowEventSchemaControllerList401
+      | WorkflowEventSchemaControllerList403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

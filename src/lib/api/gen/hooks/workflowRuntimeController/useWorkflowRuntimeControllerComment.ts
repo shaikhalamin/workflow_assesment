@@ -7,6 +7,10 @@ import type {
   WorkflowRuntimeControllerCommentMutationRequest,
   WorkflowRuntimeControllerCommentMutationResponse,
   WorkflowRuntimeControllerCommentPathParams,
+  WorkflowRuntimeControllerComment400,
+  WorkflowRuntimeControllerComment401,
+  WorkflowRuntimeControllerComment403,
+  WorkflowRuntimeControllerComment404,
 } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerComment.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function workflowRuntimeControllerCommentMutationOptions<
   const mutationKey = workflowRuntimeControllerCommentMutationKey();
   return mutationOptions<
     WorkflowRuntimeControllerCommentMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerComment400
+      | WorkflowRuntimeControllerComment401
+      | WorkflowRuntimeControllerComment403
+      | WorkflowRuntimeControllerComment404
+    >,
     {
       id: WorkflowRuntimeControllerCommentPathParams["id"];
       data: WorkflowRuntimeControllerCommentMutationRequest;
@@ -59,7 +68,12 @@ export function useWorkflowRuntimeControllerComment<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowRuntimeControllerCommentMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowRuntimeControllerComment400
+        | WorkflowRuntimeControllerComment401
+        | WorkflowRuntimeControllerComment403
+        | WorkflowRuntimeControllerComment404
+      >,
       {
         id: WorkflowRuntimeControllerCommentPathParams["id"];
         data: WorkflowRuntimeControllerCommentMutationRequest;
@@ -81,7 +95,12 @@ export function useWorkflowRuntimeControllerComment<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowRuntimeControllerCommentMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerComment400
+      | WorkflowRuntimeControllerComment401
+      | WorkflowRuntimeControllerComment403
+      | WorkflowRuntimeControllerComment404
+    >,
     {
       id: WorkflowRuntimeControllerCommentPathParams["id"];
       data: WorkflowRuntimeControllerCommentMutationRequest;
@@ -91,7 +110,12 @@ export function useWorkflowRuntimeControllerComment<TContext>(
 
   return useMutation<
     WorkflowRuntimeControllerCommentMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerComment400
+      | WorkflowRuntimeControllerComment401
+      | WorkflowRuntimeControllerComment403
+      | WorkflowRuntimeControllerComment404
+    >,
     {
       id: WorkflowRuntimeControllerCommentPathParams["id"];
       data: WorkflowRuntimeControllerCommentMutationRequest;
@@ -106,7 +130,12 @@ export function useWorkflowRuntimeControllerComment<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowRuntimeControllerCommentMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerComment400
+      | WorkflowRuntimeControllerComment401
+      | WorkflowRuntimeControllerComment403
+      | WorkflowRuntimeControllerComment404
+    >,
     {
       id: WorkflowRuntimeControllerCommentPathParams["id"];
       data: WorkflowRuntimeControllerCommentMutationRequest;

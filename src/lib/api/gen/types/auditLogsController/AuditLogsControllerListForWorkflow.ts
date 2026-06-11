@@ -4,6 +4,7 @@
  */
 
 import type { ApiErrorDto } from "../ApiErrorDto.ts";
+import type { ApiResponseDto } from "../ApiResponseDto.ts";
 import type { AuditLogResponseDto } from "../AuditLogResponseDto.ts";
 import type { PaginatedResponseDto } from "../PaginatedResponseDto.ts";
 import type { PaginationMetaDto } from "../PaginationMetaDto.ts";
@@ -46,6 +47,48 @@ export type AuditLogsControllerListForWorkflow200 = PaginatedResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type AuditLogsControllerListForWorkflow400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type AuditLogsControllerListForWorkflow401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type AuditLogsControllerListForWorkflow403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type AuditLogsControllerListForWorkflowQueryResponse =
   AuditLogsControllerListForWorkflow200;
 
@@ -53,5 +96,8 @@ export type AuditLogsControllerListForWorkflowQuery = {
   Response: AuditLogsControllerListForWorkflow200;
   PathParams: AuditLogsControllerListForWorkflowPathParams;
   QueryParams: AuditLogsControllerListForWorkflowQueryParams;
-  Errors: any;
+  Errors:
+    | AuditLogsControllerListForWorkflow400
+    | AuditLogsControllerListForWorkflow401
+    | AuditLogsControllerListForWorkflow403;
 };

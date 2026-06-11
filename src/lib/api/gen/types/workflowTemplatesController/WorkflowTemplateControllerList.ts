@@ -4,6 +4,7 @@
  */
 
 import type { ApiErrorDto } from "../ApiErrorDto.ts";
+import type { ApiResponseDto } from "../ApiResponseDto.ts";
 import type { PaginatedResponseDto } from "../PaginatedResponseDto.ts";
 import type { PaginationMetaDto } from "../PaginationMetaDto.ts";
 import type { WorkflowTemplateResponseDto } from "../WorkflowTemplateResponseDto.ts";
@@ -39,11 +40,56 @@ export type WorkflowTemplateControllerList200 = PaginatedResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowTemplateControllerList400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowTemplateControllerList401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowTemplateControllerList403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowTemplateControllerListQueryResponse =
   WorkflowTemplateControllerList200;
 
 export type WorkflowTemplateControllerListQuery = {
   Response: WorkflowTemplateControllerList200;
   QueryParams: WorkflowTemplateControllerListQueryParams;
-  Errors: any;
+  Errors:
+    | WorkflowTemplateControllerList400
+    | WorkflowTemplateControllerList401
+    | WorkflowTemplateControllerList403;
 };

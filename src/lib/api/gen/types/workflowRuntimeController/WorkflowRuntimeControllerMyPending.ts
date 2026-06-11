@@ -18,10 +18,40 @@ export type WorkflowRuntimeControllerMyPending200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowRuntimeControllerMyPending401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowRuntimeControllerMyPending403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowRuntimeControllerMyPendingQueryResponse =
   WorkflowRuntimeControllerMyPending200;
 
 export type WorkflowRuntimeControllerMyPendingQuery = {
   Response: WorkflowRuntimeControllerMyPending200;
-  Errors: any;
+  Errors:
+    | WorkflowRuntimeControllerMyPending401
+    | WorkflowRuntimeControllerMyPending403;
 };

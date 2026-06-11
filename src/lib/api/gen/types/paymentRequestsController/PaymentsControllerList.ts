@@ -4,6 +4,7 @@
  */
 
 import type { ApiErrorDto } from "../ApiErrorDto.ts";
+import type { ApiResponseDto } from "../ApiResponseDto.ts";
 import type { PaginatedResponseDto } from "../PaginatedResponseDto.ts";
 import type { PaginationMetaDto } from "../PaginationMetaDto.ts";
 import type { PaymentRequestResponseDto } from "../PaymentRequestResponseDto.ts";
@@ -39,10 +40,55 @@ export type PaymentsControllerList200 = PaginatedResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type PaymentsControllerList400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type PaymentsControllerList401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type PaymentsControllerList403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type PaymentsControllerListQueryResponse = PaymentsControllerList200;
 
 export type PaymentsControllerListQuery = {
   Response: PaymentsControllerList200;
   QueryParams: PaymentsControllerListQueryParams;
-  Errors: any;
+  Errors:
+    | PaymentsControllerList400
+    | PaymentsControllerList401
+    | PaymentsControllerList403;
 };

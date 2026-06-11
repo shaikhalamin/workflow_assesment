@@ -26,6 +26,62 @@ export type WorkflowRuntimeControllerComment201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowRuntimeControllerComment400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowRuntimeControllerComment401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowRuntimeControllerComment403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowRuntimeControllerComment404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowRuntimeControllerCommentMutationRequest = WorkflowActionDto;
 
 export type WorkflowRuntimeControllerCommentMutationResponse =
@@ -35,5 +91,9 @@ export type WorkflowRuntimeControllerCommentMutation = {
   Response: WorkflowRuntimeControllerComment201;
   Request: WorkflowRuntimeControllerCommentMutationRequest;
   PathParams: WorkflowRuntimeControllerCommentPathParams;
-  Errors: any;
+  Errors:
+    | WorkflowRuntimeControllerComment400
+    | WorkflowRuntimeControllerComment401
+    | WorkflowRuntimeControllerComment403
+    | WorkflowRuntimeControllerComment404;
 };

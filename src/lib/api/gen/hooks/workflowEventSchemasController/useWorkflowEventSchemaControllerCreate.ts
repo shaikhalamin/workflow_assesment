@@ -6,6 +6,9 @@
 import type {
   WorkflowEventSchemaControllerCreateMutationRequest,
   WorkflowEventSchemaControllerCreateMutationResponse,
+  WorkflowEventSchemaControllerCreate400,
+  WorkflowEventSchemaControllerCreate401,
+  WorkflowEventSchemaControllerCreate403,
 } from "../../types/workflowEventSchemasController/WorkflowEventSchemaControllerCreate.ts";
 import type {
   Client,
@@ -37,7 +40,11 @@ export function workflowEventSchemaControllerCreateMutationOptions<
   const mutationKey = workflowEventSchemaControllerCreateMutationKey();
   return mutationOptions<
     WorkflowEventSchemaControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerCreate400
+      | WorkflowEventSchemaControllerCreate401
+      | WorkflowEventSchemaControllerCreate403
+    >,
     { data: WorkflowEventSchemaControllerCreateMutationRequest },
     TContext
   >({
@@ -55,7 +62,11 @@ export function useWorkflowEventSchemaControllerCreate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowEventSchemaControllerCreateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowEventSchemaControllerCreate400
+        | WorkflowEventSchemaControllerCreate401
+        | WorkflowEventSchemaControllerCreate403
+      >,
       { data: WorkflowEventSchemaControllerCreateMutationRequest },
       TContext
     > & { client?: QueryClient };
@@ -74,14 +85,22 @@ export function useWorkflowEventSchemaControllerCreate<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowEventSchemaControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerCreate400
+      | WorkflowEventSchemaControllerCreate401
+      | WorkflowEventSchemaControllerCreate403
+    >,
     { data: WorkflowEventSchemaControllerCreateMutationRequest },
     TContext
   >;
 
   return useMutation<
     WorkflowEventSchemaControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerCreate400
+      | WorkflowEventSchemaControllerCreate401
+      | WorkflowEventSchemaControllerCreate403
+    >,
     { data: WorkflowEventSchemaControllerCreateMutationRequest },
     TContext
   >(
@@ -93,7 +112,11 @@ export function useWorkflowEventSchemaControllerCreate<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowEventSchemaControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerCreate400
+      | WorkflowEventSchemaControllerCreate401
+      | WorkflowEventSchemaControllerCreate403
+    >,
     { data: WorkflowEventSchemaControllerCreateMutationRequest },
     TContext
   >;

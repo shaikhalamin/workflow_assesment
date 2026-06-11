@@ -6,6 +6,10 @@
 import type {
   WorkflowEventSchemaControllerDeactivateMutationResponse,
   WorkflowEventSchemaControllerDeactivatePathParams,
+  WorkflowEventSchemaControllerDeactivate400,
+  WorkflowEventSchemaControllerDeactivate401,
+  WorkflowEventSchemaControllerDeactivate403,
+  WorkflowEventSchemaControllerDeactivate404,
 } from "../../types/workflowEventSchemasController/WorkflowEventSchemaControllerDeactivate.ts";
 import type {
   Client,
@@ -33,7 +37,12 @@ export function workflowEventSchemaControllerDeactivateMutationOptions<
   const mutationKey = workflowEventSchemaControllerDeactivateMutationKey();
   return mutationOptions<
     WorkflowEventSchemaControllerDeactivateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerDeactivate400
+      | WorkflowEventSchemaControllerDeactivate401
+      | WorkflowEventSchemaControllerDeactivate403
+      | WorkflowEventSchemaControllerDeactivate404
+    >,
     { id: WorkflowEventSchemaControllerDeactivatePathParams["id"] },
     TContext
   >({
@@ -51,7 +60,12 @@ export function useWorkflowEventSchemaControllerDeactivate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowEventSchemaControllerDeactivateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowEventSchemaControllerDeactivate400
+        | WorkflowEventSchemaControllerDeactivate401
+        | WorkflowEventSchemaControllerDeactivate403
+        | WorkflowEventSchemaControllerDeactivate404
+      >,
       { id: WorkflowEventSchemaControllerDeactivatePathParams["id"] },
       TContext
     > & { client?: QueryClient };
@@ -68,14 +82,24 @@ export function useWorkflowEventSchemaControllerDeactivate<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowEventSchemaControllerDeactivateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerDeactivate400
+      | WorkflowEventSchemaControllerDeactivate401
+      | WorkflowEventSchemaControllerDeactivate403
+      | WorkflowEventSchemaControllerDeactivate404
+    >,
     { id: WorkflowEventSchemaControllerDeactivatePathParams["id"] },
     TContext
   >;
 
   return useMutation<
     WorkflowEventSchemaControllerDeactivateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerDeactivate400
+      | WorkflowEventSchemaControllerDeactivate401
+      | WorkflowEventSchemaControllerDeactivate403
+      | WorkflowEventSchemaControllerDeactivate404
+    >,
     { id: WorkflowEventSchemaControllerDeactivatePathParams["id"] },
     TContext
   >(
@@ -87,7 +111,12 @@ export function useWorkflowEventSchemaControllerDeactivate<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowEventSchemaControllerDeactivateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerDeactivate400
+      | WorkflowEventSchemaControllerDeactivate401
+      | WorkflowEventSchemaControllerDeactivate403
+      | WorkflowEventSchemaControllerDeactivate404
+    >,
     { id: WorkflowEventSchemaControllerDeactivatePathParams["id"] },
     TContext
   >;

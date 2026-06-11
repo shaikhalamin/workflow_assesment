@@ -7,6 +7,10 @@ import type {
   WorkflowRuntimeControllerApproveMutationRequest,
   WorkflowRuntimeControllerApproveMutationResponse,
   WorkflowRuntimeControllerApprovePathParams,
+  WorkflowRuntimeControllerApprove400,
+  WorkflowRuntimeControllerApprove401,
+  WorkflowRuntimeControllerApprove403,
+  WorkflowRuntimeControllerApprove404,
 } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerApprove.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function workflowRuntimeControllerApproveMutationOptions<
   const mutationKey = workflowRuntimeControllerApproveMutationKey();
   return mutationOptions<
     WorkflowRuntimeControllerApproveMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerApprove400
+      | WorkflowRuntimeControllerApprove401
+      | WorkflowRuntimeControllerApprove403
+      | WorkflowRuntimeControllerApprove404
+    >,
     {
       id: WorkflowRuntimeControllerApprovePathParams["id"];
       data: WorkflowRuntimeControllerApproveMutationRequest;
@@ -59,7 +68,12 @@ export function useWorkflowRuntimeControllerApprove<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowRuntimeControllerApproveMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowRuntimeControllerApprove400
+        | WorkflowRuntimeControllerApprove401
+        | WorkflowRuntimeControllerApprove403
+        | WorkflowRuntimeControllerApprove404
+      >,
       {
         id: WorkflowRuntimeControllerApprovePathParams["id"];
         data: WorkflowRuntimeControllerApproveMutationRequest;
@@ -81,7 +95,12 @@ export function useWorkflowRuntimeControllerApprove<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowRuntimeControllerApproveMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerApprove400
+      | WorkflowRuntimeControllerApprove401
+      | WorkflowRuntimeControllerApprove403
+      | WorkflowRuntimeControllerApprove404
+    >,
     {
       id: WorkflowRuntimeControllerApprovePathParams["id"];
       data: WorkflowRuntimeControllerApproveMutationRequest;
@@ -91,7 +110,12 @@ export function useWorkflowRuntimeControllerApprove<TContext>(
 
   return useMutation<
     WorkflowRuntimeControllerApproveMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerApprove400
+      | WorkflowRuntimeControllerApprove401
+      | WorkflowRuntimeControllerApprove403
+      | WorkflowRuntimeControllerApprove404
+    >,
     {
       id: WorkflowRuntimeControllerApprovePathParams["id"];
       data: WorkflowRuntimeControllerApproveMutationRequest;
@@ -106,7 +130,12 @@ export function useWorkflowRuntimeControllerApprove<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowRuntimeControllerApproveMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerApprove400
+      | WorkflowRuntimeControllerApprove401
+      | WorkflowRuntimeControllerApprove403
+      | WorkflowRuntimeControllerApprove404
+    >,
     {
       id: WorkflowRuntimeControllerApprovePathParams["id"];
       data: WorkflowRuntimeControllerApproveMutationRequest;

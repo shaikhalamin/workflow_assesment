@@ -7,6 +7,10 @@ import type {
   PaymentsControllerMarkPaidMutationRequest,
   PaymentsControllerMarkPaidMutationResponse,
   PaymentsControllerMarkPaidPathParams,
+  PaymentsControllerMarkPaid400,
+  PaymentsControllerMarkPaid401,
+  PaymentsControllerMarkPaid403,
+  PaymentsControllerMarkPaid404,
 } from "../../types/paymentRequestsController/PaymentsControllerMarkPaid.ts";
 import type {
   Client,
@@ -36,7 +40,12 @@ export function paymentsControllerMarkPaidMutationOptions<TContext = unknown>(
   const mutationKey = paymentsControllerMarkPaidMutationKey();
   return mutationOptions<
     PaymentsControllerMarkPaidMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | PaymentsControllerMarkPaid400
+      | PaymentsControllerMarkPaid401
+      | PaymentsControllerMarkPaid403
+      | PaymentsControllerMarkPaid404
+    >,
     {
       id: PaymentsControllerMarkPaidPathParams["id"];
       data: PaymentsControllerMarkPaidMutationRequest;
@@ -57,7 +66,12 @@ export function usePaymentsControllerMarkPaid<TContext>(
   options: {
     mutation?: UseMutationOptions<
       PaymentsControllerMarkPaidMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | PaymentsControllerMarkPaid400
+        | PaymentsControllerMarkPaid401
+        | PaymentsControllerMarkPaid403
+        | PaymentsControllerMarkPaid404
+      >,
       {
         id: PaymentsControllerMarkPaidPathParams["id"];
         data: PaymentsControllerMarkPaidMutationRequest;
@@ -78,7 +92,12 @@ export function usePaymentsControllerMarkPaid<TContext>(
     config,
   ) as UseMutationOptions<
     PaymentsControllerMarkPaidMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | PaymentsControllerMarkPaid400
+      | PaymentsControllerMarkPaid401
+      | PaymentsControllerMarkPaid403
+      | PaymentsControllerMarkPaid404
+    >,
     {
       id: PaymentsControllerMarkPaidPathParams["id"];
       data: PaymentsControllerMarkPaidMutationRequest;
@@ -88,7 +107,12 @@ export function usePaymentsControllerMarkPaid<TContext>(
 
   return useMutation<
     PaymentsControllerMarkPaidMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | PaymentsControllerMarkPaid400
+      | PaymentsControllerMarkPaid401
+      | PaymentsControllerMarkPaid403
+      | PaymentsControllerMarkPaid404
+    >,
     {
       id: PaymentsControllerMarkPaidPathParams["id"];
       data: PaymentsControllerMarkPaidMutationRequest;
@@ -103,7 +127,12 @@ export function usePaymentsControllerMarkPaid<TContext>(
     queryClient,
   ) as UseMutationResult<
     PaymentsControllerMarkPaidMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | PaymentsControllerMarkPaid400
+      | PaymentsControllerMarkPaid401
+      | PaymentsControllerMarkPaid403
+      | PaymentsControllerMarkPaid404
+    >,
     {
       id: PaymentsControllerMarkPaidPathParams["id"];
       data: PaymentsControllerMarkPaidMutationRequest;

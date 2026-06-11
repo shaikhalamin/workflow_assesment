@@ -25,11 +25,71 @@ export type WorkflowTemplateControllerPublish201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowTemplateControllerPublish400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowTemplateControllerPublish401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowTemplateControllerPublish403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowTemplateControllerPublish404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowTemplateControllerPublishMutationResponse =
   WorkflowTemplateControllerPublish201;
 
 export type WorkflowTemplateControllerPublishMutation = {
   Response: WorkflowTemplateControllerPublish201;
   PathParams: WorkflowTemplateControllerPublishPathParams;
-  Errors: any;
+  Errors:
+    | WorkflowTemplateControllerPublish400
+    | WorkflowTemplateControllerPublish401
+    | WorkflowTemplateControllerPublish403
+    | WorkflowTemplateControllerPublish404;
 };

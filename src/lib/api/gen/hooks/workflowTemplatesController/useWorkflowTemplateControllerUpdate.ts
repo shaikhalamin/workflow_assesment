@@ -7,6 +7,10 @@ import type {
   WorkflowTemplateControllerUpdateMutationRequest,
   WorkflowTemplateControllerUpdateMutationResponse,
   WorkflowTemplateControllerUpdatePathParams,
+  WorkflowTemplateControllerUpdate400,
+  WorkflowTemplateControllerUpdate401,
+  WorkflowTemplateControllerUpdate403,
+  WorkflowTemplateControllerUpdate404,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerUpdate.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function workflowTemplateControllerUpdateMutationOptions<
   const mutationKey = workflowTemplateControllerUpdateMutationKey();
   return mutationOptions<
     WorkflowTemplateControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerUpdate400
+      | WorkflowTemplateControllerUpdate401
+      | WorkflowTemplateControllerUpdate403
+      | WorkflowTemplateControllerUpdate404
+    >,
     {
       id: WorkflowTemplateControllerUpdatePathParams["id"];
       data: WorkflowTemplateControllerUpdateMutationRequest;
@@ -59,7 +68,12 @@ export function useWorkflowTemplateControllerUpdate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowTemplateControllerUpdateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowTemplateControllerUpdate400
+        | WorkflowTemplateControllerUpdate401
+        | WorkflowTemplateControllerUpdate403
+        | WorkflowTemplateControllerUpdate404
+      >,
       {
         id: WorkflowTemplateControllerUpdatePathParams["id"];
         data: WorkflowTemplateControllerUpdateMutationRequest;
@@ -81,7 +95,12 @@ export function useWorkflowTemplateControllerUpdate<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowTemplateControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerUpdate400
+      | WorkflowTemplateControllerUpdate401
+      | WorkflowTemplateControllerUpdate403
+      | WorkflowTemplateControllerUpdate404
+    >,
     {
       id: WorkflowTemplateControllerUpdatePathParams["id"];
       data: WorkflowTemplateControllerUpdateMutationRequest;
@@ -91,7 +110,12 @@ export function useWorkflowTemplateControllerUpdate<TContext>(
 
   return useMutation<
     WorkflowTemplateControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerUpdate400
+      | WorkflowTemplateControllerUpdate401
+      | WorkflowTemplateControllerUpdate403
+      | WorkflowTemplateControllerUpdate404
+    >,
     {
       id: WorkflowTemplateControllerUpdatePathParams["id"];
       data: WorkflowTemplateControllerUpdateMutationRequest;
@@ -106,7 +130,12 @@ export function useWorkflowTemplateControllerUpdate<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowTemplateControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerUpdate400
+      | WorkflowTemplateControllerUpdate401
+      | WorkflowTemplateControllerUpdate403
+      | WorkflowTemplateControllerUpdate404
+    >,
     {
       id: WorkflowTemplateControllerUpdatePathParams["id"];
       data: WorkflowTemplateControllerUpdateMutationRequest;

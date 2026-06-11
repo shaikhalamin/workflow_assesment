@@ -8,6 +8,9 @@ import type {
   AuditLogsControllerListForEntityQueryResponse,
   AuditLogsControllerListForEntityPathParams,
   AuditLogsControllerListForEntityQueryParams,
+  AuditLogsControllerListForEntity400,
+  AuditLogsControllerListForEntity401,
+  AuditLogsControllerListForEntity403,
 } from "../../types/auditLogsController/AuditLogsControllerListForEntity.ts";
 import type {
   Client,
@@ -48,7 +51,11 @@ export async function auditLogsControllerListForEntity(
 
   const res = await request<
     AuditLogsControllerListForEntityQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | AuditLogsControllerListForEntity400
+      | AuditLogsControllerListForEntity401
+      | AuditLogsControllerListForEntity403
+    >,
     unknown
   >({
     method: "GET",

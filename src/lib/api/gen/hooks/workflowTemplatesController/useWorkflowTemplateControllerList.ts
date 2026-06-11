@@ -6,6 +6,9 @@
 import type {
   WorkflowTemplateControllerListQueryResponse,
   WorkflowTemplateControllerListQueryParams,
+  WorkflowTemplateControllerList400,
+  WorkflowTemplateControllerList401,
+  WorkflowTemplateControllerList403,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerList.ts";
 import type {
   Client,
@@ -36,7 +39,11 @@ export function workflowTemplateControllerListQueryOptions(
   const queryKey = workflowTemplateControllerListQueryKey(params);
   return queryOptions<
     WorkflowTemplateControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerList400
+      | WorkflowTemplateControllerList401
+      | WorkflowTemplateControllerList403
+    >,
     WorkflowTemplateControllerListQueryResponse,
     typeof queryKey
   >({
@@ -63,7 +70,11 @@ export function useWorkflowTemplateControllerList<
     query?: Partial<
       QueryObserverOptions<
         WorkflowTemplateControllerListQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | WorkflowTemplateControllerList400
+          | WorkflowTemplateControllerList401
+          | WorkflowTemplateControllerList403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -84,9 +95,14 @@ export function useWorkflowTemplateControllerList<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerList400
+      | WorkflowTemplateControllerList401
+      | WorkflowTemplateControllerList403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

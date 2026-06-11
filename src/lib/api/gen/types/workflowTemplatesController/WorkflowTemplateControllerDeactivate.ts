@@ -25,11 +25,71 @@ export type WorkflowTemplateControllerDeactivate201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type WorkflowTemplateControllerDeactivate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type WorkflowTemplateControllerDeactivate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type WorkflowTemplateControllerDeactivate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type WorkflowTemplateControllerDeactivate404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type WorkflowTemplateControllerDeactivateMutationResponse =
   WorkflowTemplateControllerDeactivate201;
 
 export type WorkflowTemplateControllerDeactivateMutation = {
   Response: WorkflowTemplateControllerDeactivate201;
   PathParams: WorkflowTemplateControllerDeactivatePathParams;
-  Errors: any;
+  Errors:
+    | WorkflowTemplateControllerDeactivate400
+    | WorkflowTemplateControllerDeactivate401
+    | WorkflowTemplateControllerDeactivate403
+    | WorkflowTemplateControllerDeactivate404;
 };

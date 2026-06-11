@@ -26,6 +26,62 @@ export type PaymentsControllerMarkPaid201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type PaymentsControllerMarkPaid400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type PaymentsControllerMarkPaid401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type PaymentsControllerMarkPaid403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type PaymentsControllerMarkPaid404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type PaymentsControllerMarkPaidMutationRequest = MarkPaidDto;
 
 export type PaymentsControllerMarkPaidMutationResponse =
@@ -35,5 +91,9 @@ export type PaymentsControllerMarkPaidMutation = {
   Response: PaymentsControllerMarkPaid201;
   Request: PaymentsControllerMarkPaidMutationRequest;
   PathParams: PaymentsControllerMarkPaidPathParams;
-  Errors: any;
+  Errors:
+    | PaymentsControllerMarkPaid400
+    | PaymentsControllerMarkPaid401
+    | PaymentsControllerMarkPaid403
+    | PaymentsControllerMarkPaid404;
 };

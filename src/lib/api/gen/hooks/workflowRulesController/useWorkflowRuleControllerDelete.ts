@@ -6,6 +6,10 @@
 import type {
   WorkflowRuleControllerDeleteMutationResponse,
   WorkflowRuleControllerDeletePathParams,
+  WorkflowRuleControllerDelete400,
+  WorkflowRuleControllerDelete401,
+  WorkflowRuleControllerDelete403,
+  WorkflowRuleControllerDelete404,
 } from "../../types/workflowRulesController/WorkflowRuleControllerDelete.ts";
 import type {
   Client,
@@ -33,7 +37,12 @@ export function workflowRuleControllerDeleteMutationOptions<TContext = unknown>(
   const mutationKey = workflowRuleControllerDeleteMutationKey();
   return mutationOptions<
     WorkflowRuleControllerDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuleControllerDelete400
+      | WorkflowRuleControllerDelete401
+      | WorkflowRuleControllerDelete403
+      | WorkflowRuleControllerDelete404
+    >,
     { id: WorkflowRuleControllerDeletePathParams["id"] },
     TContext
   >({
@@ -51,7 +60,12 @@ export function useWorkflowRuleControllerDelete<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowRuleControllerDeleteMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowRuleControllerDelete400
+        | WorkflowRuleControllerDelete401
+        | WorkflowRuleControllerDelete403
+        | WorkflowRuleControllerDelete404
+      >,
       { id: WorkflowRuleControllerDeletePathParams["id"] },
       TContext
     > & { client?: QueryClient };
@@ -67,14 +81,24 @@ export function useWorkflowRuleControllerDelete<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowRuleControllerDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuleControllerDelete400
+      | WorkflowRuleControllerDelete401
+      | WorkflowRuleControllerDelete403
+      | WorkflowRuleControllerDelete404
+    >,
     { id: WorkflowRuleControllerDeletePathParams["id"] },
     TContext
   >;
 
   return useMutation<
     WorkflowRuleControllerDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuleControllerDelete400
+      | WorkflowRuleControllerDelete401
+      | WorkflowRuleControllerDelete403
+      | WorkflowRuleControllerDelete404
+    >,
     { id: WorkflowRuleControllerDeletePathParams["id"] },
     TContext
   >(
@@ -86,7 +110,12 @@ export function useWorkflowRuleControllerDelete<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowRuleControllerDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuleControllerDelete400
+      | WorkflowRuleControllerDelete401
+      | WorkflowRuleControllerDelete403
+      | WorkflowRuleControllerDelete404
+    >,
     { id: WorkflowRuleControllerDeletePathParams["id"] },
     TContext
   >;

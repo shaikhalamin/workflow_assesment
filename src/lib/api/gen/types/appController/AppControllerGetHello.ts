@@ -3,11 +3,38 @@
  * Do not edit manually.
  */
 
-export type AppControllerGetHello200 = unknown;
+import type { ApiErrorDto } from "../ApiErrorDto.ts";
+import type { ApiResponseDto } from "../ApiResponseDto.ts";
+import type { AppResponseDto } from "../AppResponseDto.ts";
+
+export type AppControllerGetHello200 = ApiResponseDto & {
+  /**
+   * @type object
+   */
+  data: AppResponseDto;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto | null;
+};
+
+/**
+ * @description Too many requests
+ */
+export type AppControllerGetHello429 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
 
 export type AppControllerGetHelloQueryResponse = AppControllerGetHello200;
 
 export type AppControllerGetHelloQuery = {
   Response: AppControllerGetHello200;
-  Errors: any;
+  Errors: AppControllerGetHello429;
 };

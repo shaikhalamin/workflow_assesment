@@ -3,7 +3,11 @@
  * Do not edit manually.
  */
 
-import type { WorkflowRuntimeControllerMyPendingQueryResponse } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerMyPending.ts";
+import type {
+  WorkflowRuntimeControllerMyPendingQueryResponse,
+  WorkflowRuntimeControllerMyPending401,
+  WorkflowRuntimeControllerMyPending403,
+} from "../../types/workflowRuntimeController/WorkflowRuntimeControllerMyPending.ts";
 import type {
   Client,
   RequestConfig,
@@ -31,7 +35,10 @@ export function workflowRuntimeControllerMyPendingQueryOptions(
   const queryKey = workflowRuntimeControllerMyPendingQueryKey();
   return queryOptions<
     WorkflowRuntimeControllerMyPendingQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerMyPending401
+      | WorkflowRuntimeControllerMyPending403
+    >,
     WorkflowRuntimeControllerMyPendingQueryResponse,
     typeof queryKey
   >({
@@ -57,7 +64,10 @@ export function useWorkflowRuntimeControllerMyPending<
     query?: Partial<
       QueryObserverOptions<
         WorkflowRuntimeControllerMyPendingQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | WorkflowRuntimeControllerMyPending401
+          | WorkflowRuntimeControllerMyPending403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -78,9 +88,13 @@ export function useWorkflowRuntimeControllerMyPending<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerMyPending401
+      | WorkflowRuntimeControllerMyPending403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

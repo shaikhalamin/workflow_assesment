@@ -3,7 +3,11 @@
  * Do not edit manually.
  */
 
-import type { DashboardControllerEmployeeQueryResponse } from "../../types/dashboardController/DashboardControllerEmployee.ts";
+import type {
+  DashboardControllerEmployeeQueryResponse,
+  DashboardControllerEmployee401,
+  DashboardControllerEmployee403,
+} from "../../types/dashboardController/DashboardControllerEmployee.ts";
 import type {
   Client,
   RequestConfig,
@@ -31,7 +35,9 @@ export function dashboardControllerEmployeeQueryOptions(
   const queryKey = dashboardControllerEmployeeQueryKey();
   return queryOptions<
     DashboardControllerEmployeeQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      DashboardControllerEmployee401 | DashboardControllerEmployee403
+    >,
     DashboardControllerEmployeeQueryResponse,
     typeof queryKey
   >({
@@ -57,7 +63,9 @@ export function useDashboardControllerEmployee<
     query?: Partial<
       QueryObserverOptions<
         DashboardControllerEmployeeQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          DashboardControllerEmployee401 | DashboardControllerEmployee403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -78,9 +86,12 @@ export function useDashboardControllerEmployee<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      DashboardControllerEmployee401 | DashboardControllerEmployee403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

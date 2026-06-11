@@ -6,6 +6,10 @@
 import type {
   WorkflowEventSchemaControllerFindOneQueryResponse,
   WorkflowEventSchemaControllerFindOnePathParams,
+  WorkflowEventSchemaControllerFindOne400,
+  WorkflowEventSchemaControllerFindOne401,
+  WorkflowEventSchemaControllerFindOne403,
+  WorkflowEventSchemaControllerFindOne404,
 } from "../../types/workflowEventSchemasController/WorkflowEventSchemaControllerFindOne.ts";
 import type {
   Client,
@@ -40,7 +44,12 @@ export function workflowEventSchemaControllerFindOneQueryOptions(
   const queryKey = workflowEventSchemaControllerFindOneQueryKey({ id });
   return queryOptions<
     WorkflowEventSchemaControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerFindOne400
+      | WorkflowEventSchemaControllerFindOne401
+      | WorkflowEventSchemaControllerFindOne403
+      | WorkflowEventSchemaControllerFindOne404
+    >,
     WorkflowEventSchemaControllerFindOneQueryResponse,
     typeof queryKey
   >({
@@ -70,7 +79,12 @@ export function useWorkflowEventSchemaControllerFindOne<
     query?: Partial<
       QueryObserverOptions<
         WorkflowEventSchemaControllerFindOneQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | WorkflowEventSchemaControllerFindOne400
+          | WorkflowEventSchemaControllerFindOne401
+          | WorkflowEventSchemaControllerFindOne403
+          | WorkflowEventSchemaControllerFindOne404
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -92,9 +106,15 @@ export function useWorkflowEventSchemaControllerFindOne<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | WorkflowEventSchemaControllerFindOne400
+      | WorkflowEventSchemaControllerFindOne401
+      | WorkflowEventSchemaControllerFindOne403
+      | WorkflowEventSchemaControllerFindOne404
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

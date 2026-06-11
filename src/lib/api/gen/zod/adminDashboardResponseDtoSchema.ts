@@ -4,12 +4,15 @@
  */
 
 import { adminWorkflowSummaryDtoSchema } from "./adminWorkflowSummaryDtoSchema.ts";
+import { dashboardRecentItemDtoSchema } from "./dashboardRecentItemDtoSchema.ts";
 import { z } from "zod/v4";
 
 export const adminDashboardResponseDtoSchema = z.object({
   get workflows() {
     return adminWorkflowSummaryDtoSchema;
   },
-  recentWorkflowChanges: z.array(z.string()),
+  get recentWorkflowChanges() {
+    return z.array(dashboardRecentItemDtoSchema);
+  },
   failedTriggers: z.number(),
 });

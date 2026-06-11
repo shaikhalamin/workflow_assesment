@@ -8,6 +8,10 @@ import type {
   WorkflowRuntimeControllerRejectMutationRequest,
   WorkflowRuntimeControllerRejectMutationResponse,
   WorkflowRuntimeControllerRejectPathParams,
+  WorkflowRuntimeControllerReject400,
+  WorkflowRuntimeControllerReject401,
+  WorkflowRuntimeControllerReject403,
+  WorkflowRuntimeControllerReject404,
 } from "../../types/workflowRuntimeController/WorkflowRuntimeControllerReject.ts";
 import type {
   Client,
@@ -48,7 +52,12 @@ export async function workflowRuntimeControllerReject(
 
   const res = await request<
     WorkflowRuntimeControllerRejectMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowRuntimeControllerReject400
+      | WorkflowRuntimeControllerReject401
+      | WorkflowRuntimeControllerReject403
+      | WorkflowRuntimeControllerReject404
+    >,
     WorkflowRuntimeControllerRejectMutationRequest
   >({
     method: "POST",

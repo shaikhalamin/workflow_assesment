@@ -6,6 +6,10 @@
 import type {
   WorkflowStepConfigControllerDeleteMutationResponse,
   WorkflowStepConfigControllerDeletePathParams,
+  WorkflowStepConfigControllerDelete400,
+  WorkflowStepConfigControllerDelete401,
+  WorkflowStepConfigControllerDelete403,
+  WorkflowStepConfigControllerDelete404,
 } from "../../types/workflowStepConfigsController/WorkflowStepConfigControllerDelete.ts";
 import type {
   Client,
@@ -33,7 +37,12 @@ export function workflowStepConfigControllerDeleteMutationOptions<
   const mutationKey = workflowStepConfigControllerDeleteMutationKey();
   return mutationOptions<
     WorkflowStepConfigControllerDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowStepConfigControllerDelete400
+      | WorkflowStepConfigControllerDelete401
+      | WorkflowStepConfigControllerDelete403
+      | WorkflowStepConfigControllerDelete404
+    >,
     { id: WorkflowStepConfigControllerDeletePathParams["id"] },
     TContext
   >({
@@ -51,7 +60,12 @@ export function useWorkflowStepConfigControllerDelete<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WorkflowStepConfigControllerDeleteMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | WorkflowStepConfigControllerDelete400
+        | WorkflowStepConfigControllerDelete401
+        | WorkflowStepConfigControllerDelete403
+        | WorkflowStepConfigControllerDelete404
+      >,
       { id: WorkflowStepConfigControllerDeletePathParams["id"] },
       TContext
     > & { client?: QueryClient };
@@ -68,14 +82,24 @@ export function useWorkflowStepConfigControllerDelete<TContext>(
     config,
   ) as UseMutationOptions<
     WorkflowStepConfigControllerDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowStepConfigControllerDelete400
+      | WorkflowStepConfigControllerDelete401
+      | WorkflowStepConfigControllerDelete403
+      | WorkflowStepConfigControllerDelete404
+    >,
     { id: WorkflowStepConfigControllerDeletePathParams["id"] },
     TContext
   >;
 
   return useMutation<
     WorkflowStepConfigControllerDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowStepConfigControllerDelete400
+      | WorkflowStepConfigControllerDelete401
+      | WorkflowStepConfigControllerDelete403
+      | WorkflowStepConfigControllerDelete404
+    >,
     { id: WorkflowStepConfigControllerDeletePathParams["id"] },
     TContext
   >(
@@ -87,7 +111,12 @@ export function useWorkflowStepConfigControllerDelete<TContext>(
     queryClient,
   ) as UseMutationResult<
     WorkflowStepConfigControllerDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowStepConfigControllerDelete400
+      | WorkflowStepConfigControllerDelete401
+      | WorkflowStepConfigControllerDelete403
+      | WorkflowStepConfigControllerDelete404
+    >,
     { id: WorkflowStepConfigControllerDeletePathParams["id"] },
     TContext
   >;

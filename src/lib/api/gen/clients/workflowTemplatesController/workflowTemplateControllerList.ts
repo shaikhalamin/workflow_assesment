@@ -7,6 +7,9 @@ import fetch from "@/lib/api/client.ts";
 import type {
   WorkflowTemplateControllerListQueryResponse,
   WorkflowTemplateControllerListQueryParams,
+  WorkflowTemplateControllerList400,
+  WorkflowTemplateControllerList401,
+  WorkflowTemplateControllerList403,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerList.ts";
 import type {
   Client,
@@ -30,7 +33,11 @@ export async function workflowTemplateControllerList(
 
   const res = await request<
     WorkflowTemplateControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerList400
+      | WorkflowTemplateControllerList401
+      | WorkflowTemplateControllerList403
+    >,
     unknown
   >({
     method: "GET",

@@ -6,6 +6,9 @@
 import type {
   UsersControllerGetUsersQueryResponse,
   UsersControllerGetUsersQueryParams,
+  UsersControllerGetUsers400,
+  UsersControllerGetUsers401,
+  UsersControllerGetUsers403,
 } from "../../types/usersController/UsersControllerGetUsers.ts";
 import type {
   Client,
@@ -36,7 +39,11 @@ export function usersControllerGetUsersQueryOptions(
   const queryKey = usersControllerGetUsersQueryKey(params);
   return queryOptions<
     UsersControllerGetUsersQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | UsersControllerGetUsers400
+      | UsersControllerGetUsers401
+      | UsersControllerGetUsers403
+    >,
     UsersControllerGetUsersQueryResponse,
     typeof queryKey
   >({
@@ -63,7 +70,11 @@ export function useUsersControllerGetUsers<
     query?: Partial<
       QueryObserverOptions<
         UsersControllerGetUsersQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | UsersControllerGetUsers400
+          | UsersControllerGetUsers401
+          | UsersControllerGetUsers403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -84,9 +95,14 @@ export function useUsersControllerGetUsers<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | UsersControllerGetUsers400
+      | UsersControllerGetUsers401
+      | UsersControllerGetUsers403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

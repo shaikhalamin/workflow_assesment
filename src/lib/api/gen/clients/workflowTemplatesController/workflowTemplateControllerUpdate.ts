@@ -8,6 +8,10 @@ import type {
   WorkflowTemplateControllerUpdateMutationRequest,
   WorkflowTemplateControllerUpdateMutationResponse,
   WorkflowTemplateControllerUpdatePathParams,
+  WorkflowTemplateControllerUpdate400,
+  WorkflowTemplateControllerUpdate401,
+  WorkflowTemplateControllerUpdate403,
+  WorkflowTemplateControllerUpdate404,
 } from "../../types/workflowTemplatesController/WorkflowTemplateControllerUpdate.ts";
 import type {
   Client,
@@ -48,7 +52,12 @@ export async function workflowTemplateControllerUpdate(
 
   const res = await request<
     WorkflowTemplateControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | WorkflowTemplateControllerUpdate400
+      | WorkflowTemplateControllerUpdate401
+      | WorkflowTemplateControllerUpdate403
+      | WorkflowTemplateControllerUpdate404
+    >,
     WorkflowTemplateControllerUpdateMutationRequest
   >({
     method: "PATCH",
