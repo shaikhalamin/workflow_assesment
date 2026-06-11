@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { Paginated } from '../../common/http/paginated';
 import { WorkflowTemplateService } from './workflow-template.service';
 
 describe('WorkflowTemplateService publish validation', () => {
@@ -39,6 +40,7 @@ describe('WorkflowTemplateService workflow instance association', () => {
 
     const response = await service.list({ page: 1, limit: 25 });
 
+    expect(response).toBeInstanceOf(Paginated);
     expect(response.items[0]).toEqual({
       ...template,
       workflowInstanceCount: 2,

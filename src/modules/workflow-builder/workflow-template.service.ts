@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Paginated } from '../../common/http/paginated';
 import { paginateRepo } from '../../common/http/paginate';
 import { PaginationQueryDto } from '../../common/http/pagination.query';
 import { WorkflowInstance } from '../workflow-runtime/entities/workflow-instance.entity';
@@ -51,7 +52,7 @@ export class WorkflowTemplateService {
         workflowInstanceCount: await this.countWorkflowInstances(template.id),
       })),
     );
-    return { ...response, items };
+    return new Paginated(items, response.page, response.limit, response.total);
   }
 
   async findOne(id: string): Promise<WorkflowTemplate> {
