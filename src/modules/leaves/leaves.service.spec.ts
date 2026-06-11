@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import type { TriggerWorkflowDto } from '../workflow-runtime/dto/trigger-workflow.dto';
 import { LeavesService } from './leaves.service';
 import { LeaveRequestStatus } from './entities/leave-request.entity';
@@ -169,5 +170,59 @@ describe('LeavesService', () => {
         leaveDays: 2,
       }),
     );
+  });
+
+  it('deletes a draft leave request owned by the requester', async () => {
+    const leave = {
+      id: 'leave-1',
+      requesterId: 'requester-1',
+      status: LeaveRequestStatus.DRAFT,
+    };
+    const repo = {
+      findOneBy: jest.fn().mockResolvedValue(leave),
+      remove: jest.fn().mockResolvedValue(leave),
+    };
+    const auditLogs = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new LeavesService(
+      repo as never,
+      {} as never,
+      auditLogs as never,
+    );
+
+    const response = await service.delete('leave-1', {
+      userId: 'requester-1',
+      roles: [],
+    } as never);
+
+    expect(repo.remove).toHaveBeenCalledWith(leave);
+    expect(auditLogs.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'LEAVE_DELETED',
+        entityId: 'leave-1',
+      }),
+    );
+    expect(response).toEqual({ success: true });
+  });
+
+  it('rejects deleting a leave request after it is submitted for approval', async () => {
+    const repo = {
+      findOneBy: jest.fn().mockResolvedValue({
+        id: 'leave-1',
+        requesterId: 'requester-1',
+        status: LeaveRequestStatus.UNDER_REVIEW,
+      }),
+      remove: jest.fn(),
+    };
+    const service = new LeavesService(repo as never, {} as never, {} as never);
+
+    await expect(
+      service.delete('leave-1', {
+        userId: 'requester-1',
+        roles: [],
+      } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(repo.remove).not.toHaveBeenCalled();
   });
 });

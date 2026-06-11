@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { paginateQb } from '../../common/http/paginate';
 import { Paginated } from '../../common/http/paginated';
+import { SuccessResponseDto } from '../../common/http/success-response.dto';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { ExpenseResponseDto } from './dto/expense-response.dto';
 import { ExpenseQueryDto } from './dto/expense-query.dto';
@@ -178,6 +179,29 @@ export class ExpensesService {
     expense.rejectionReason = null;
     await this.expensesRepository.save(expense);
     return this.submit(id, actor);
+  }
+
+  async delete(id: string, actor: Express.User): Promise<SuccessResponseDto> {
+    const expense = await this.expensesRepository.findOneBy({ id });
+    if (!expense) throw new NotFoundException('Expense not found');
+    if (expense.requesterId !== actor.userId) {
+      throw new BadRequestException('Only requester can delete expense');
+    }
+    if (expense.status !== ExpenseStatus.DRAFT) {
+      throw new BadRequestException(
+        'Only draft expenses can be deleted before approval submission',
+      );
+    }
+
+    await this.auditLogsService.record?.({
+      actorUserId: actor.userId,
+      action: 'EXPENSE_DELETED',
+      entityType: 'Expense',
+      entityId: expense.id,
+      oldStatus: expense.status,
+    });
+    await this.expensesRepository.remove(expense);
+    return { success: true };
   }
 
   private async findVisibleExpense(

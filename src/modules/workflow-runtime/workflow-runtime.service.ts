@@ -183,7 +183,7 @@ export class WorkflowRuntimeService {
         'instance.expenseRequest',
         Expense,
         'expenseRequest',
-        'instance.entityType = :expenseEntityType AND instance.entityId = expenseRequest.id',
+        'instance.entityType = :expenseEntityType AND instance.entityId = expenseRequest.id::text',
         { expenseEntityType: 'Expense' },
       )
       .where('step.status = :status', { status: WorkflowStepStatus.ACTIVE })

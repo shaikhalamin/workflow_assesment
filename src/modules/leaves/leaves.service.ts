@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { paginateQb } from '../../common/http/paginate';
 import { Paginated } from '../../common/http/paginated';
+import { SuccessResponseDto } from '../../common/http/success-response.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { WorkflowRuntimeService } from '../workflow-runtime/workflow-runtime.service';
 import { WorkflowUserResponseDto } from '../workflow-runtime/dto/workflow-runtime-response.dto';
@@ -174,6 +175,29 @@ export class LeavesService {
     leave.rejectionReason = null;
     await this.leavesRepository.save(leave);
     return this.submit(id, actor);
+  }
+
+  async delete(id: string, actor: Express.User): Promise<SuccessResponseDto> {
+    const leave = await this.leavesRepository.findOneBy({ id });
+    if (!leave) throw new NotFoundException('Leave request not found');
+    if (leave.requesterId !== actor.userId) {
+      throw new BadRequestException('Only requester can delete leave');
+    }
+    if (leave.status !== LeaveRequestStatus.DRAFT) {
+      throw new BadRequestException(
+        'Only draft leave can be deleted before approval submission',
+      );
+    }
+
+    await this.auditLogsService.record?.({
+      actorUserId: actor.userId,
+      action: 'LEAVE_DELETED',
+      entityType: 'LeaveRequest',
+      entityId: leave.id,
+      oldStatus: leave.status,
+    });
+    await this.leavesRepository.remove(leave);
+    return { success: true };
   }
 
   private async findVisibleLeave(

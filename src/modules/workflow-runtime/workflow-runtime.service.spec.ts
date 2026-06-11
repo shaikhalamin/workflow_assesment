@@ -180,6 +180,52 @@ describe('WorkflowRuntimeService', () => {
     expect(response[0]?.request?.title).toBe('Travel expense monthly');
   });
 
+  it('casts expense ids when joining generic workflow entity ids', async () => {
+    const queryBuilder = {
+      innerJoinAndSelect: jest.fn(),
+      leftJoinAndSelect: jest.fn(),
+      leftJoinAndMapOne: jest.fn(),
+      where: jest.fn(),
+      andWhere: jest.fn(),
+      orderBy: jest.fn(),
+      getMany: jest.fn().mockResolvedValue([]),
+    };
+    queryBuilder.innerJoinAndSelect.mockReturnValue(queryBuilder);
+    queryBuilder.leftJoinAndSelect.mockReturnValue(queryBuilder);
+    queryBuilder.leftJoinAndMapOne.mockReturnValue(queryBuilder);
+    queryBuilder.where.mockReturnValue(queryBuilder);
+    queryBuilder.andWhere.mockReturnValue(queryBuilder);
+    queryBuilder.orderBy.mockReturnValue(queryBuilder);
+    const stepsRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    };
+    const service = new WorkflowRuntimeService(
+      {} as never,
+      {} as never,
+      stepsRepository as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+    );
+
+    await service.myPending({
+      userId: 'manager-1',
+      roles: [],
+    } as Express.User);
+
+    expect(queryBuilder.leftJoinAndMapOne).toHaveBeenCalledWith(
+      'instance.expenseRequest',
+      expect.any(Function),
+      'expenseRequest',
+      'instance.entityType = :expenseEntityType AND instance.entityId = expenseRequest.id::text',
+      { expenseEntityType: 'Expense' },
+    );
+  });
+
   it('loads workflow instance user relations for approver display', async () => {
     const createdAt = new Date('2026-06-11T08:00:00.000Z');
     const manager = {

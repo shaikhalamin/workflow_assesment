@@ -208,4 +208,62 @@ describe('ExpensesService', () => {
       service.submit('expense-1', { userId: 'other-1' } as never),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it('deletes a draft expense owned by the requester', async () => {
+    const expense = {
+      id: 'expense-1',
+      requesterId: 'requester-1',
+      status: ExpenseStatus.DRAFT,
+    };
+    const repo = {
+      findOneBy: jest.fn().mockResolvedValue(expense),
+      remove: jest.fn().mockResolvedValue(expense),
+    };
+    const auditLogs = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new ExpensesService(
+      repo as never,
+      {} as never,
+      auditLogs as never,
+    );
+
+    const response = await service.delete('expense-1', {
+      userId: 'requester-1',
+      roles: [],
+    } as never);
+
+    expect(repo.remove).toHaveBeenCalledWith(expense);
+    expect(auditLogs.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'EXPENSE_DELETED',
+        entityId: 'expense-1',
+      }),
+    );
+    expect(response).toEqual({ success: true });
+  });
+
+  it('rejects deleting an expense after it is submitted for approval', async () => {
+    const repo = {
+      findOneBy: jest.fn().mockResolvedValue({
+        id: 'expense-1',
+        requesterId: 'requester-1',
+        status: ExpenseStatus.UNDER_REVIEW,
+      }),
+      remove: jest.fn(),
+    };
+    const service = new ExpensesService(
+      repo as never,
+      {} as never,
+      {} as never,
+    );
+
+    await expect(
+      service.delete('expense-1', {
+        userId: 'requester-1',
+        roles: [],
+      } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(repo.remove).not.toHaveBeenCalled();
+  });
 });
