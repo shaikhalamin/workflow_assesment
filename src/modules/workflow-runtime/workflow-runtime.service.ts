@@ -5,11 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { paginateRepo } from '../../common/http/paginate';
 import { PaginationQueryDto } from '../../common/http/pagination.query';
+import { AuditLog } from '../audit-logs/entities/audit-log.entity';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { Expense } from '../expenses/entities/expense.entity';
+import { Notification } from '../notifications/entities/notification.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RbacService } from '../rbac/rbac.service';
 import { WorkflowApprovalRule } from '../workflow-builder/entities/workflow-approval-rule.entity';
@@ -58,95 +60,122 @@ export class WorkflowRuntimeService {
     private readonly rbacService: RbacService,
     private readonly auditLogsService: AuditLogsService,
     private readonly notificationsService: NotificationsService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async trigger(dto: TriggerWorkflowDto) {
-    const metadata = dto.metadata ?? {};
-    const templates = await this.templatesRepository.find({
-      where: {
-        moduleName: dto.moduleName,
-        eventName: dto.eventName,
-        entityType: dto.entityType,
-        status: WorkflowTemplateStatus.PUBLISHED,
-      },
-      relations: {
-        triggerCondition: true,
-        rules: { steps: true },
-      },
-      order: { priority: 'DESC', rules: { priority: 'DESC' } },
+    return this.dataSource.transaction(async (manager) => {
+      const templatesRepository = manager.getRepository(WorkflowTemplate);
+      const instancesRepository = manager.getRepository(WorkflowInstance);
+      const stepsRepository = manager.getRepository(WorkflowStep);
+      const actionsRepository = manager.getRepository(WorkflowAction);
+      const auditLogsRepository = manager.getRepository(AuditLog);
+      const notificationsRepository = manager.getRepository(Notification);
+      const metadata = dto.metadata ?? {};
+      const templates = await templatesRepository.find({
+        where: {
+          moduleName: dto.moduleName,
+          eventName: dto.eventName,
+          entityType: dto.entityType,
+          status: WorkflowTemplateStatus.PUBLISHED,
+        },
+        relations: {
+          triggerCondition: true,
+          rules: { steps: true },
+        },
+        order: { priority: 'DESC', rules: { priority: 'DESC' } },
+      });
+
+      const template = templates.find((candidate) =>
+        this.ruleEngine.matches(
+          metadata,
+          candidate.triggerCondition?.conditionJson ?? null,
+        ),
+      );
+      if (!template) return { status: 'skipped' };
+
+      const selectedRule = this.selectRule(template.rules ?? [], metadata);
+      if (!selectedRule) {
+        throw new BadRequestException('No workflow approval rule applies');
+      }
+      const stepConfigs = [...(selectedRule.steps ?? [])].sort(
+        (a, b) => a.stepOrder - b.stepOrder,
+      );
+      if (!stepConfigs.length) {
+        throw new BadRequestException('Selected workflow rule has no steps');
+      }
+
+      const instance = await instancesRepository.save(
+        instancesRepository.create({
+          workflowTemplateId: template.id,
+          workflowApprovalRuleId: selectedRule.id,
+          moduleName: dto.moduleName,
+          eventName: dto.eventName,
+          entityType: dto.entityType,
+          entityId: dto.entityId,
+          requesterId: dto.requesterId,
+          departmentId: dto.departmentId ?? null,
+          status: WorkflowInstanceStatus.ACTIVE,
+          metadataJson: metadata,
+          startedAt: new Date(),
+        }),
+      );
+
+      const steps = await this.createSteps(
+        instance,
+        stepConfigs,
+        dto,
+        stepsRepository,
+      );
+      const activeStep = await this.activateStep(steps[0], stepsRepository);
+
+      await this.recordAction(
+        instance.id,
+        null,
+        WorkflowActionType.TRIGGERED,
+        {
+          actorUserId: dto.requesterId,
+          metadataJson: metadata,
+        },
+        actionsRepository,
+      );
+      await this.recordAction(
+        instance.id,
+        activeStep.id,
+        WorkflowActionType.STEP_ACTIVATED,
+        { actorUserId: null },
+        actionsRepository,
+      );
+      await this.auditLogsService.record(
+        {
+          actorUserId: dto.requesterId,
+          action: 'WORKFLOW_TRIGGERED',
+          entityType: dto.entityType,
+          entityId: dto.entityId,
+          workflowInstanceId: instance.id,
+          oldStatus: null,
+          newStatus: WorkflowInstanceStatus.ACTIVE,
+          metadataJson: metadata,
+        },
+        auditLogsRepository,
+      );
+      await this.notificationsService.createTaskAssigned(
+        {
+          assignedUserId: activeStep.assignedUserId,
+          assignedRoleSlug: activeStep.assignedRoleSlug,
+          entityType: dto.entityType,
+          entityId: dto.entityId,
+          workflowInstanceId: instance.id,
+        },
+        notificationsRepository,
+      );
+
+      return {
+        status: 'triggered',
+        workflowInstanceId: instance.id,
+        activeStep: this.toStepSummary(activeStep),
+      };
     });
-
-    const template = templates.find((candidate) =>
-      this.ruleEngine.matches(
-        metadata,
-        candidate.triggerCondition?.conditionJson ?? null,
-      ),
-    );
-    if (!template) return { status: 'skipped' };
-
-    const selectedRule = this.selectRule(template.rules ?? [], metadata);
-    if (!selectedRule) {
-      throw new BadRequestException('No workflow approval rule applies');
-    }
-    const stepConfigs = [...(selectedRule.steps ?? [])].sort(
-      (a, b) => a.stepOrder - b.stepOrder,
-    );
-    if (!stepConfigs.length) {
-      throw new BadRequestException('Selected workflow rule has no steps');
-    }
-
-    const instance = await this.instancesRepository.save(
-      this.instancesRepository.create({
-        workflowTemplateId: template.id,
-        workflowApprovalRuleId: selectedRule.id,
-        moduleName: dto.moduleName,
-        eventName: dto.eventName,
-        entityType: dto.entityType,
-        entityId: dto.entityId,
-        requesterId: dto.requesterId,
-        departmentId: dto.departmentId ?? null,
-        status: WorkflowInstanceStatus.ACTIVE,
-        metadataJson: metadata,
-        startedAt: new Date(),
-      }),
-    );
-
-    const steps = await this.createSteps(instance, stepConfigs, dto);
-    const activeStep = await this.activateStep(steps[0]);
-
-    await this.recordAction(instance.id, null, WorkflowActionType.TRIGGERED, {
-      actorUserId: dto.requesterId,
-      metadataJson: metadata,
-    });
-    await this.recordAction(
-      instance.id,
-      activeStep.id,
-      WorkflowActionType.STEP_ACTIVATED,
-      { actorUserId: null },
-    );
-    await this.auditLogsService.record({
-      actorUserId: dto.requesterId,
-      action: 'WORKFLOW_TRIGGERED',
-      entityType: dto.entityType,
-      entityId: dto.entityId,
-      workflowInstanceId: instance.id,
-      oldStatus: null,
-      newStatus: WorkflowInstanceStatus.ACTIVE,
-      metadataJson: metadata,
-    });
-    await this.notificationsService.createTaskAssigned({
-      assignedUserId: activeStep.assignedUserId,
-      assignedRoleSlug: activeStep.assignedRoleSlug,
-      entityType: dto.entityType,
-      entityId: dto.entityId,
-      workflowInstanceId: instance.id,
-    });
-
-    return {
-      status: 'triggered',
-      workflowInstanceId: instance.id,
-      activeStep: this.toStepSummary(activeStep),
-    };
   }
 
   list(query: PaginationQueryDto) {
@@ -399,6 +428,7 @@ export class WorkflowRuntimeService {
     instance: WorkflowInstance,
     stepConfigs: WorkflowApprovalStepConfig[],
     dto: TriggerWorkflowDto,
+    stepsRepository: Repository<WorkflowStep> = this.stepsRepository,
   ): Promise<WorkflowStep[]> {
     const steps: WorkflowStep[] = [];
     for (const config of stepConfigs) {
@@ -408,8 +438,8 @@ export class WorkflowRuntimeService {
         metadata: dto.metadata ?? {},
       });
       steps.push(
-        await this.stepsRepository.save(
-          this.stepsRepository.create({
+        await stepsRepository.save(
+          stepsRepository.create({
             workflowInstanceId: instance.id,
             stepOrder: config.stepOrder,
             stepName: config.stepName,
@@ -425,10 +455,13 @@ export class WorkflowRuntimeService {
     return steps;
   }
 
-  private async activateStep(step: WorkflowStep): Promise<WorkflowStep> {
+  private async activateStep(
+    step: WorkflowStep,
+    stepsRepository: Repository<WorkflowStep> = this.stepsRepository,
+  ): Promise<WorkflowStep> {
     step.status = WorkflowStepStatus.ACTIVE;
     step.activatedAt = new Date();
-    return this.stepsRepository.save(step);
+    return stepsRepository.save(step);
   }
 
   private async getActiveStepForAction(
@@ -472,9 +505,10 @@ export class WorkflowRuntimeService {
       reason?: string | null;
       metadataJson?: Record<string, unknown> | null;
     },
+    actionsRepository: Repository<WorkflowAction> = this.actionsRepository,
   ): Promise<WorkflowAction> {
-    return this.actionsRepository.save(
-      this.actionsRepository.create({
+    return actionsRepository.save(
+      actionsRepository.create({
         workflowInstanceId,
         workflowStepId,
         action,

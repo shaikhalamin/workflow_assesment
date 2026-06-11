@@ -1,5 +1,6 @@
 import {
   WorkflowAssigneeType,
+  WorkflowTemplateStatus,
   WorkflowStepType,
 } from '../workflow-builder/enums/workflow-builder.enums';
 import {
@@ -74,6 +75,7 @@ describe('WorkflowRuntimeService', () => {
       {} as never,
       {} as never,
       stepsRepository as never,
+      {} as never,
       {} as never,
       {} as never,
       {} as never,
@@ -170,6 +172,7 @@ describe('WorkflowRuntimeService', () => {
       {} as never,
       {} as never,
       {} as never,
+      {} as never,
     );
 
     const response = await service.myPending({
@@ -203,6 +206,7 @@ describe('WorkflowRuntimeService', () => {
       {} as never,
       {} as never,
       stepsRepository as never,
+      {} as never,
       {} as never,
       {} as never,
       {} as never,
@@ -307,6 +311,7 @@ describe('WorkflowRuntimeService', () => {
     const service = new WorkflowRuntimeService(
       {} as never,
       instancesRepository as never,
+      {} as never,
       {} as never,
       {} as never,
       {} as never,
@@ -433,6 +438,7 @@ describe('WorkflowRuntimeService', () => {
       {} as never,
       auditLogsService as never,
       notificationsService as never,
+      {} as never,
     );
 
     await service.approveStep(
@@ -448,5 +454,125 @@ describe('WorkflowRuntimeService', () => {
     expect(outcomeHandler.handleApproved).toHaveBeenCalledWith(instance, {
       createPaymentRequest: false,
     });
+  });
+
+  it('runs trigger writes in a transaction so failed assignee resolution rolls back partial instance', async () => {
+    const stepConfig = {
+      id: 'step-config-1',
+      stepOrder: 1,
+      stepName: 'Manager approval',
+      stepType: WorkflowStepType.APPROVAL,
+      assigneeType: WorkflowAssigneeType.REQUESTER_MANAGER,
+      assigneeUserId: null,
+      assigneeRoleSlug: null,
+      assigneeFieldPath: null,
+    };
+    const template = {
+      id: 'template-1',
+      moduleName: 'expenses',
+      eventName: 'expense.submitted',
+      entityType: 'Expense',
+      status: WorkflowTemplateStatus.PUBLISHED,
+      triggerCondition: null,
+      rules: [
+        {
+          id: 'rule-1',
+          priority: 1,
+          isFallback: false,
+          isActive: true,
+          conditionJson: null,
+          steps: [stepConfig],
+        },
+      ],
+    };
+    const instance = {
+      id: 'workflow-1',
+      workflowTemplateId: 'template-1',
+      workflowApprovalRuleId: 'rule-1',
+      moduleName: 'expenses',
+      eventName: 'expense.submitted',
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      requesterId: 'requester-1',
+      departmentId: null,
+      status: WorkflowInstanceStatus.ACTIVE,
+      metadataJson: { amount: 2500 },
+      startedAt: new Date('2026-06-11T08:00:00.000Z'),
+    };
+    const templatesRepository = {
+      find: jest.fn().mockResolvedValue([template]),
+    };
+    const instancesRepository = {
+      create: jest.fn().mockReturnValue(instance),
+      save: jest.fn().mockResolvedValue(instance),
+    };
+    const stepsRepository = {
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+    const actionsRepository = {
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+    const manager = {
+      getRepository: jest.fn((entity: { name: string }) => {
+        if (entity.name === 'WorkflowTemplate') return templatesRepository;
+        if (entity.name === 'WorkflowInstance') return instancesRepository;
+        if (entity.name === 'WorkflowStep') return stepsRepository;
+        if (entity.name === 'WorkflowAction') return actionsRepository;
+        return {};
+      }),
+    };
+    const dataSource = {
+      transaction: jest.fn((callback: (value: typeof manager) => unknown) =>
+        callback(manager),
+      ),
+    };
+    const ruleEngine = {
+      matches: jest.fn().mockReturnValue(true),
+    };
+    const assigneeResolver = {
+      resolve: jest
+        .fn()
+        .mockRejectedValue(new Error('Workflow step has no concrete assignee')),
+    };
+    const auditLogsService = {
+      record: jest.fn(),
+    };
+    const notificationsService = {
+      createTaskAssigned: jest.fn(),
+    };
+    const service = new WorkflowRuntimeService(
+      templatesRepository as never,
+      instancesRepository as never,
+      stepsRepository as never,
+      actionsRepository as never,
+      ruleEngine as never,
+      assigneeResolver as never,
+      {} as never,
+      {} as never,
+      auditLogsService as never,
+      notificationsService as never,
+      dataSource as never,
+    );
+
+    await expect(
+      service.trigger({
+        moduleName: 'expenses',
+        eventName: 'expense.submitted',
+        entityType: 'Expense',
+        entityId: 'expense-1',
+        requesterId: 'requester-1',
+        departmentId: null,
+        metadata: { amount: 2500 },
+      }),
+    ).rejects.toThrow('Workflow step has no concrete assignee');
+
+    expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+    expect(instancesRepository.save).toHaveBeenCalledWith(instance);
+    expect(stepsRepository.save).not.toHaveBeenCalled();
+    expect(actionsRepository.save).not.toHaveBeenCalled();
+    expect(auditLogsService.record).not.toHaveBeenCalled();
+    expect(notificationsService.createTaskAssigned).not.toHaveBeenCalled();
   });
 });

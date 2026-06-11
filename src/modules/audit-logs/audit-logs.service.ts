@@ -26,9 +26,12 @@ export class AuditLogsService {
     private readonly auditLogsRepository: Repository<AuditLog>,
   ) {}
 
-  record(input: AuditLogInput): Promise<AuditLog> {
-    return this.auditLogsRepository.save(
-      this.auditLogsRepository.create({
+  record(
+    input: AuditLogInput,
+    auditLogsRepository: Repository<AuditLog> = this.auditLogsRepository,
+  ): Promise<AuditLog> {
+    return auditLogsRepository.save(
+      auditLogsRepository.create({
         actorUserId: input.actorUserId,
         action: input.action,
         entityType: input.entityType,

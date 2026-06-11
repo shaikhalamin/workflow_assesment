@@ -21,9 +21,13 @@ export class NotificationsService {
     private readonly notificationsRepository: Repository<Notification>,
   ) {}
 
-  create(input: NotificationInput): Promise<Notification> {
-    return this.notificationsRepository.save(
-      this.notificationsRepository.create({
+  create(
+    input: NotificationInput,
+    notificationsRepository: Repository<Notification> = this
+      .notificationsRepository,
+  ): Promise<Notification> {
+    return notificationsRepository.save(
+      notificationsRepository.create({
         recipientUserId: input.recipientUserId ?? null,
         recipientRoleSlug: input.recipientRoleSlug ?? null,
         title: input.title,
@@ -38,23 +42,29 @@ export class NotificationsService {
     );
   }
 
-  createTaskAssigned(input: {
-    assignedUserId?: string | null;
-    assignedRoleSlug?: string | null;
-    entityType: string;
-    entityId: string;
-    workflowInstanceId: string;
-  }) {
-    return this.create({
-      recipientUserId: input.assignedUserId ?? null,
-      recipientRoleSlug: input.assignedRoleSlug ?? null,
-      title: 'Workflow task assigned',
-      message: `${input.entityType} needs approval`,
-      type: NotificationType.WORKFLOW_TASK_ASSIGNED,
-      entityType: input.entityType,
-      entityId: input.entityId,
-      workflowInstanceId: input.workflowInstanceId,
-    });
+  createTaskAssigned(
+    input: {
+      assignedUserId?: string | null;
+      assignedRoleSlug?: string | null;
+      entityType: string;
+      entityId: string;
+      workflowInstanceId: string;
+    },
+    notificationsRepository?: Repository<Notification>,
+  ) {
+    return this.create(
+      {
+        recipientUserId: input.assignedUserId ?? null,
+        recipientRoleSlug: input.assignedRoleSlug ?? null,
+        title: 'Workflow task assigned',
+        message: `${input.entityType} needs approval`,
+        type: NotificationType.WORKFLOW_TASK_ASSIGNED,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        workflowInstanceId: input.workflowInstanceId,
+      },
+      notificationsRepository,
+    );
   }
 
   createWorkflowApproved(input: {
