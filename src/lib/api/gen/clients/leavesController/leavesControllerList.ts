@@ -7,6 +7,9 @@ import fetch from "@/lib/api/client.ts";
 import type {
   LeavesControllerListQueryResponse,
   LeavesControllerListQueryParams,
+  LeavesControllerList400,
+  LeavesControllerList401,
+  LeavesControllerList403,
 } from "../../types/leavesController/LeavesControllerList.ts";
 import type {
   Client,
@@ -30,7 +33,11 @@ export async function leavesControllerList(
 
   const res = await request<
     LeavesControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerList400
+      | LeavesControllerList401
+      | LeavesControllerList403
+    >,
     unknown
   >({
     method: "GET",

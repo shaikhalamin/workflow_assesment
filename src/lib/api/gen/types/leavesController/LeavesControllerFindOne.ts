@@ -25,10 +25,70 @@ export type LeavesControllerFindOne200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type LeavesControllerFindOne400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type LeavesControllerFindOne401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type LeavesControllerFindOne403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type LeavesControllerFindOne404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type LeavesControllerFindOneQueryResponse = LeavesControllerFindOne200;
 
 export type LeavesControllerFindOneQuery = {
   Response: LeavesControllerFindOne200;
   PathParams: LeavesControllerFindOnePathParams;
-  Errors: any;
+  Errors:
+    | LeavesControllerFindOne400
+    | LeavesControllerFindOne401
+    | LeavesControllerFindOne403
+    | LeavesControllerFindOne404;
 };

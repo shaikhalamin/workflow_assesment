@@ -10,10 +10,36 @@ import { ExpensesPage, LeavesPage, PaymentsPage, TasksPage } from './workspace-p
 const pendingTasksState = vi.hoisted((): { pendingTasks: unknown[] } => ({
   pendingTasks: [],
 }))
+const expenseListState = vi.hoisted((): { expenses: unknown[] } => ({
+  expenses: [
+    {
+      id: 'expense-1',
+      title: 'Fuel',
+      amount: 1200,
+      currency: 'BDT',
+      category: 'Travel',
+      status: 'DRAFT',
+    },
+  ],
+}))
+const leaveListState = vi.hoisted((): { leaves: unknown[] } => ({
+  leaves: [
+    {
+      id: 'leave-1',
+      leaveType: 'ANNUAL',
+      leaveDays: 2,
+      startDate: '2026-06-10',
+      endDate: '2026-06-11',
+      status: 'DRAFT',
+    },
+  ],
+}))
 const submitLeave = vi.hoisted(() => vi.fn())
 const submitLeaveState = vi.hoisted((): { error: unknown } => ({
   error: null,
 }))
+const deleteExpense = vi.hoisted(() => vi.fn())
+const deleteLeave = vi.hoisted(() => vi.fn())
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -58,19 +84,15 @@ vi.mock('@/lib/api/gen', () => ({
   useExpensesControllerFindOne: () => ({ data: undefined, error: null }),
   useExpensesControllerList: () => ({
     data: {
-      data: [
-        {
-          id: 'expense-1',
-          title: 'Fuel',
-          amount: 1200,
-          currency: 'BDT',
-          category: 'Travel',
-          status: 'DRAFT',
-        },
-      ],
+      data: expenseListState.expenses,
     },
     error: null,
     refetch: vi.fn(),
+  }),
+  useExpensesControllerDelete: () => ({
+    error: null,
+    isPending: false,
+    mutate: deleteExpense,
   }),
   useExpensesControllerSubmit: () => ({ mutate: vi.fn() }),
   useLeavesControllerCreate: () => ({
@@ -81,19 +103,15 @@ vi.mock('@/lib/api/gen', () => ({
   useLeavesControllerFindOne: () => ({ data: undefined, error: null }),
   useLeavesControllerList: () => ({
     data: {
-      data: [
-        {
-          id: 'leave-1',
-          leaveType: 'ANNUAL',
-          leaveDays: 2,
-          startDate: '2026-06-10',
-          endDate: '2026-06-11',
-          status: 'DRAFT',
-        },
-      ],
+      data: leaveListState.leaves,
     },
     error: null,
     refetch: vi.fn(),
+  }),
+  useLeavesControllerDelete: () => ({
+    error: null,
+    isPending: false,
+    mutate: deleteLeave,
   }),
   useLeavesControllerSubmit: () => ({
     error: submitLeaveState.error,
@@ -162,6 +180,14 @@ const readOnlyPaymentUser: AuthUserDto = {
   permissions: ['payments.read'],
 }
 
+const writableExpenseUser: AuthUserDto = {
+  id: 'employee-1',
+  name: 'Employee User',
+  email: 'employee@example.com',
+  roles: ['employee'],
+  permissions: ['expenses.read', 'expenses.write'],
+}
+
 const writableLeaveUser: AuthUserDto = {
   id: 'employee-1',
   name: 'Employee User',
@@ -173,8 +199,30 @@ const writableLeaveUser: AuthUserDto = {
 describe('workspace page permissions', () => {
   beforeEach(() => {
     localStorage.clear()
+    expenseListState.expenses = [
+      {
+        id: 'expense-1',
+        title: 'Fuel',
+        amount: 1200,
+        currency: 'BDT',
+        category: 'Travel',
+        status: 'DRAFT',
+      },
+    ]
+    leaveListState.leaves = [
+      {
+        id: 'leave-1',
+        leaveType: 'ANNUAL',
+        leaveDays: 2,
+        startDate: '2026-06-10',
+        endDate: '2026-06-11',
+        status: 'DRAFT',
+      },
+    ]
     pendingTasksState.pendingTasks = []
     submitLeave.mockClear()
+    deleteExpense.mockClear()
+    deleteLeave.mockClear()
     submitLeaveState.error = null
   })
 
@@ -189,6 +237,55 @@ describe('workspace page permissions', () => {
     expect(screen.getByText('Fuel')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /new expense/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /submit/i })).not.toBeInTheDocument()
+  })
+
+  it('shows a new expense request button in the empty expense list', () => {
+    expenseListState.expenses = []
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableExpenseUser,
+    })
+
+    render(<ExpensesPage />)
+
+    expect(screen.getByRole('link', { name: /new expense request/i })).toHaveAttribute(
+      'href',
+      '/expenses/new',
+    )
+  })
+
+  it('deletes a draft expense from the list row', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableExpenseUser,
+    })
+
+    render(<ExpensesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /delete/i }))
+
+    expect(deleteExpense).toHaveBeenCalledWith({ id: 'expense-1' })
+  })
+
+  it('hides expense delete for submitted rows', () => {
+    expenseListState.expenses = [
+      {
+        id: 'expense-1',
+        title: 'Fuel',
+        amount: 1200,
+        currency: 'BDT',
+        category: 'Travel',
+        status: 'SUBMITTED',
+      },
+    ]
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableExpenseUser,
+    })
+
+    render(<ExpensesPage />)
+
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
   })
 
   it('hides payment write actions from users with read-only payment access', () => {
@@ -238,6 +335,21 @@ describe('workspace page permissions', () => {
     expect(screen.getByText('Only requester can submit leave')).toBeInTheDocument()
   })
 
+  it('shows a new leave request button in the empty leave list', () => {
+    leaveListState.leaves = []
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableLeaveUser,
+    })
+
+    render(<LeavesPage />)
+
+    expect(screen.getByRole('link', { name: /new leave request/i })).toHaveAttribute(
+      'href',
+      '/leaves/new',
+    )
+  })
+
   it('submits a draft leave from the list row', () => {
     useAuthStore.setState({
       isAuthenticated: true,
@@ -249,6 +361,40 @@ describe('workspace page permissions', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
 
     expect(submitLeave).toHaveBeenCalledWith({ id: 'leave-1' })
+  })
+
+  it('deletes a draft leave from the list row', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableLeaveUser,
+    })
+
+    render(<LeavesPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /delete/i }))
+
+    expect(deleteLeave).toHaveBeenCalledWith({ id: 'leave-1' })
+  })
+
+  it('hides leave delete for submitted rows', () => {
+    leaveListState.leaves = [
+      {
+        id: 'leave-1',
+        leaveType: 'ANNUAL',
+        leaveDays: 2,
+        startDate: '2026-06-10',
+        endDate: '2026-06-11',
+        status: 'SUBMITTED',
+      },
+    ]
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableLeaveUser,
+    })
+
+    render(<LeavesPage />)
+
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
   })
 
   it('shows a workflow details link for pending approvals', () => {

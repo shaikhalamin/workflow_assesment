@@ -6,6 +6,9 @@
 import type {
   ExpensesControllerListQueryResponse,
   ExpensesControllerListQueryParams,
+  ExpensesControllerList400,
+  ExpensesControllerList401,
+  ExpensesControllerList403,
 } from "../../types/expensesController/ExpensesControllerList.ts";
 import type {
   Client,
@@ -36,7 +39,11 @@ export function expensesControllerListQueryOptions(
   const queryKey = expensesControllerListQueryKey(params);
   return queryOptions<
     ExpensesControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerList400
+      | ExpensesControllerList401
+      | ExpensesControllerList403
+    >,
     ExpensesControllerListQueryResponse,
     typeof queryKey
   >({
@@ -63,7 +70,11 @@ export function useExpensesControllerList<
     query?: Partial<
       QueryObserverOptions<
         ExpensesControllerListQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | ExpensesControllerList400
+          | ExpensesControllerList401
+          | ExpensesControllerList403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -84,9 +95,14 @@ export function useExpensesControllerList<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | ExpensesControllerList400
+      | ExpensesControllerList401
+      | ExpensesControllerList403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

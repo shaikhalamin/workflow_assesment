@@ -8,6 +8,10 @@ import type {
   ExpensesControllerResubmitMutationRequest,
   ExpensesControllerResubmitMutationResponse,
   ExpensesControllerResubmitPathParams,
+  ExpensesControllerResubmit400,
+  ExpensesControllerResubmit401,
+  ExpensesControllerResubmit403,
+  ExpensesControllerResubmit404,
 } from "../../types/expensesController/ExpensesControllerResubmit.ts";
 import type {
   Client,
@@ -45,7 +49,12 @@ export async function expensesControllerResubmit(
 
   const res = await request<
     ExpensesControllerResubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerResubmit400
+      | ExpensesControllerResubmit401
+      | ExpensesControllerResubmit403
+      | ExpensesControllerResubmit404
+    >,
     ExpensesControllerResubmitMutationRequest
   >({
     method: "POST",

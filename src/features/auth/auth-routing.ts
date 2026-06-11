@@ -69,9 +69,6 @@ export function canAccessPrivatePath(
   return required ? permissions.includes(required.permission) : true
 }
 
-export function getDefaultPrivatePath(
-  roles: readonly string[] = [],
-  permissions: readonly string[] = [],
-) {
-  return canOpenWorkflowBuilder(roles, permissions) ? '/workflow-templates' : '/'
+export function getDefaultPrivatePath() {
+  return '/'
 }

@@ -5,7 +5,6 @@ import {
   ChevronDown,
   ChevronRight,
   CheckCircle2,
-  Copy,
   Eye,
   FilePlus2,
   PlayCircle,
@@ -24,10 +23,12 @@ import { useDashboardControllerApprover } from '@/lib/api/gen'
 import { useDashboardControllerEmployee } from '@/lib/api/gen'
 import { useDashboardControllerHr } from '@/lib/api/gen'
 import { useExpensesControllerCreate } from '@/lib/api/gen'
+import { useExpensesControllerDelete } from '@/lib/api/gen'
 import { useExpensesControllerFindOne } from '@/lib/api/gen'
 import { useExpensesControllerList } from '@/lib/api/gen'
 import { useExpensesControllerSubmit } from '@/lib/api/gen'
 import { useLeavesControllerCreate } from '@/lib/api/gen'
+import { useLeavesControllerDelete } from '@/lib/api/gen'
 import { useLeavesControllerFindOne } from '@/lib/api/gen'
 import { useLeavesControllerList } from '@/lib/api/gen'
 import { useLeavesControllerSubmit } from '@/lib/api/gen'
@@ -43,7 +44,6 @@ import { useWorkflowRuntimeControllerMyPending } from '@/lib/api/gen'
 import { useWorkflowRuntimeControllerReject } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerCreateWizard } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerDeactivate } from '@/lib/api/gen'
-import { useWorkflowTemplateControllerDuplicate } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerFindOne } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerList } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerPublish } from '@/lib/api/gen'
@@ -752,9 +752,6 @@ export function DashboardPage() {
 
 export function WorkflowTemplatesPage() {
   const query = useWorkflowTemplateControllerList({ params: { page: 1, limit: 50 } })
-  const duplicate = useWorkflowTemplateControllerDuplicate({
-    mutation: { onSuccess: () => void query.refetch() },
-  })
   const publish = useWorkflowTemplateControllerPublish({
     mutation: { onSuccess: () => void query.refetch() },
   })
@@ -776,28 +773,46 @@ export function WorkflowTemplatesPage() {
         header: 'Actions',
         cell: ({ row }) => {
           const id = String(row.original.id)
+          const status = String(row.original.status)
+          const workflowInstanceCount =
+            typeof row.original.workflowInstanceCount === 'number'
+              ? row.original.workflowInstanceCount
+              : 0
+          const hasWorkflowInstances = workflowInstanceCount > 0
           return (
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="secondary" type="button">
-                <Link to="/workflow-templates/$templateId" params={{ templateId: id }}>
-                  <Eye className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="sm" variant="secondary" type="button" onClick={() => duplicate.mutate({ id })}>
-                <Copy className="h-4 w-4" /> Duplicate
-              </Button>
-              <Button size="sm" type="button" onClick={() => publish.mutate({ id })}>
-                <PlayCircle className="h-4 w-4" /> Publish
-              </Button>
-              <Button size="sm" variant="ghost" type="button" onClick={() => deactivate.mutate({ id })}>
-                Deactivate
-              </Button>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="secondary" type="button">
+                  <Link to="/workflow-templates/$templateId" params={{ templateId: id }} className="inline-flex items-center gap-2">
+                    <Eye className="h-4 w-4" /> View Details
+                  </Link>
+                </Button>
+                {status !== 'PUBLISHED' ? (
+                  <Button size="sm" type="button" onClick={() => publish.mutate({ id })}>
+                    <PlayCircle className="h-4 w-4" /> Publish
+                  </Button>
+                ) : null}
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  type="button"
+                  disabled={hasWorkflowInstances}
+                  onClick={() => deactivate.mutate({ id })}
+                >
+                  <XCircle className="h-4 w-4" /> Deactivate
+                </Button>
+              </div>
+              {hasWorkflowInstances ? (
+                <p className="text-xs font-medium text-[var(--destructive)]">
+                  Worflow already associated can not deactivate
+                </p>
+              ) : null}
             </div>
           )
         },
       },
     ],
-    [deactivate, duplicate, publish],
+    [deactivate, publish],
   )
 
   return (
@@ -3095,6 +3110,7 @@ export function ExpensesPage() {
   const user = useAuthStore((state) => state.user)
   const query = useExpensesControllerList({ params: { page: 1, limit: 50 } })
   const submit = useExpensesControllerSubmit({ mutation: { onSuccess: () => void query.refetch() } })
+  const deleteExpense = useExpensesControllerDelete({ mutation: { onSuccess: () => void query.refetch() } })
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   const canWriteExpenses = hasPermission(
     user?.roles ?? [],
@@ -3114,9 +3130,21 @@ export function ExpensesPage() {
           ) : undefined
         }
       />
-      <ErrorNotice error={query.error} />
+      <ErrorNotice error={query.error ?? deleteExpense.error} />
       <DataTable
         data={rows}
+        empty={
+          canWriteExpenses ? (
+            <Button type="button">
+              <Link to="/expenses/new" className="inline-flex items-center gap-2">
+                <FilePlus2 className="h-4 w-4" />
+                New Expense Request
+              </Link>
+            </Button>
+          ) : (
+            'No records found.'
+          )
+        }
         columns={[
           { header: 'Title', accessorKey: 'title' },
           { header: 'Amount', cell: ({ row }) => `${formatValue(row.original.amount)} ${formatValue(row.original.currency)}` },
@@ -3143,6 +3171,19 @@ export function ExpensesPage() {
                   >
                     <Send className="h-4 w-4" />
                     Submit
+                  </Button>
+                ) : null}
+                {canWriteExpenses && String(row.original.status) === 'DRAFT' ? (
+                  <Button
+                    className="whitespace-nowrap"
+                    disabled={deleteExpense.isPending}
+                    size="sm"
+                    type="button"
+                    variant="destructive"
+                    onClick={() => deleteExpense.mutate({ id: String(row.original.id) })}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
                   </Button>
                 ) : null}
               </div>
@@ -3372,6 +3413,7 @@ export function LeavesPage() {
   const user = useAuthStore((state) => state.user)
   const query = useLeavesControllerList({ params: { page: 1, limit: 50 } })
   const submit = useLeavesControllerSubmit({ mutation: { onSuccess: () => void query.refetch() } })
+  const deleteLeave = useLeavesControllerDelete({ mutation: { onSuccess: () => void query.refetch() } })
   const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
   const canWriteLeaves = hasPermission(
     user?.roles ?? [],
@@ -3391,9 +3433,21 @@ export function LeavesPage() {
           ) : undefined
         }
       />
-      <ErrorNotice error={query.error ?? submit.error} />
+      <ErrorNotice error={query.error ?? submit.error ?? deleteLeave.error} />
       <DataTable
         data={rows}
+        empty={
+          canWriteLeaves ? (
+            <Button type="button">
+              <Link to="/leaves/new" className="inline-flex items-center gap-2">
+                <FilePlus2 className="h-4 w-4" />
+                New Leave Request
+              </Link>
+            </Button>
+          ) : (
+            'No records found.'
+          )
+        }
         columns={[
           { header: 'Type', accessorKey: 'leaveType' },
           { header: 'Days', accessorKey: 'leaveDays' },
@@ -3420,6 +3474,19 @@ export function LeavesPage() {
                   >
                     <Send className="h-4 w-4" />
                     Submit
+                  </Button>
+                ) : null}
+                {canWriteLeaves && String(row.original.status) === 'DRAFT' ? (
+                  <Button
+                    className="whitespace-nowrap"
+                    disabled={deleteLeave.isPending}
+                    size="sm"
+                    type="button"
+                    variant="destructive"
+                    onClick={() => deleteLeave.mutate({ id: String(row.original.id) })}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
                   </Button>
                 ) : null}
               </div>

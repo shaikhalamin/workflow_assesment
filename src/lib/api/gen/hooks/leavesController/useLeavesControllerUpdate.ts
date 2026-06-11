@@ -7,6 +7,10 @@ import type {
   LeavesControllerUpdateMutationRequest,
   LeavesControllerUpdateMutationResponse,
   LeavesControllerUpdatePathParams,
+  LeavesControllerUpdate400,
+  LeavesControllerUpdate401,
+  LeavesControllerUpdate403,
+  LeavesControllerUpdate404,
 } from "../../types/leavesController/LeavesControllerUpdate.ts";
 import type {
   Client,
@@ -36,7 +40,12 @@ export function leavesControllerUpdateMutationOptions<TContext = unknown>(
   const mutationKey = leavesControllerUpdateMutationKey();
   return mutationOptions<
     LeavesControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerUpdate400
+      | LeavesControllerUpdate401
+      | LeavesControllerUpdate403
+      | LeavesControllerUpdate404
+    >,
     {
       id: LeavesControllerUpdatePathParams["id"];
       data: LeavesControllerUpdateMutationRequest;
@@ -57,7 +66,12 @@ export function useLeavesControllerUpdate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       LeavesControllerUpdateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | LeavesControllerUpdate400
+        | LeavesControllerUpdate401
+        | LeavesControllerUpdate403
+        | LeavesControllerUpdate404
+      >,
       {
         id: LeavesControllerUpdatePathParams["id"];
         data: LeavesControllerUpdateMutationRequest;
@@ -78,7 +92,12 @@ export function useLeavesControllerUpdate<TContext>(
     config,
   ) as UseMutationOptions<
     LeavesControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerUpdate400
+      | LeavesControllerUpdate401
+      | LeavesControllerUpdate403
+      | LeavesControllerUpdate404
+    >,
     {
       id: LeavesControllerUpdatePathParams["id"];
       data: LeavesControllerUpdateMutationRequest;
@@ -88,7 +107,12 @@ export function useLeavesControllerUpdate<TContext>(
 
   return useMutation<
     LeavesControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerUpdate400
+      | LeavesControllerUpdate401
+      | LeavesControllerUpdate403
+      | LeavesControllerUpdate404
+    >,
     {
       id: LeavesControllerUpdatePathParams["id"];
       data: LeavesControllerUpdateMutationRequest;
@@ -103,7 +127,12 @@ export function useLeavesControllerUpdate<TContext>(
     queryClient,
   ) as UseMutationResult<
     LeavesControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerUpdate400
+      | LeavesControllerUpdate401
+      | LeavesControllerUpdate403
+      | LeavesControllerUpdate404
+    >,
     {
       id: LeavesControllerUpdatePathParams["id"];
       data: LeavesControllerUpdateMutationRequest;

@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   ExpensesControllerFindOneQueryResponse,
   ExpensesControllerFindOnePathParams,
+  ExpensesControllerFindOne400,
+  ExpensesControllerFindOne401,
+  ExpensesControllerFindOne403,
+  ExpensesControllerFindOne404,
 } from "../../types/expensesController/ExpensesControllerFindOne.ts";
 import type {
   Client,
@@ -34,7 +38,12 @@ export async function expensesControllerFindOne(
 
   const res = await request<
     ExpensesControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerFindOne400
+      | ExpensesControllerFindOne401
+      | ExpensesControllerFindOne403
+      | ExpensesControllerFindOne404
+    >,
     unknown
   >({
     method: "GET",

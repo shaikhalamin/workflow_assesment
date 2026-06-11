@@ -7,6 +7,10 @@ import type {
   LeavesControllerResubmitMutationRequest,
   LeavesControllerResubmitMutationResponse,
   LeavesControllerResubmitPathParams,
+  LeavesControllerResubmit400,
+  LeavesControllerResubmit401,
+  LeavesControllerResubmit403,
+  LeavesControllerResubmit404,
 } from "../../types/leavesController/LeavesControllerResubmit.ts";
 import type {
   Client,
@@ -36,7 +40,12 @@ export function leavesControllerResubmitMutationOptions<TContext = unknown>(
   const mutationKey = leavesControllerResubmitMutationKey();
   return mutationOptions<
     LeavesControllerResubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerResubmit400
+      | LeavesControllerResubmit401
+      | LeavesControllerResubmit403
+      | LeavesControllerResubmit404
+    >,
     {
       id: LeavesControllerResubmitPathParams["id"];
       data: LeavesControllerResubmitMutationRequest;
@@ -57,7 +66,12 @@ export function useLeavesControllerResubmit<TContext>(
   options: {
     mutation?: UseMutationOptions<
       LeavesControllerResubmitMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | LeavesControllerResubmit400
+        | LeavesControllerResubmit401
+        | LeavesControllerResubmit403
+        | LeavesControllerResubmit404
+      >,
       {
         id: LeavesControllerResubmitPathParams["id"];
         data: LeavesControllerResubmitMutationRequest;
@@ -78,7 +92,12 @@ export function useLeavesControllerResubmit<TContext>(
     config,
   ) as UseMutationOptions<
     LeavesControllerResubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerResubmit400
+      | LeavesControllerResubmit401
+      | LeavesControllerResubmit403
+      | LeavesControllerResubmit404
+    >,
     {
       id: LeavesControllerResubmitPathParams["id"];
       data: LeavesControllerResubmitMutationRequest;
@@ -88,7 +107,12 @@ export function useLeavesControllerResubmit<TContext>(
 
   return useMutation<
     LeavesControllerResubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerResubmit400
+      | LeavesControllerResubmit401
+      | LeavesControllerResubmit403
+      | LeavesControllerResubmit404
+    >,
     {
       id: LeavesControllerResubmitPathParams["id"];
       data: LeavesControllerResubmitMutationRequest;
@@ -103,7 +127,12 @@ export function useLeavesControllerResubmit<TContext>(
     queryClient,
   ) as UseMutationResult<
     LeavesControllerResubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerResubmit400
+      | LeavesControllerResubmit401
+      | LeavesControllerResubmit403
+      | LeavesControllerResubmit404
+    >,
     {
       id: LeavesControllerResubmitPathParams["id"];
       data: LeavesControllerResubmitMutationRequest;

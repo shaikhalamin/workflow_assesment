@@ -13,12 +13,14 @@ export type { DashboardControllerApproverQueryKey } from "./hooks/dashboardContr
 export type { DashboardControllerEmployeeQueryKey } from "./hooks/dashboardController/useDashboardControllerEmployee.ts";
 export type { DashboardControllerHrQueryKey } from "./hooks/dashboardController/useDashboardControllerHr.ts";
 export type { ExpensesControllerCreateMutationKey } from "./hooks/expensesController/useExpensesControllerCreate.ts";
+export type { ExpensesControllerDeleteMutationKey } from "./hooks/expensesController/useExpensesControllerDelete.ts";
 export type { ExpensesControllerFindOneQueryKey } from "./hooks/expensesController/useExpensesControllerFindOne.ts";
 export type { ExpensesControllerListQueryKey } from "./hooks/expensesController/useExpensesControllerList.ts";
 export type { ExpensesControllerResubmitMutationKey } from "./hooks/expensesController/useExpensesControllerResubmit.ts";
 export type { ExpensesControllerSubmitMutationKey } from "./hooks/expensesController/useExpensesControllerSubmit.ts";
 export type { ExpensesControllerUpdateMutationKey } from "./hooks/expensesController/useExpensesControllerUpdate.ts";
 export type { LeavesControllerCreateMutationKey } from "./hooks/leavesController/useLeavesControllerCreate.ts";
+export type { LeavesControllerDeleteMutationKey } from "./hooks/leavesController/useLeavesControllerDelete.ts";
 export type { LeavesControllerFindOneQueryKey } from "./hooks/leavesController/useLeavesControllerFindOne.ts";
 export type { LeavesControllerListQueryKey } from "./hooks/leavesController/useLeavesControllerList.ts";
 export type { LeavesControllerResubmitMutationKey } from "./hooks/leavesController/useLeavesControllerResubmit.ts";
@@ -241,18 +243,38 @@ export type {
 } from "./types/dashboardController/DashboardControllerHr.ts";
 export type {
   ExpensesControllerCreate201,
+  ExpensesControllerCreate400,
+  ExpensesControllerCreate401,
+  ExpensesControllerCreate403,
   ExpensesControllerCreateMutation,
   ExpensesControllerCreateMutationRequest,
   ExpensesControllerCreateMutationResponse,
 } from "./types/expensesController/ExpensesControllerCreate.ts";
 export type {
+  ExpensesControllerDelete200,
+  ExpensesControllerDelete400,
+  ExpensesControllerDelete401,
+  ExpensesControllerDelete403,
+  ExpensesControllerDelete404,
+  ExpensesControllerDeleteMutation,
+  ExpensesControllerDeleteMutationResponse,
+  ExpensesControllerDeletePathParams,
+} from "./types/expensesController/ExpensesControllerDelete.ts";
+export type {
   ExpensesControllerFindOne200,
+  ExpensesControllerFindOne400,
+  ExpensesControllerFindOne401,
+  ExpensesControllerFindOne403,
+  ExpensesControllerFindOne404,
   ExpensesControllerFindOnePathParams,
   ExpensesControllerFindOneQuery,
   ExpensesControllerFindOneQueryResponse,
 } from "./types/expensesController/ExpensesControllerFindOne.ts";
 export type {
   ExpensesControllerList200,
+  ExpensesControllerList400,
+  ExpensesControllerList401,
+  ExpensesControllerList403,
   ExpensesControllerListQuery,
   ExpensesControllerListQueryParams,
   ExpensesControllerListQueryParamsStatusEnum,
@@ -260,6 +282,10 @@ export type {
 } from "./types/expensesController/ExpensesControllerList.ts";
 export type {
   ExpensesControllerResubmit201,
+  ExpensesControllerResubmit400,
+  ExpensesControllerResubmit401,
+  ExpensesControllerResubmit403,
+  ExpensesControllerResubmit404,
   ExpensesControllerResubmitMutation,
   ExpensesControllerResubmitMutationRequest,
   ExpensesControllerResubmitMutationResponse,
@@ -267,12 +293,20 @@ export type {
 } from "./types/expensesController/ExpensesControllerResubmit.ts";
 export type {
   ExpensesControllerSubmit201,
+  ExpensesControllerSubmit400,
+  ExpensesControllerSubmit401,
+  ExpensesControllerSubmit403,
+  ExpensesControllerSubmit404,
   ExpensesControllerSubmitMutation,
   ExpensesControllerSubmitMutationResponse,
   ExpensesControllerSubmitPathParams,
 } from "./types/expensesController/ExpensesControllerSubmit.ts";
 export type {
   ExpensesControllerUpdate200,
+  ExpensesControllerUpdate400,
+  ExpensesControllerUpdate401,
+  ExpensesControllerUpdate403,
+  ExpensesControllerUpdate404,
   ExpensesControllerUpdateMutation,
   ExpensesControllerUpdateMutationRequest,
   ExpensesControllerUpdateMutationResponse,
@@ -280,18 +314,38 @@ export type {
 } from "./types/expensesController/ExpensesControllerUpdate.ts";
 export type {
   LeavesControllerCreate201,
+  LeavesControllerCreate400,
+  LeavesControllerCreate401,
+  LeavesControllerCreate403,
   LeavesControllerCreateMutation,
   LeavesControllerCreateMutationRequest,
   LeavesControllerCreateMutationResponse,
 } from "./types/leavesController/LeavesControllerCreate.ts";
 export type {
+  LeavesControllerDelete200,
+  LeavesControllerDelete400,
+  LeavesControllerDelete401,
+  LeavesControllerDelete403,
+  LeavesControllerDelete404,
+  LeavesControllerDeleteMutation,
+  LeavesControllerDeleteMutationResponse,
+  LeavesControllerDeletePathParams,
+} from "./types/leavesController/LeavesControllerDelete.ts";
+export type {
   LeavesControllerFindOne200,
+  LeavesControllerFindOne400,
+  LeavesControllerFindOne401,
+  LeavesControllerFindOne403,
+  LeavesControllerFindOne404,
   LeavesControllerFindOnePathParams,
   LeavesControllerFindOneQuery,
   LeavesControllerFindOneQueryResponse,
 } from "./types/leavesController/LeavesControllerFindOne.ts";
 export type {
   LeavesControllerList200,
+  LeavesControllerList400,
+  LeavesControllerList401,
+  LeavesControllerList403,
   LeavesControllerListQuery,
   LeavesControllerListQueryParams,
   LeavesControllerListQueryParamsStatusEnum,
@@ -299,6 +353,10 @@ export type {
 } from "./types/leavesController/LeavesControllerList.ts";
 export type {
   LeavesControllerResubmit201,
+  LeavesControllerResubmit400,
+  LeavesControllerResubmit401,
+  LeavesControllerResubmit403,
+  LeavesControllerResubmit404,
   LeavesControllerResubmitMutation,
   LeavesControllerResubmitMutationRequest,
   LeavesControllerResubmitMutationResponse,
@@ -306,12 +364,20 @@ export type {
 } from "./types/leavesController/LeavesControllerResubmit.ts";
 export type {
   LeavesControllerSubmit201,
+  LeavesControllerSubmit400,
+  LeavesControllerSubmit401,
+  LeavesControllerSubmit403,
+  LeavesControllerSubmit404,
   LeavesControllerSubmitMutation,
   LeavesControllerSubmitMutationResponse,
   LeavesControllerSubmitPathParams,
 } from "./types/leavesController/LeavesControllerSubmit.ts";
 export type {
   LeavesControllerUpdate200,
+  LeavesControllerUpdate400,
+  LeavesControllerUpdate401,
+  LeavesControllerUpdate403,
+  LeavesControllerUpdate404,
   LeavesControllerUpdateMutation,
   LeavesControllerUpdateMutationRequest,
   LeavesControllerUpdateMutationResponse,
@@ -521,12 +587,14 @@ export { dashboardControllerApprover } from "./clients/dashboardController/dashb
 export { dashboardControllerEmployee } from "./clients/dashboardController/dashboardControllerEmployee.ts";
 export { dashboardControllerHr } from "./clients/dashboardController/dashboardControllerHr.ts";
 export { expensesControllerCreate } from "./clients/expensesController/expensesControllerCreate.ts";
+export { expensesControllerDelete } from "./clients/expensesController/expensesControllerDelete.ts";
 export { expensesControllerFindOne } from "./clients/expensesController/expensesControllerFindOne.ts";
 export { expensesControllerList } from "./clients/expensesController/expensesControllerList.ts";
 export { expensesControllerResubmit } from "./clients/expensesController/expensesControllerResubmit.ts";
 export { expensesControllerSubmit } from "./clients/expensesController/expensesControllerSubmit.ts";
 export { expensesControllerUpdate } from "./clients/expensesController/expensesControllerUpdate.ts";
 export { leavesControllerCreate } from "./clients/leavesController/leavesControllerCreate.ts";
+export { leavesControllerDelete } from "./clients/leavesController/leavesControllerDelete.ts";
 export { leavesControllerFindOne } from "./clients/leavesController/leavesControllerFindOne.ts";
 export { leavesControllerList } from "./clients/leavesController/leavesControllerList.ts";
 export { leavesControllerResubmit } from "./clients/leavesController/leavesControllerResubmit.ts";
@@ -607,6 +675,9 @@ export { useDashboardControllerHr } from "./hooks/dashboardController/useDashboa
 export { expensesControllerCreateMutationKey } from "./hooks/expensesController/useExpensesControllerCreate.ts";
 export { expensesControllerCreateMutationOptions } from "./hooks/expensesController/useExpensesControllerCreate.ts";
 export { useExpensesControllerCreate } from "./hooks/expensesController/useExpensesControllerCreate.ts";
+export { expensesControllerDeleteMutationKey } from "./hooks/expensesController/useExpensesControllerDelete.ts";
+export { expensesControllerDeleteMutationOptions } from "./hooks/expensesController/useExpensesControllerDelete.ts";
+export { useExpensesControllerDelete } from "./hooks/expensesController/useExpensesControllerDelete.ts";
 export { expensesControllerFindOneQueryKey } from "./hooks/expensesController/useExpensesControllerFindOne.ts";
 export { expensesControllerFindOneQueryOptions } from "./hooks/expensesController/useExpensesControllerFindOne.ts";
 export { useExpensesControllerFindOne } from "./hooks/expensesController/useExpensesControllerFindOne.ts";
@@ -625,6 +696,9 @@ export { useExpensesControllerUpdate } from "./hooks/expensesController/useExpen
 export { leavesControllerCreateMutationKey } from "./hooks/leavesController/useLeavesControllerCreate.ts";
 export { leavesControllerCreateMutationOptions } from "./hooks/leavesController/useLeavesControllerCreate.ts";
 export { useLeavesControllerCreate } from "./hooks/leavesController/useLeavesControllerCreate.ts";
+export { leavesControllerDeleteMutationKey } from "./hooks/leavesController/useLeavesControllerDelete.ts";
+export { leavesControllerDeleteMutationOptions } from "./hooks/leavesController/useLeavesControllerDelete.ts";
+export { useLeavesControllerDelete } from "./hooks/leavesController/useLeavesControllerDelete.ts";
 export { leavesControllerFindOneQueryKey } from "./hooks/leavesController/useLeavesControllerFindOne.ts";
 export { leavesControllerFindOneQueryOptions } from "./hooks/leavesController/useLeavesControllerFindOne.ts";
 export { useLeavesControllerFindOne } from "./hooks/leavesController/useLeavesControllerFindOne.ts";
@@ -826,32 +900,63 @@ export { employeeLeaveSummaryDtoSchema } from "./zod/employeeLeaveSummaryDtoSche
 export { expenseResponseDtoSchema } from "./zod/expenseResponseDtoSchema.ts";
 export {
   expensesControllerCreate201Schema,
+  expensesControllerCreate400Schema,
+  expensesControllerCreate401Schema,
+  expensesControllerCreate403Schema,
   expensesControllerCreateMutationRequestSchema,
   expensesControllerCreateMutationResponseSchema,
 } from "./zod/expensesController/expensesControllerCreateSchema.ts";
 export {
+  expensesControllerDelete200Schema,
+  expensesControllerDelete400Schema,
+  expensesControllerDelete401Schema,
+  expensesControllerDelete403Schema,
+  expensesControllerDelete404Schema,
+  expensesControllerDeleteMutationResponseSchema,
+  expensesControllerDeletePathParamsSchema,
+} from "./zod/expensesController/expensesControllerDeleteSchema.ts";
+export {
   expensesControllerFindOne200Schema,
+  expensesControllerFindOne400Schema,
+  expensesControllerFindOne401Schema,
+  expensesControllerFindOne403Schema,
+  expensesControllerFindOne404Schema,
   expensesControllerFindOnePathParamsSchema,
   expensesControllerFindOneQueryResponseSchema,
 } from "./zod/expensesController/expensesControllerFindOneSchema.ts";
 export {
   expensesControllerList200Schema,
+  expensesControllerList400Schema,
+  expensesControllerList401Schema,
+  expensesControllerList403Schema,
   expensesControllerListQueryParamsSchema,
   expensesControllerListQueryResponseSchema,
 } from "./zod/expensesController/expensesControllerListSchema.ts";
 export {
   expensesControllerResubmit201Schema,
+  expensesControllerResubmit400Schema,
+  expensesControllerResubmit401Schema,
+  expensesControllerResubmit403Schema,
+  expensesControllerResubmit404Schema,
   expensesControllerResubmitMutationRequestSchema,
   expensesControllerResubmitMutationResponseSchema,
   expensesControllerResubmitPathParamsSchema,
 } from "./zod/expensesController/expensesControllerResubmitSchema.ts";
 export {
   expensesControllerSubmit201Schema,
+  expensesControllerSubmit400Schema,
+  expensesControllerSubmit401Schema,
+  expensesControllerSubmit403Schema,
+  expensesControllerSubmit404Schema,
   expensesControllerSubmitMutationResponseSchema,
   expensesControllerSubmitPathParamsSchema,
 } from "./zod/expensesController/expensesControllerSubmitSchema.ts";
 export {
   expensesControllerUpdate200Schema,
+  expensesControllerUpdate400Schema,
+  expensesControllerUpdate401Schema,
+  expensesControllerUpdate403Schema,
+  expensesControllerUpdate404Schema,
   expensesControllerUpdateMutationRequestSchema,
   expensesControllerUpdateMutationResponseSchema,
   expensesControllerUpdatePathParamsSchema,
@@ -861,32 +966,63 @@ export { hrLeaveCountsDtoSchema } from "./zod/hrLeaveCountsDtoSchema.ts";
 export { leaveResponseDtoSchema } from "./zod/leaveResponseDtoSchema.ts";
 export {
   leavesControllerCreate201Schema,
+  leavesControllerCreate400Schema,
+  leavesControllerCreate401Schema,
+  leavesControllerCreate403Schema,
   leavesControllerCreateMutationRequestSchema,
   leavesControllerCreateMutationResponseSchema,
 } from "./zod/leavesController/leavesControllerCreateSchema.ts";
 export {
+  leavesControllerDelete200Schema,
+  leavesControllerDelete400Schema,
+  leavesControllerDelete401Schema,
+  leavesControllerDelete403Schema,
+  leavesControllerDelete404Schema,
+  leavesControllerDeleteMutationResponseSchema,
+  leavesControllerDeletePathParamsSchema,
+} from "./zod/leavesController/leavesControllerDeleteSchema.ts";
+export {
   leavesControllerFindOne200Schema,
+  leavesControllerFindOne400Schema,
+  leavesControllerFindOne401Schema,
+  leavesControllerFindOne403Schema,
+  leavesControllerFindOne404Schema,
   leavesControllerFindOnePathParamsSchema,
   leavesControllerFindOneQueryResponseSchema,
 } from "./zod/leavesController/leavesControllerFindOneSchema.ts";
 export {
   leavesControllerList200Schema,
+  leavesControllerList400Schema,
+  leavesControllerList401Schema,
+  leavesControllerList403Schema,
   leavesControllerListQueryParamsSchema,
   leavesControllerListQueryResponseSchema,
 } from "./zod/leavesController/leavesControllerListSchema.ts";
 export {
   leavesControllerResubmit201Schema,
+  leavesControllerResubmit400Schema,
+  leavesControllerResubmit401Schema,
+  leavesControllerResubmit403Schema,
+  leavesControllerResubmit404Schema,
   leavesControllerResubmitMutationRequestSchema,
   leavesControllerResubmitMutationResponseSchema,
   leavesControllerResubmitPathParamsSchema,
 } from "./zod/leavesController/leavesControllerResubmitSchema.ts";
 export {
   leavesControllerSubmit201Schema,
+  leavesControllerSubmit400Schema,
+  leavesControllerSubmit401Schema,
+  leavesControllerSubmit403Schema,
+  leavesControllerSubmit404Schema,
   leavesControllerSubmitMutationResponseSchema,
   leavesControllerSubmitPathParamsSchema,
 } from "./zod/leavesController/leavesControllerSubmitSchema.ts";
 export {
   leavesControllerUpdate200Schema,
+  leavesControllerUpdate400Schema,
+  leavesControllerUpdate401Schema,
+  leavesControllerUpdate403Schema,
+  leavesControllerUpdate404Schema,
   leavesControllerUpdateMutationRequestSchema,
   leavesControllerUpdateMutationResponseSchema,
   leavesControllerUpdatePathParamsSchema,

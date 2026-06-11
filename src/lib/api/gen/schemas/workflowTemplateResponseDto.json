@@ -33,6 +33,11 @@
       "nullable": true
     },
     "allowResubmission": { "type": "boolean", "example": true },
+    "workflowInstanceCount": {
+      "type": "number",
+      "example": 2,
+      "description": "Number of workflow runtime instances using this template."
+    },
     "createdById": {
       "type": "string",
       "example": "71cb34da-1809-4c72-b132-2b9860be8936",

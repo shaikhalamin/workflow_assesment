@@ -6,6 +6,10 @@
 import type {
   ExpensesControllerSubmitMutationResponse,
   ExpensesControllerSubmitPathParams,
+  ExpensesControllerSubmit400,
+  ExpensesControllerSubmit401,
+  ExpensesControllerSubmit403,
+  ExpensesControllerSubmit404,
 } from "../../types/expensesController/ExpensesControllerSubmit.ts";
 import type {
   Client,
@@ -33,7 +37,12 @@ export function expensesControllerSubmitMutationOptions<TContext = unknown>(
   const mutationKey = expensesControllerSubmitMutationKey();
   return mutationOptions<
     ExpensesControllerSubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerSubmit400
+      | ExpensesControllerSubmit401
+      | ExpensesControllerSubmit403
+      | ExpensesControllerSubmit404
+    >,
     { id: ExpensesControllerSubmitPathParams["id"] },
     TContext
   >({
@@ -51,7 +60,12 @@ export function useExpensesControllerSubmit<TContext>(
   options: {
     mutation?: UseMutationOptions<
       ExpensesControllerSubmitMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | ExpensesControllerSubmit400
+        | ExpensesControllerSubmit401
+        | ExpensesControllerSubmit403
+        | ExpensesControllerSubmit404
+      >,
       { id: ExpensesControllerSubmitPathParams["id"] },
       TContext
     > & { client?: QueryClient };
@@ -67,14 +81,24 @@ export function useExpensesControllerSubmit<TContext>(
     config,
   ) as UseMutationOptions<
     ExpensesControllerSubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerSubmit400
+      | ExpensesControllerSubmit401
+      | ExpensesControllerSubmit403
+      | ExpensesControllerSubmit404
+    >,
     { id: ExpensesControllerSubmitPathParams["id"] },
     TContext
   >;
 
   return useMutation<
     ExpensesControllerSubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerSubmit400
+      | ExpensesControllerSubmit401
+      | ExpensesControllerSubmit403
+      | ExpensesControllerSubmit404
+    >,
     { id: ExpensesControllerSubmitPathParams["id"] },
     TContext
   >(
@@ -86,7 +110,12 @@ export function useExpensesControllerSubmit<TContext>(
     queryClient,
   ) as UseMutationResult<
     ExpensesControllerSubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerSubmit400
+      | ExpensesControllerSubmit401
+      | ExpensesControllerSubmit403
+      | ExpensesControllerSubmit404
+    >,
     { id: ExpensesControllerSubmitPathParams["id"] },
     TContext
   >;

@@ -7,6 +7,10 @@ import type {
   ExpensesControllerResubmitMutationRequest,
   ExpensesControllerResubmitMutationResponse,
   ExpensesControllerResubmitPathParams,
+  ExpensesControllerResubmit400,
+  ExpensesControllerResubmit401,
+  ExpensesControllerResubmit403,
+  ExpensesControllerResubmit404,
 } from "../../types/expensesController/ExpensesControllerResubmit.ts";
 import type {
   Client,
@@ -36,7 +40,12 @@ export function expensesControllerResubmitMutationOptions<TContext = unknown>(
   const mutationKey = expensesControllerResubmitMutationKey();
   return mutationOptions<
     ExpensesControllerResubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerResubmit400
+      | ExpensesControllerResubmit401
+      | ExpensesControllerResubmit403
+      | ExpensesControllerResubmit404
+    >,
     {
       id: ExpensesControllerResubmitPathParams["id"];
       data: ExpensesControllerResubmitMutationRequest;
@@ -57,7 +66,12 @@ export function useExpensesControllerResubmit<TContext>(
   options: {
     mutation?: UseMutationOptions<
       ExpensesControllerResubmitMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | ExpensesControllerResubmit400
+        | ExpensesControllerResubmit401
+        | ExpensesControllerResubmit403
+        | ExpensesControllerResubmit404
+      >,
       {
         id: ExpensesControllerResubmitPathParams["id"];
         data: ExpensesControllerResubmitMutationRequest;
@@ -78,7 +92,12 @@ export function useExpensesControllerResubmit<TContext>(
     config,
   ) as UseMutationOptions<
     ExpensesControllerResubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerResubmit400
+      | ExpensesControllerResubmit401
+      | ExpensesControllerResubmit403
+      | ExpensesControllerResubmit404
+    >,
     {
       id: ExpensesControllerResubmitPathParams["id"];
       data: ExpensesControllerResubmitMutationRequest;
@@ -88,7 +107,12 @@ export function useExpensesControllerResubmit<TContext>(
 
   return useMutation<
     ExpensesControllerResubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerResubmit400
+      | ExpensesControllerResubmit401
+      | ExpensesControllerResubmit403
+      | ExpensesControllerResubmit404
+    >,
     {
       id: ExpensesControllerResubmitPathParams["id"];
       data: ExpensesControllerResubmitMutationRequest;
@@ -103,7 +127,12 @@ export function useExpensesControllerResubmit<TContext>(
     queryClient,
   ) as UseMutationResult<
     ExpensesControllerResubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerResubmit400
+      | ExpensesControllerResubmit401
+      | ExpensesControllerResubmit403
+      | ExpensesControllerResubmit404
+    >,
     {
       id: ExpensesControllerResubmitPathParams["id"];
       data: ExpensesControllerResubmitMutationRequest;

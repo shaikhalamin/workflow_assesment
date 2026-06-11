@@ -13,12 +13,14 @@ export type { DashboardControllerApproverQueryKey } from "./dashboardController/
 export type { DashboardControllerEmployeeQueryKey } from "./dashboardController/useDashboardControllerEmployee.ts";
 export type { DashboardControllerHrQueryKey } from "./dashboardController/useDashboardControllerHr.ts";
 export type { ExpensesControllerCreateMutationKey } from "./expensesController/useExpensesControllerCreate.ts";
+export type { ExpensesControllerDeleteMutationKey } from "./expensesController/useExpensesControllerDelete.ts";
 export type { ExpensesControllerFindOneQueryKey } from "./expensesController/useExpensesControllerFindOne.ts";
 export type { ExpensesControllerListQueryKey } from "./expensesController/useExpensesControllerList.ts";
 export type { ExpensesControllerResubmitMutationKey } from "./expensesController/useExpensesControllerResubmit.ts";
 export type { ExpensesControllerSubmitMutationKey } from "./expensesController/useExpensesControllerSubmit.ts";
 export type { ExpensesControllerUpdateMutationKey } from "./expensesController/useExpensesControllerUpdate.ts";
 export type { LeavesControllerCreateMutationKey } from "./leavesController/useLeavesControllerCreate.ts";
+export type { LeavesControllerDeleteMutationKey } from "./leavesController/useLeavesControllerDelete.ts";
 export type { LeavesControllerFindOneQueryKey } from "./leavesController/useLeavesControllerFindOne.ts";
 export type { LeavesControllerListQueryKey } from "./leavesController/useLeavesControllerList.ts";
 export type { LeavesControllerResubmitMutationKey } from "./leavesController/useLeavesControllerResubmit.ts";
@@ -99,6 +101,9 @@ export { useDashboardControllerHr } from "./dashboardController/useDashboardCont
 export { expensesControllerCreateMutationKey } from "./expensesController/useExpensesControllerCreate.ts";
 export { expensesControllerCreateMutationOptions } from "./expensesController/useExpensesControllerCreate.ts";
 export { useExpensesControllerCreate } from "./expensesController/useExpensesControllerCreate.ts";
+export { expensesControllerDeleteMutationKey } from "./expensesController/useExpensesControllerDelete.ts";
+export { expensesControllerDeleteMutationOptions } from "./expensesController/useExpensesControllerDelete.ts";
+export { useExpensesControllerDelete } from "./expensesController/useExpensesControllerDelete.ts";
 export { expensesControllerFindOneQueryKey } from "./expensesController/useExpensesControllerFindOne.ts";
 export { expensesControllerFindOneQueryOptions } from "./expensesController/useExpensesControllerFindOne.ts";
 export { useExpensesControllerFindOne } from "./expensesController/useExpensesControllerFindOne.ts";
@@ -117,6 +122,9 @@ export { useExpensesControllerUpdate } from "./expensesController/useExpensesCon
 export { leavesControllerCreateMutationKey } from "./leavesController/useLeavesControllerCreate.ts";
 export { leavesControllerCreateMutationOptions } from "./leavesController/useLeavesControllerCreate.ts";
 export { useLeavesControllerCreate } from "./leavesController/useLeavesControllerCreate.ts";
+export { leavesControllerDeleteMutationKey } from "./leavesController/useLeavesControllerDelete.ts";
+export { leavesControllerDeleteMutationOptions } from "./leavesController/useLeavesControllerDelete.ts";
+export { useLeavesControllerDelete } from "./leavesController/useLeavesControllerDelete.ts";
 export { leavesControllerFindOneQueryKey } from "./leavesController/useLeavesControllerFindOne.ts";
 export { leavesControllerFindOneQueryOptions } from "./leavesController/useLeavesControllerFindOne.ts";
 export { useLeavesControllerFindOne } from "./leavesController/useLeavesControllerFindOne.ts";

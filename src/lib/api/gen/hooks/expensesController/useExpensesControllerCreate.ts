@@ -6,6 +6,9 @@
 import type {
   ExpensesControllerCreateMutationRequest,
   ExpensesControllerCreateMutationResponse,
+  ExpensesControllerCreate400,
+  ExpensesControllerCreate401,
+  ExpensesControllerCreate403,
 } from "../../types/expensesController/ExpensesControllerCreate.ts";
 import type {
   Client,
@@ -35,7 +38,11 @@ export function expensesControllerCreateMutationOptions<TContext = unknown>(
   const mutationKey = expensesControllerCreateMutationKey();
   return mutationOptions<
     ExpensesControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerCreate400
+      | ExpensesControllerCreate401
+      | ExpensesControllerCreate403
+    >,
     { data: ExpensesControllerCreateMutationRequest },
     TContext
   >({
@@ -53,7 +60,11 @@ export function useExpensesControllerCreate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       ExpensesControllerCreateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | ExpensesControllerCreate400
+        | ExpensesControllerCreate401
+        | ExpensesControllerCreate403
+      >,
       { data: ExpensesControllerCreateMutationRequest },
       TContext
     > & { client?: QueryClient };
@@ -71,14 +82,22 @@ export function useExpensesControllerCreate<TContext>(
     config,
   ) as UseMutationOptions<
     ExpensesControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerCreate400
+      | ExpensesControllerCreate401
+      | ExpensesControllerCreate403
+    >,
     { data: ExpensesControllerCreateMutationRequest },
     TContext
   >;
 
   return useMutation<
     ExpensesControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerCreate400
+      | ExpensesControllerCreate401
+      | ExpensesControllerCreate403
+    >,
     { data: ExpensesControllerCreateMutationRequest },
     TContext
   >(
@@ -90,7 +109,11 @@ export function useExpensesControllerCreate<TContext>(
     queryClient,
   ) as UseMutationResult<
     ExpensesControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerCreate400
+      | ExpensesControllerCreate401
+      | ExpensesControllerCreate403
+    >,
     { data: ExpensesControllerCreateMutationRequest },
     TContext
   >;

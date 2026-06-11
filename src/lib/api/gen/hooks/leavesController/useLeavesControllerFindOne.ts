@@ -6,6 +6,10 @@
 import type {
   LeavesControllerFindOneQueryResponse,
   LeavesControllerFindOnePathParams,
+  LeavesControllerFindOne400,
+  LeavesControllerFindOne401,
+  LeavesControllerFindOne403,
+  LeavesControllerFindOne404,
 } from "../../types/leavesController/LeavesControllerFindOne.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function leavesControllerFindOneQueryOptions(
   const queryKey = leavesControllerFindOneQueryKey({ id });
   return queryOptions<
     LeavesControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerFindOne400
+      | LeavesControllerFindOne401
+      | LeavesControllerFindOne403
+      | LeavesControllerFindOne404
+    >,
     LeavesControllerFindOneQueryResponse,
     typeof queryKey
   >({
@@ -66,7 +75,12 @@ export function useLeavesControllerFindOne<
     query?: Partial<
       QueryObserverOptions<
         LeavesControllerFindOneQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | LeavesControllerFindOne400
+          | LeavesControllerFindOne401
+          | LeavesControllerFindOne403
+          | LeavesControllerFindOne404
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -87,9 +101,15 @@ export function useLeavesControllerFindOne<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | LeavesControllerFindOne400
+      | LeavesControllerFindOne401
+      | LeavesControllerFindOne403
+      | LeavesControllerFindOne404
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

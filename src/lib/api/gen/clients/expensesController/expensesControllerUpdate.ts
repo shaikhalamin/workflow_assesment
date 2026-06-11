@@ -8,6 +8,10 @@ import type {
   ExpensesControllerUpdateMutationRequest,
   ExpensesControllerUpdateMutationResponse,
   ExpensesControllerUpdatePathParams,
+  ExpensesControllerUpdate400,
+  ExpensesControllerUpdate401,
+  ExpensesControllerUpdate403,
+  ExpensesControllerUpdate404,
 } from "../../types/expensesController/ExpensesControllerUpdate.ts";
 import type {
   Client,
@@ -45,7 +49,12 @@ export async function expensesControllerUpdate(
 
   const res = await request<
     ExpensesControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerUpdate400
+      | ExpensesControllerUpdate401
+      | ExpensesControllerUpdate403
+      | ExpensesControllerUpdate404
+    >,
     ExpensesControllerUpdateMutationRequest
   >({
     method: "PATCH",

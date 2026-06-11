@@ -4,6 +4,7 @@
  */
 
 import type { ApiErrorDto } from "../ApiErrorDto.ts";
+import type { ApiResponseDto } from "../ApiResponseDto.ts";
 import type { LeaveResponseDto } from "../LeaveResponseDto.ts";
 import type { PaginatedResponseDto } from "../PaginatedResponseDto.ts";
 import type { PaginationMetaDto } from "../PaginationMetaDto.ts";
@@ -51,10 +52,55 @@ export type LeavesControllerList200 = PaginatedResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type LeavesControllerList400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type LeavesControllerList401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type LeavesControllerList403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type LeavesControllerListQueryResponse = LeavesControllerList200;
 
 export type LeavesControllerListQuery = {
   Response: LeavesControllerList200;
   QueryParams: LeavesControllerListQueryParams;
-  Errors: any;
+  Errors:
+    | LeavesControllerList400
+    | LeavesControllerList401
+    | LeavesControllerList403;
 };

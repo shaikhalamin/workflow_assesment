@@ -357,7 +357,7 @@ export function createDefaultWorkflowDraft(): WorkflowDraft {
     ],
     approvedActionsJson: {
       setStatus: 'APPROVED',
-      createPaymentRequest: true,
+      createPaymentRequest: false,
       notifyRequester: true,
     },
     rejectedActionsJson: {
@@ -371,6 +371,11 @@ export function createDefaultWorkflowDraft(): WorkflowDraft {
 export function toWorkflowWizardPayload(
   draft: WorkflowDraft,
 ): WorkflowTemplateControllerCreateWizardMutationRequest {
+  const approvedActionsJson = { ...draft.approvedActionsJson }
+  if (draft.template.moduleName !== 'expenses') {
+    delete approvedActionsJson.createPaymentRequest
+  }
+
   return ({
     template: {
       ...draft.template,
@@ -403,7 +408,7 @@ export function toWorkflowWizardPayload(
         slaHours: step.slaHours,
       })),
     })),
-    approvedActionsJson: draft.approvedActionsJson,
+    approvedActionsJson,
     rejectedActionsJson: draft.rejectedActionsJson,
   } as unknown) as WorkflowTemplateControllerCreateWizardMutationRequest
 }

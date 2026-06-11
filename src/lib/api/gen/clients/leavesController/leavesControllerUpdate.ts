@@ -8,6 +8,10 @@ import type {
   LeavesControllerUpdateMutationRequest,
   LeavesControllerUpdateMutationResponse,
   LeavesControllerUpdatePathParams,
+  LeavesControllerUpdate400,
+  LeavesControllerUpdate401,
+  LeavesControllerUpdate403,
+  LeavesControllerUpdate404,
 } from "../../types/leavesController/LeavesControllerUpdate.ts";
 import type {
   Client,
@@ -45,7 +49,12 @@ export async function leavesControllerUpdate(
 
   const res = await request<
     LeavesControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerUpdate400
+      | LeavesControllerUpdate401
+      | LeavesControllerUpdate403
+      | LeavesControllerUpdate404
+    >,
     LeavesControllerUpdateMutationRequest
   >({
     method: "PATCH",

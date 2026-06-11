@@ -41,7 +41,7 @@ export function DataTable<TData>({
 }: {
   columns: ColumnDef<TData>[]
   data: TData[]
-  empty?: string
+  empty?: ReactNode
 }) {
   const renderColumns = columns as unknown as RenderColumn<TData>[]
 

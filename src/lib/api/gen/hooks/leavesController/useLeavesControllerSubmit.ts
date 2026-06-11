@@ -6,6 +6,10 @@
 import type {
   LeavesControllerSubmitMutationResponse,
   LeavesControllerSubmitPathParams,
+  LeavesControllerSubmit400,
+  LeavesControllerSubmit401,
+  LeavesControllerSubmit403,
+  LeavesControllerSubmit404,
 } from "../../types/leavesController/LeavesControllerSubmit.ts";
 import type {
   Client,
@@ -33,7 +37,12 @@ export function leavesControllerSubmitMutationOptions<TContext = unknown>(
   const mutationKey = leavesControllerSubmitMutationKey();
   return mutationOptions<
     LeavesControllerSubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerSubmit400
+      | LeavesControllerSubmit401
+      | LeavesControllerSubmit403
+      | LeavesControllerSubmit404
+    >,
     { id: LeavesControllerSubmitPathParams["id"] },
     TContext
   >({
@@ -51,7 +60,12 @@ export function useLeavesControllerSubmit<TContext>(
   options: {
     mutation?: UseMutationOptions<
       LeavesControllerSubmitMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | LeavesControllerSubmit400
+        | LeavesControllerSubmit401
+        | LeavesControllerSubmit403
+        | LeavesControllerSubmit404
+      >,
       { id: LeavesControllerSubmitPathParams["id"] },
       TContext
     > & { client?: QueryClient };
@@ -67,14 +81,24 @@ export function useLeavesControllerSubmit<TContext>(
     config,
   ) as UseMutationOptions<
     LeavesControllerSubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerSubmit400
+      | LeavesControllerSubmit401
+      | LeavesControllerSubmit403
+      | LeavesControllerSubmit404
+    >,
     { id: LeavesControllerSubmitPathParams["id"] },
     TContext
   >;
 
   return useMutation<
     LeavesControllerSubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerSubmit400
+      | LeavesControllerSubmit401
+      | LeavesControllerSubmit403
+      | LeavesControllerSubmit404
+    >,
     { id: LeavesControllerSubmitPathParams["id"] },
     TContext
   >(
@@ -86,7 +110,12 @@ export function useLeavesControllerSubmit<TContext>(
     queryClient,
   ) as UseMutationResult<
     LeavesControllerSubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerSubmit400
+      | LeavesControllerSubmit401
+      | LeavesControllerSubmit403
+      | LeavesControllerSubmit404
+    >,
     { id: LeavesControllerSubmitPathParams["id"] },
     TContext
   >;

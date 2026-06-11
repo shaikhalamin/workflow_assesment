@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   LeavesControllerSubmitMutationResponse,
   LeavesControllerSubmitPathParams,
+  LeavesControllerSubmit400,
+  LeavesControllerSubmit401,
+  LeavesControllerSubmit403,
+  LeavesControllerSubmit404,
 } from "../../types/leavesController/LeavesControllerSubmit.ts";
 import type {
   Client,
@@ -34,7 +38,12 @@ export async function leavesControllerSubmit(
 
   const res = await request<
     LeavesControllerSubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerSubmit400
+      | LeavesControllerSubmit401
+      | LeavesControllerSubmit403
+      | LeavesControllerSubmit404
+    >,
     unknown
   >({
     method: "POST",

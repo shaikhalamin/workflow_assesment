@@ -4,6 +4,7 @@
  */
 
 import type { ApiErrorDto } from "../ApiErrorDto.ts";
+import type { ApiResponseDto } from "../ApiResponseDto.ts";
 import type { ExpenseResponseDto } from "../ExpenseResponseDto.ts";
 import type { PaginatedResponseDto } from "../PaginatedResponseDto.ts";
 import type { PaginationMetaDto } from "../PaginationMetaDto.ts";
@@ -53,10 +54,55 @@ export type ExpensesControllerList200 = PaginatedResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type ExpensesControllerList400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type ExpensesControllerList401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type ExpensesControllerList403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type ExpensesControllerListQueryResponse = ExpensesControllerList200;
 
 export type ExpensesControllerListQuery = {
   Response: ExpensesControllerList200;
   QueryParams: ExpensesControllerListQueryParams;
-  Errors: any;
+  Errors:
+    | ExpensesControllerList400
+    | ExpensesControllerList401
+    | ExpensesControllerList403;
 };

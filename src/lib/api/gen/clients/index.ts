@@ -13,12 +13,14 @@ export { dashboardControllerApprover } from "./dashboardController/dashboardCont
 export { dashboardControllerEmployee } from "./dashboardController/dashboardControllerEmployee.ts";
 export { dashboardControllerHr } from "./dashboardController/dashboardControllerHr.ts";
 export { expensesControllerCreate } from "./expensesController/expensesControllerCreate.ts";
+export { expensesControllerDelete } from "./expensesController/expensesControllerDelete.ts";
 export { expensesControllerFindOne } from "./expensesController/expensesControllerFindOne.ts";
 export { expensesControllerList } from "./expensesController/expensesControllerList.ts";
 export { expensesControllerResubmit } from "./expensesController/expensesControllerResubmit.ts";
 export { expensesControllerSubmit } from "./expensesController/expensesControllerSubmit.ts";
 export { expensesControllerUpdate } from "./expensesController/expensesControllerUpdate.ts";
 export { leavesControllerCreate } from "./leavesController/leavesControllerCreate.ts";
+export { leavesControllerDelete } from "./leavesController/leavesControllerDelete.ts";
 export { leavesControllerFindOne } from "./leavesController/leavesControllerFindOne.ts";
 export { leavesControllerList } from "./leavesController/leavesControllerList.ts";
 export { leavesControllerResubmit } from "./leavesController/leavesControllerResubmit.ts";

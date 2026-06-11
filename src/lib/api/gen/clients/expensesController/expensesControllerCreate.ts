@@ -7,6 +7,9 @@ import fetch from "@/lib/api/client.ts";
 import type {
   ExpensesControllerCreateMutationRequest,
   ExpensesControllerCreateMutationResponse,
+  ExpensesControllerCreate400,
+  ExpensesControllerCreate401,
+  ExpensesControllerCreate403,
 } from "../../types/expensesController/ExpensesControllerCreate.ts";
 import type {
   Client,
@@ -34,7 +37,11 @@ export async function expensesControllerCreate(
 
   const res = await request<
     ExpensesControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerCreate400
+      | ExpensesControllerCreate401
+      | ExpensesControllerCreate403
+    >,
     ExpensesControllerCreateMutationRequest
   >({
     method: "POST",

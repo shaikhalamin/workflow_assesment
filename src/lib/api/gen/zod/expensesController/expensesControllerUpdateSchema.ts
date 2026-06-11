@@ -26,6 +26,62 @@ export const expensesControllerUpdate200Schema = z
     }),
   );
 
+/**
+ * @description Validation failed or malformed request
+ */
+export const expensesControllerUpdate400Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Unauthenticated
+ */
+export const expensesControllerUpdate401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const expensesControllerUpdate403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Resource not found
+ */
+export const expensesControllerUpdate404Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
 export const expensesControllerUpdateMutationRequestSchema = z.lazy(
   () => updateExpenseDtoSchema,
 );

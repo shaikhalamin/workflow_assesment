@@ -6,6 +6,9 @@
 import type {
   LeavesControllerListQueryResponse,
   LeavesControllerListQueryParams,
+  LeavesControllerList400,
+  LeavesControllerList401,
+  LeavesControllerList403,
 } from "../../types/leavesController/LeavesControllerList.ts";
 import type {
   Client,
@@ -36,7 +39,11 @@ export function leavesControllerListQueryOptions(
   const queryKey = leavesControllerListQueryKey(params);
   return queryOptions<
     LeavesControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerList400
+      | LeavesControllerList401
+      | LeavesControllerList403
+    >,
     LeavesControllerListQueryResponse,
     typeof queryKey
   >({
@@ -63,7 +70,11 @@ export function useLeavesControllerList<
     query?: Partial<
       QueryObserverOptions<
         LeavesControllerListQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | LeavesControllerList400
+          | LeavesControllerList401
+          | LeavesControllerList403
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -84,9 +95,14 @@ export function useLeavesControllerList<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | LeavesControllerList400
+      | LeavesControllerList401
+      | LeavesControllerList403
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

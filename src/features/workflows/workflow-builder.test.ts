@@ -112,6 +112,12 @@ describe('workflow builder payload', () => {
     ])
   })
 
+  it('starts new workflows without payment request creation selected', () => {
+    const draft = createDefaultWorkflowDraft()
+
+    expect(draft.approvedActionsJson.createPaymentRequest).toBe(false)
+  })
+
   it('exposes backend-backed condition field examples for rule guidance', () => {
     expect(getWorkflowModule('expenses')?.fields.map((field) => field.key)).toEqual([
       'amount',
@@ -146,6 +152,7 @@ describe('workflow builder payload', () => {
     draft.template.moduleName = 'expenses'
     draft.template.eventName = 'expense.submitted'
     draft.template.entityType = 'Expense'
+    draft.approvedActionsJson.createPaymentRequest = true
     draft.triggerMode = 'conditions'
     draft.triggerConditions.conditions = [
       { field: 'departmentId', operator: 'eq', value: 'sales' },
@@ -235,6 +242,22 @@ describe('workflow builder payload', () => {
         setStatus: 'REJECTED',
       },
     })
+  })
+
+  it('omits payment request actions from leave workflow payloads', () => {
+    const draft = createDefaultWorkflowDraft()
+    draft.template.moduleName = 'leaves'
+    draft.template.eventName = 'leave.submitted'
+    draft.template.entityType = 'LeaveRequest'
+
+    expect(toWorkflowWizardPayload(draft)).toEqual(
+      expect.objectContaining({
+        approvedActionsJson: {
+          notifyRequester: true,
+          setStatus: 'APPROVED',
+        },
+      }),
+    )
   })
 
   it('parses range and list condition values for backend rule operators', () => {

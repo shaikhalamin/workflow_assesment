@@ -22,6 +22,48 @@ export const leavesControllerCreate201Schema = z
     }),
   );
 
+/**
+ * @description Validation failed or malformed request
+ */
+export const leavesControllerCreate400Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Unauthenticated
+ */
+export const leavesControllerCreate401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const leavesControllerCreate403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
 export const leavesControllerCreateMutationRequestSchema = z.lazy(
   () => createLeaveDtoSchema,
 );

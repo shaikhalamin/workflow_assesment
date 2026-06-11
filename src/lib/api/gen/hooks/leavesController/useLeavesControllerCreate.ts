@@ -6,6 +6,9 @@
 import type {
   LeavesControllerCreateMutationRequest,
   LeavesControllerCreateMutationResponse,
+  LeavesControllerCreate400,
+  LeavesControllerCreate401,
+  LeavesControllerCreate403,
 } from "../../types/leavesController/LeavesControllerCreate.ts";
 import type {
   Client,
@@ -35,7 +38,11 @@ export function leavesControllerCreateMutationOptions<TContext = unknown>(
   const mutationKey = leavesControllerCreateMutationKey();
   return mutationOptions<
     LeavesControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerCreate400
+      | LeavesControllerCreate401
+      | LeavesControllerCreate403
+    >,
     { data: LeavesControllerCreateMutationRequest },
     TContext
   >({
@@ -53,7 +60,11 @@ export function useLeavesControllerCreate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       LeavesControllerCreateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | LeavesControllerCreate400
+        | LeavesControllerCreate401
+        | LeavesControllerCreate403
+      >,
       { data: LeavesControllerCreateMutationRequest },
       TContext
     > & { client?: QueryClient };
@@ -71,14 +82,22 @@ export function useLeavesControllerCreate<TContext>(
     config,
   ) as UseMutationOptions<
     LeavesControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerCreate400
+      | LeavesControllerCreate401
+      | LeavesControllerCreate403
+    >,
     { data: LeavesControllerCreateMutationRequest },
     TContext
   >;
 
   return useMutation<
     LeavesControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerCreate400
+      | LeavesControllerCreate401
+      | LeavesControllerCreate403
+    >,
     { data: LeavesControllerCreateMutationRequest },
     TContext
   >(
@@ -90,7 +109,11 @@ export function useLeavesControllerCreate<TContext>(
     queryClient,
   ) as UseMutationResult<
     LeavesControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerCreate400
+      | LeavesControllerCreate401
+      | LeavesControllerCreate403
+    >,
     { data: LeavesControllerCreateMutationRequest },
     TContext
   >;

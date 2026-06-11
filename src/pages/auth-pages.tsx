@@ -1,4 +1,4 @@
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod/v4'
@@ -64,7 +64,6 @@ function hasStatus(error: unknown, status: number) {
 
 export function SignInPage() {
   const navigate = useNavigate()
-  const search = useSearch({ strict: false }) as { redirect?: string }
   const queryClient = useQueryClient()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const setAuthenticatedUser = useAuthStore((state) => state.login)
@@ -76,9 +75,7 @@ export function SignInPage() {
         const user = unwrapData(response)?.user
         if (user) setAuthenticatedUser(user)
         await navigate({
-          to:
-            search.redirect ||
-            getDefaultPrivatePath(user?.roles ?? [], user?.permissions ?? []),
+          to: '/',
           replace: true,
         })
       },
@@ -226,7 +223,7 @@ export function SignUpPage() {
         const user = unwrapData(response)?.user
         if (user) setAuthenticatedUser(user)
         await navigate({
-          to: getDefaultPrivatePath(user?.roles ?? [], user?.permissions ?? []),
+          to: getDefaultPrivatePath(),
           replace: true,
         })
       },

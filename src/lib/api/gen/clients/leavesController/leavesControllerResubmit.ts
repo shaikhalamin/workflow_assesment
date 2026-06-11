@@ -8,6 +8,10 @@ import type {
   LeavesControllerResubmitMutationRequest,
   LeavesControllerResubmitMutationResponse,
   LeavesControllerResubmitPathParams,
+  LeavesControllerResubmit400,
+  LeavesControllerResubmit401,
+  LeavesControllerResubmit403,
+  LeavesControllerResubmit404,
 } from "../../types/leavesController/LeavesControllerResubmit.ts";
 import type {
   Client,
@@ -45,7 +49,12 @@ export async function leavesControllerResubmit(
 
   const res = await request<
     LeavesControllerResubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerResubmit400
+      | LeavesControllerResubmit401
+      | LeavesControllerResubmit403
+      | LeavesControllerResubmit404
+    >,
     LeavesControllerResubmitMutationRequest
   >({
     method: "POST",

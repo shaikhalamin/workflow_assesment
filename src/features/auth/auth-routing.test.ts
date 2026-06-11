@@ -7,26 +7,18 @@ import {
 } from './auth-routing'
 
 describe('auth routing helpers', () => {
-  it('routes workflow builder users to workflow templates by default', () => {
-    expect(
-      getDefaultPrivatePath(['admin'], ['workflow.builder.manage']),
-    ).toBe('/workflow-templates')
+  it('routes workflow builder users to the dashboard by default', () => {
+    expect(getDefaultPrivatePath()).toBe('/')
     expect(canOpenWorkflowBuilder(['workflow-admin'])).toBe(true)
   })
 
   it('routes users without workflow builder access to the dashboard by default', () => {
-    expect(getDefaultPrivatePath(['employee'])).toBe('/')
-    expect(getDefaultPrivatePath(['accounts-officer'])).toBe('/')
-    expect(getDefaultPrivatePath(['finance-admin'])).toBe('/')
-    expect(getDefaultPrivatePath(['hr-officer'])).toBe('/')
-    expect(getDefaultPrivatePath(['cfo'])).toBe('/')
+    expect(getDefaultPrivatePath()).toBe('/')
     expect(canOpenWorkflowBuilder(['finance-admin'])).toBe(false)
   })
 
   it('uses permissions when a non-admin role can manage workflows', () => {
-    expect(
-      getDefaultPrivatePath(['management'], ['workflow.builder.manage']),
-    ).toBe('/workflow-templates')
+    expect(getDefaultPrivatePath()).toBe('/')
   })
 
   it('allows admins to access every private path', () => {

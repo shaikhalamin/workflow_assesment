@@ -1,19 +1,33 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { AuthUserDto } from '@/lib/api/gen'
 import { useAuthStore } from '@/stores/auth-store'
 
 import { SignInPage } from './auth-pages'
 
+type LoginResponse = { data: { user: AuthUserDto } }
+type LoginOnSuccess = (response: LoginResponse) => Promise<void> | void
+type LoginOptions = {
+  mutation?: {
+    onSuccess?: LoginOnSuccess
+  }
+}
+
 const loginMutateMock = vi.hoisted(() => vi.fn())
 const logoutMutateAsyncMock = vi.hoisted(() => vi.fn())
+const navigateMock = vi.hoisted(() => vi.fn())
+const searchMock = vi.hoisted(() => ({ redirect: undefined as string | undefined }))
+const loginOnSuccessRef = vi.hoisted(() => ({
+  current: undefined as LoginOnSuccess | undefined,
+}))
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
-  useNavigate: () => vi.fn(),
-  useSearch: () => ({}),
+  useNavigate: () => navigateMock,
+  useSearch: () => searchMock,
 }))
 
 vi.mock('@tanstack/react-query', () => ({
@@ -24,11 +38,15 @@ vi.mock('@tanstack/react-query', () => ({
 
 vi.mock('@/lib/api/gen', async () => ({
   ...(await vi.importActual<typeof import('@/lib/api/gen')>('@/lib/api/gen')),
-  useAuthControllerLogin: () => ({
-    error: null,
-    isPending: false,
-    mutate: loginMutateMock,
-  }),
+  useAuthControllerLogin: (options: LoginOptions = {}) => {
+    loginOnSuccessRef.current = options.mutation?.onSuccess
+
+    return {
+      error: null,
+      isPending: false,
+      mutate: loginMutateMock,
+    }
+  },
   useAuthControllerLogout: () => ({
     error: null,
     isPending: false,
@@ -45,6 +63,9 @@ describe('SignInPage', () => {
   beforeEach(() => {
     loginMutateMock.mockClear()
     logoutMutateAsyncMock.mockReset()
+    navigateMock.mockClear()
+    searchMock.redirect = undefined
+    loginOnSuccessRef.current = undefined
     useAuthStore.getState().logout()
   })
 
@@ -92,5 +113,27 @@ describe('SignInPage', () => {
         },
       })
     })
+  })
+
+  it('redirects successful logins to the dashboard', async () => {
+    searchMock.redirect = '/workflow-templates'
+
+    render(<SignInPage />)
+
+    await act(async () => {
+      await loginOnSuccessRef.current?.({
+        data: {
+          user: {
+            id: 'admin-user',
+            name: 'Admin User',
+            email: 'admin@example.com',
+            roles: ['admin'],
+            permissions: ['workflow.builder.manage'],
+          },
+        },
+      })
+    })
+
+    expect(navigateMock).toHaveBeenCalledWith({ to: '/', replace: true })
   })
 })

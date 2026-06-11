@@ -7,6 +7,9 @@ import fetch from "@/lib/api/client.ts";
 import type {
   ExpensesControllerListQueryResponse,
   ExpensesControllerListQueryParams,
+  ExpensesControllerList400,
+  ExpensesControllerList401,
+  ExpensesControllerList403,
 } from "../../types/expensesController/ExpensesControllerList.ts";
 import type {
   Client,
@@ -30,7 +33,11 @@ export async function expensesControllerList(
 
   const res = await request<
     ExpensesControllerListQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerList400
+      | ExpensesControllerList401
+      | ExpensesControllerList403
+    >,
     unknown
   >({
     method: "GET",

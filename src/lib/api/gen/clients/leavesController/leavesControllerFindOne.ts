@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   LeavesControllerFindOneQueryResponse,
   LeavesControllerFindOnePathParams,
+  LeavesControllerFindOne400,
+  LeavesControllerFindOne401,
+  LeavesControllerFindOne403,
+  LeavesControllerFindOne404,
 } from "../../types/leavesController/LeavesControllerFindOne.ts";
 import type {
   Client,
@@ -34,7 +38,12 @@ export async function leavesControllerFindOne(
 
   const res = await request<
     LeavesControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerFindOne400
+      | LeavesControllerFindOne401
+      | LeavesControllerFindOne403
+      | LeavesControllerFindOne404
+    >,
     unknown
   >({
     method: "GET",

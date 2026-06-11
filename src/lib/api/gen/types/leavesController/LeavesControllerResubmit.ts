@@ -26,6 +26,62 @@ export type LeavesControllerResubmit201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type LeavesControllerResubmit400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type LeavesControllerResubmit401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type LeavesControllerResubmit403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type LeavesControllerResubmit404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type LeavesControllerResubmitMutationRequest = ResubmitLeaveDto;
 
 export type LeavesControllerResubmitMutationResponse =
@@ -35,5 +91,9 @@ export type LeavesControllerResubmitMutation = {
   Response: LeavesControllerResubmit201;
   Request: LeavesControllerResubmitMutationRequest;
   PathParams: LeavesControllerResubmitPathParams;
-  Errors: any;
+  Errors:
+    | LeavesControllerResubmit400
+    | LeavesControllerResubmit401
+    | LeavesControllerResubmit403
+    | LeavesControllerResubmit404;
 };

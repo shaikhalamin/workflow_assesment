@@ -94,32 +94,63 @@ export { employeeLeaveSummaryDtoSchema } from "./employeeLeaveSummaryDtoSchema.t
 export { expenseResponseDtoSchema } from "./expenseResponseDtoSchema.ts";
 export {
   expensesControllerCreate201Schema,
+  expensesControllerCreate400Schema,
+  expensesControllerCreate401Schema,
+  expensesControllerCreate403Schema,
   expensesControllerCreateMutationRequestSchema,
   expensesControllerCreateMutationResponseSchema,
 } from "./expensesController/expensesControllerCreateSchema.ts";
 export {
+  expensesControllerDelete200Schema,
+  expensesControllerDelete400Schema,
+  expensesControllerDelete401Schema,
+  expensesControllerDelete403Schema,
+  expensesControllerDelete404Schema,
+  expensesControllerDeleteMutationResponseSchema,
+  expensesControllerDeletePathParamsSchema,
+} from "./expensesController/expensesControllerDeleteSchema.ts";
+export {
   expensesControllerFindOne200Schema,
+  expensesControllerFindOne400Schema,
+  expensesControllerFindOne401Schema,
+  expensesControllerFindOne403Schema,
+  expensesControllerFindOne404Schema,
   expensesControllerFindOnePathParamsSchema,
   expensesControllerFindOneQueryResponseSchema,
 } from "./expensesController/expensesControllerFindOneSchema.ts";
 export {
   expensesControllerList200Schema,
+  expensesControllerList400Schema,
+  expensesControllerList401Schema,
+  expensesControllerList403Schema,
   expensesControllerListQueryParamsSchema,
   expensesControllerListQueryResponseSchema,
 } from "./expensesController/expensesControllerListSchema.ts";
 export {
   expensesControllerResubmit201Schema,
+  expensesControllerResubmit400Schema,
+  expensesControllerResubmit401Schema,
+  expensesControllerResubmit403Schema,
+  expensesControllerResubmit404Schema,
   expensesControllerResubmitMutationRequestSchema,
   expensesControllerResubmitMutationResponseSchema,
   expensesControllerResubmitPathParamsSchema,
 } from "./expensesController/expensesControllerResubmitSchema.ts";
 export {
   expensesControllerSubmit201Schema,
+  expensesControllerSubmit400Schema,
+  expensesControllerSubmit401Schema,
+  expensesControllerSubmit403Schema,
+  expensesControllerSubmit404Schema,
   expensesControllerSubmitMutationResponseSchema,
   expensesControllerSubmitPathParamsSchema,
 } from "./expensesController/expensesControllerSubmitSchema.ts";
 export {
   expensesControllerUpdate200Schema,
+  expensesControllerUpdate400Schema,
+  expensesControllerUpdate401Schema,
+  expensesControllerUpdate403Schema,
+  expensesControllerUpdate404Schema,
   expensesControllerUpdateMutationRequestSchema,
   expensesControllerUpdateMutationResponseSchema,
   expensesControllerUpdatePathParamsSchema,
@@ -129,32 +160,63 @@ export { hrLeaveCountsDtoSchema } from "./hrLeaveCountsDtoSchema.ts";
 export { leaveResponseDtoSchema } from "./leaveResponseDtoSchema.ts";
 export {
   leavesControllerCreate201Schema,
+  leavesControllerCreate400Schema,
+  leavesControllerCreate401Schema,
+  leavesControllerCreate403Schema,
   leavesControllerCreateMutationRequestSchema,
   leavesControllerCreateMutationResponseSchema,
 } from "./leavesController/leavesControllerCreateSchema.ts";
 export {
+  leavesControllerDelete200Schema,
+  leavesControllerDelete400Schema,
+  leavesControllerDelete401Schema,
+  leavesControllerDelete403Schema,
+  leavesControllerDelete404Schema,
+  leavesControllerDeleteMutationResponseSchema,
+  leavesControllerDeletePathParamsSchema,
+} from "./leavesController/leavesControllerDeleteSchema.ts";
+export {
   leavesControllerFindOne200Schema,
+  leavesControllerFindOne400Schema,
+  leavesControllerFindOne401Schema,
+  leavesControllerFindOne403Schema,
+  leavesControllerFindOne404Schema,
   leavesControllerFindOnePathParamsSchema,
   leavesControllerFindOneQueryResponseSchema,
 } from "./leavesController/leavesControllerFindOneSchema.ts";
 export {
   leavesControllerList200Schema,
+  leavesControllerList400Schema,
+  leavesControllerList401Schema,
+  leavesControllerList403Schema,
   leavesControllerListQueryParamsSchema,
   leavesControllerListQueryResponseSchema,
 } from "./leavesController/leavesControllerListSchema.ts";
 export {
   leavesControllerResubmit201Schema,
+  leavesControllerResubmit400Schema,
+  leavesControllerResubmit401Schema,
+  leavesControllerResubmit403Schema,
+  leavesControllerResubmit404Schema,
   leavesControllerResubmitMutationRequestSchema,
   leavesControllerResubmitMutationResponseSchema,
   leavesControllerResubmitPathParamsSchema,
 } from "./leavesController/leavesControllerResubmitSchema.ts";
 export {
   leavesControllerSubmit201Schema,
+  leavesControllerSubmit400Schema,
+  leavesControllerSubmit401Schema,
+  leavesControllerSubmit403Schema,
+  leavesControllerSubmit404Schema,
   leavesControllerSubmitMutationResponseSchema,
   leavesControllerSubmitPathParamsSchema,
 } from "./leavesController/leavesControllerSubmitSchema.ts";
 export {
   leavesControllerUpdate200Schema,
+  leavesControllerUpdate400Schema,
+  leavesControllerUpdate401Schema,
+  leavesControllerUpdate403Schema,
+  leavesControllerUpdate404Schema,
   leavesControllerUpdateMutationRequestSchema,
   leavesControllerUpdateMutationResponseSchema,
   leavesControllerUpdatePathParamsSchema,

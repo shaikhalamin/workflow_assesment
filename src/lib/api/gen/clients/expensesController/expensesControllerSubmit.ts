@@ -7,6 +7,10 @@ import fetch from "@/lib/api/client.ts";
 import type {
   ExpensesControllerSubmitMutationResponse,
   ExpensesControllerSubmitPathParams,
+  ExpensesControllerSubmit400,
+  ExpensesControllerSubmit401,
+  ExpensesControllerSubmit403,
+  ExpensesControllerSubmit404,
 } from "../../types/expensesController/ExpensesControllerSubmit.ts";
 import type {
   Client,
@@ -34,7 +38,12 @@ export async function expensesControllerSubmit(
 
   const res = await request<
     ExpensesControllerSubmitMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerSubmit400
+      | ExpensesControllerSubmit401
+      | ExpensesControllerSubmit403
+      | ExpensesControllerSubmit404
+    >,
     unknown
   >({
     method: "POST",

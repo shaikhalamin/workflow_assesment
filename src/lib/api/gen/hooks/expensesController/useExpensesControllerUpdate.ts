@@ -7,6 +7,10 @@ import type {
   ExpensesControllerUpdateMutationRequest,
   ExpensesControllerUpdateMutationResponse,
   ExpensesControllerUpdatePathParams,
+  ExpensesControllerUpdate400,
+  ExpensesControllerUpdate401,
+  ExpensesControllerUpdate403,
+  ExpensesControllerUpdate404,
 } from "../../types/expensesController/ExpensesControllerUpdate.ts";
 import type {
   Client,
@@ -36,7 +40,12 @@ export function expensesControllerUpdateMutationOptions<TContext = unknown>(
   const mutationKey = expensesControllerUpdateMutationKey();
   return mutationOptions<
     ExpensesControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerUpdate400
+      | ExpensesControllerUpdate401
+      | ExpensesControllerUpdate403
+      | ExpensesControllerUpdate404
+    >,
     {
       id: ExpensesControllerUpdatePathParams["id"];
       data: ExpensesControllerUpdateMutationRequest;
@@ -57,7 +66,12 @@ export function useExpensesControllerUpdate<TContext>(
   options: {
     mutation?: UseMutationOptions<
       ExpensesControllerUpdateMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<
+        | ExpensesControllerUpdate400
+        | ExpensesControllerUpdate401
+        | ExpensesControllerUpdate403
+        | ExpensesControllerUpdate404
+      >,
       {
         id: ExpensesControllerUpdatePathParams["id"];
         data: ExpensesControllerUpdateMutationRequest;
@@ -78,7 +92,12 @@ export function useExpensesControllerUpdate<TContext>(
     config,
   ) as UseMutationOptions<
     ExpensesControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerUpdate400
+      | ExpensesControllerUpdate401
+      | ExpensesControllerUpdate403
+      | ExpensesControllerUpdate404
+    >,
     {
       id: ExpensesControllerUpdatePathParams["id"];
       data: ExpensesControllerUpdateMutationRequest;
@@ -88,7 +107,12 @@ export function useExpensesControllerUpdate<TContext>(
 
   return useMutation<
     ExpensesControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerUpdate400
+      | ExpensesControllerUpdate401
+      | ExpensesControllerUpdate403
+      | ExpensesControllerUpdate404
+    >,
     {
       id: ExpensesControllerUpdatePathParams["id"];
       data: ExpensesControllerUpdateMutationRequest;
@@ -103,7 +127,12 @@ export function useExpensesControllerUpdate<TContext>(
     queryClient,
   ) as UseMutationResult<
     ExpensesControllerUpdateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerUpdate400
+      | ExpensesControllerUpdate401
+      | ExpensesControllerUpdate403
+      | ExpensesControllerUpdate404
+    >,
     {
       id: ExpensesControllerUpdatePathParams["id"];
       data: ExpensesControllerUpdateMutationRequest;

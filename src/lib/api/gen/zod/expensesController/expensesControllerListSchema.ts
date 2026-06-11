@@ -4,6 +4,7 @@
  */
 
 import { apiErrorDtoSchema } from "../apiErrorDtoSchema.ts";
+import { apiResponseDtoSchema } from "../apiResponseDtoSchema.ts";
 import { expenseResponseDtoSchema } from "../expenseResponseDtoSchema.ts";
 import { paginatedResponseDtoSchema } from "../paginatedResponseDtoSchema.ts";
 import { paginationMetaDtoSchema } from "../paginationMetaDtoSchema.ts";
@@ -38,6 +39,48 @@ export const expensesControllerList200Schema = z
       },
       get error() {
         return apiErrorDtoSchema.nullable();
+      },
+    }),
+  );
+
+/**
+ * @description Validation failed or malformed request
+ */
+export const expensesControllerList400Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Unauthenticated
+ */
+export const expensesControllerList401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const expensesControllerList403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
       },
     }),
   );

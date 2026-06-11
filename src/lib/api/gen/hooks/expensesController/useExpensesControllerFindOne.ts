@@ -6,6 +6,10 @@
 import type {
   ExpensesControllerFindOneQueryResponse,
   ExpensesControllerFindOnePathParams,
+  ExpensesControllerFindOne400,
+  ExpensesControllerFindOne401,
+  ExpensesControllerFindOne403,
+  ExpensesControllerFindOne404,
 } from "../../types/expensesController/ExpensesControllerFindOne.ts";
 import type {
   Client,
@@ -38,7 +42,12 @@ export function expensesControllerFindOneQueryOptions(
   const queryKey = expensesControllerFindOneQueryKey({ id });
   return queryOptions<
     ExpensesControllerFindOneQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | ExpensesControllerFindOne400
+      | ExpensesControllerFindOne401
+      | ExpensesControllerFindOne403
+      | ExpensesControllerFindOne404
+    >,
     ExpensesControllerFindOneQueryResponse,
     typeof queryKey
   >({
@@ -66,7 +75,12 @@ export function useExpensesControllerFindOne<
     query?: Partial<
       QueryObserverOptions<
         ExpensesControllerFindOneQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<
+          | ExpensesControllerFindOne400
+          | ExpensesControllerFindOne401
+          | ExpensesControllerFindOne403
+          | ExpensesControllerFindOne404
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -87,9 +101,15 @@ export function useExpensesControllerFindOne<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient,
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | ExpensesControllerFindOne400
+      | ExpensesControllerFindOne401
+      | ExpensesControllerFindOne403
+      | ExpensesControllerFindOne404
+    >
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

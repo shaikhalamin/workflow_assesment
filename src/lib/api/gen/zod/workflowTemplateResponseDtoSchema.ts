@@ -20,6 +20,11 @@ export const workflowTemplateResponseDtoSchema = z.object({
   effectiveFrom: z.nullable(z.iso.datetime()),
   effectiveTo: z.nullable(z.iso.datetime()),
   allowResubmission: z.boolean(),
+  workflowInstanceCount: z.optional(
+    z
+      .number()
+      .describe("Number of workflow runtime instances using this template."),
+  ),
   createdById: z.nullable(z.string()),
   get triggerCondition() {
     return workflowTriggerConditionResponseDtoSchema.nullable();

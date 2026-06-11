@@ -1,4 +1,5 @@
 export type { ExpensesControllerCreateMutationKey } from "./useExpensesControllerCreate.ts";
+export type { ExpensesControllerDeleteMutationKey } from "./useExpensesControllerDelete.ts";
 export type { ExpensesControllerFindOneQueryKey } from "./useExpensesControllerFindOne.ts";
 export type { ExpensesControllerListQueryKey } from "./useExpensesControllerList.ts";
 export type { ExpensesControllerResubmitMutationKey } from "./useExpensesControllerResubmit.ts";
@@ -7,6 +8,9 @@ export type { ExpensesControllerUpdateMutationKey } from "./useExpensesControlle
 export { expensesControllerCreateMutationKey } from "./useExpensesControllerCreate.ts";
 export { expensesControllerCreateMutationOptions } from "./useExpensesControllerCreate.ts";
 export { useExpensesControllerCreate } from "./useExpensesControllerCreate.ts";
+export { expensesControllerDeleteMutationKey } from "./useExpensesControllerDelete.ts";
+export { expensesControllerDeleteMutationOptions } from "./useExpensesControllerDelete.ts";
+export { useExpensesControllerDelete } from "./useExpensesControllerDelete.ts";
 export { expensesControllerFindOneQueryKey } from "./useExpensesControllerFindOne.ts";
 export { expensesControllerFindOneQueryOptions } from "./useExpensesControllerFindOne.ts";
 export { useExpensesControllerFindOne } from "./useExpensesControllerFindOne.ts";

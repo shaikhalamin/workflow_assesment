@@ -25,6 +25,62 @@ export const leavesControllerFindOne200Schema = z
     }),
   );
 
+/**
+ * @description Validation failed or malformed request
+ */
+export const leavesControllerFindOne400Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Unauthenticated
+ */
+export const leavesControllerFindOne401Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Insufficient permissions
+ */
+export const leavesControllerFindOne403Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
+/**
+ * @description Resource not found
+ */
+export const leavesControllerFindOne404Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
+
 export const leavesControllerFindOneQueryResponseSchema = z.lazy(
   () => leavesControllerFindOne200Schema,
 );

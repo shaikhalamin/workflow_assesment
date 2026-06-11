@@ -185,18 +185,38 @@ export type {
 } from "./dashboardController/DashboardControllerHr.ts";
 export type {
   ExpensesControllerCreate201,
+  ExpensesControllerCreate400,
+  ExpensesControllerCreate401,
+  ExpensesControllerCreate403,
   ExpensesControllerCreateMutation,
   ExpensesControllerCreateMutationRequest,
   ExpensesControllerCreateMutationResponse,
 } from "./expensesController/ExpensesControllerCreate.ts";
 export type {
+  ExpensesControllerDelete200,
+  ExpensesControllerDelete400,
+  ExpensesControllerDelete401,
+  ExpensesControllerDelete403,
+  ExpensesControllerDelete404,
+  ExpensesControllerDeleteMutation,
+  ExpensesControllerDeleteMutationResponse,
+  ExpensesControllerDeletePathParams,
+} from "./expensesController/ExpensesControllerDelete.ts";
+export type {
   ExpensesControllerFindOne200,
+  ExpensesControllerFindOne400,
+  ExpensesControllerFindOne401,
+  ExpensesControllerFindOne403,
+  ExpensesControllerFindOne404,
   ExpensesControllerFindOnePathParams,
   ExpensesControllerFindOneQuery,
   ExpensesControllerFindOneQueryResponse,
 } from "./expensesController/ExpensesControllerFindOne.ts";
 export type {
   ExpensesControllerList200,
+  ExpensesControllerList400,
+  ExpensesControllerList401,
+  ExpensesControllerList403,
   ExpensesControllerListQuery,
   ExpensesControllerListQueryParams,
   ExpensesControllerListQueryParamsStatusEnum,
@@ -204,6 +224,10 @@ export type {
 } from "./expensesController/ExpensesControllerList.ts";
 export type {
   ExpensesControllerResubmit201,
+  ExpensesControllerResubmit400,
+  ExpensesControllerResubmit401,
+  ExpensesControllerResubmit403,
+  ExpensesControllerResubmit404,
   ExpensesControllerResubmitMutation,
   ExpensesControllerResubmitMutationRequest,
   ExpensesControllerResubmitMutationResponse,
@@ -211,12 +235,20 @@ export type {
 } from "./expensesController/ExpensesControllerResubmit.ts";
 export type {
   ExpensesControllerSubmit201,
+  ExpensesControllerSubmit400,
+  ExpensesControllerSubmit401,
+  ExpensesControllerSubmit403,
+  ExpensesControllerSubmit404,
   ExpensesControllerSubmitMutation,
   ExpensesControllerSubmitMutationResponse,
   ExpensesControllerSubmitPathParams,
 } from "./expensesController/ExpensesControllerSubmit.ts";
 export type {
   ExpensesControllerUpdate200,
+  ExpensesControllerUpdate400,
+  ExpensesControllerUpdate401,
+  ExpensesControllerUpdate403,
+  ExpensesControllerUpdate404,
   ExpensesControllerUpdateMutation,
   ExpensesControllerUpdateMutationRequest,
   ExpensesControllerUpdateMutationResponse,
@@ -224,18 +256,38 @@ export type {
 } from "./expensesController/ExpensesControllerUpdate.ts";
 export type {
   LeavesControllerCreate201,
+  LeavesControllerCreate400,
+  LeavesControllerCreate401,
+  LeavesControllerCreate403,
   LeavesControllerCreateMutation,
   LeavesControllerCreateMutationRequest,
   LeavesControllerCreateMutationResponse,
 } from "./leavesController/LeavesControllerCreate.ts";
 export type {
+  LeavesControllerDelete200,
+  LeavesControllerDelete400,
+  LeavesControllerDelete401,
+  LeavesControllerDelete403,
+  LeavesControllerDelete404,
+  LeavesControllerDeleteMutation,
+  LeavesControllerDeleteMutationResponse,
+  LeavesControllerDeletePathParams,
+} from "./leavesController/LeavesControllerDelete.ts";
+export type {
   LeavesControllerFindOne200,
+  LeavesControllerFindOne400,
+  LeavesControllerFindOne401,
+  LeavesControllerFindOne403,
+  LeavesControllerFindOne404,
   LeavesControllerFindOnePathParams,
   LeavesControllerFindOneQuery,
   LeavesControllerFindOneQueryResponse,
 } from "./leavesController/LeavesControllerFindOne.ts";
 export type {
   LeavesControllerList200,
+  LeavesControllerList400,
+  LeavesControllerList401,
+  LeavesControllerList403,
   LeavesControllerListQuery,
   LeavesControllerListQueryParams,
   LeavesControllerListQueryParamsStatusEnum,
@@ -243,6 +295,10 @@ export type {
 } from "./leavesController/LeavesControllerList.ts";
 export type {
   LeavesControllerResubmit201,
+  LeavesControllerResubmit400,
+  LeavesControllerResubmit401,
+  LeavesControllerResubmit403,
+  LeavesControllerResubmit404,
   LeavesControllerResubmitMutation,
   LeavesControllerResubmitMutationRequest,
   LeavesControllerResubmitMutationResponse,
@@ -250,12 +306,20 @@ export type {
 } from "./leavesController/LeavesControllerResubmit.ts";
 export type {
   LeavesControllerSubmit201,
+  LeavesControllerSubmit400,
+  LeavesControllerSubmit401,
+  LeavesControllerSubmit403,
+  LeavesControllerSubmit404,
   LeavesControllerSubmitMutation,
   LeavesControllerSubmitMutationResponse,
   LeavesControllerSubmitPathParams,
 } from "./leavesController/LeavesControllerSubmit.ts";
 export type {
   LeavesControllerUpdate200,
+  LeavesControllerUpdate400,
+  LeavesControllerUpdate401,
+  LeavesControllerUpdate403,
+  LeavesControllerUpdate404,
   LeavesControllerUpdateMutation,
   LeavesControllerUpdateMutationRequest,
   LeavesControllerUpdateMutationResponse,

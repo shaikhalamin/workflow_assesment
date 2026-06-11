@@ -7,6 +7,9 @@ import fetch from "@/lib/api/client.ts";
 import type {
   LeavesControllerCreateMutationRequest,
   LeavesControllerCreateMutationResponse,
+  LeavesControllerCreate400,
+  LeavesControllerCreate401,
+  LeavesControllerCreate403,
 } from "../../types/leavesController/LeavesControllerCreate.ts";
 import type {
   Client,
@@ -34,7 +37,11 @@ export async function leavesControllerCreate(
 
   const res = await request<
     LeavesControllerCreateMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<
+      | LeavesControllerCreate400
+      | LeavesControllerCreate401
+      | LeavesControllerCreate403
+    >,
     LeavesControllerCreateMutationRequest
   >({
     method: "POST",

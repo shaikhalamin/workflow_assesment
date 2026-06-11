@@ -19,6 +19,48 @@ export type ExpensesControllerCreate201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type ExpensesControllerCreate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type ExpensesControllerCreate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type ExpensesControllerCreate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type ExpensesControllerCreateMutationRequest = CreateExpenseDto;
 
 export type ExpensesControllerCreateMutationResponse =
@@ -27,5 +69,8 @@ export type ExpensesControllerCreateMutationResponse =
 export type ExpensesControllerCreateMutation = {
   Response: ExpensesControllerCreate201;
   Request: ExpensesControllerCreateMutationRequest;
-  Errors: any;
+  Errors:
+    | ExpensesControllerCreate400
+    | ExpensesControllerCreate401
+    | ExpensesControllerCreate403;
 };

@@ -19,6 +19,48 @@ export type LeavesControllerCreate201 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type LeavesControllerCreate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type LeavesControllerCreate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type LeavesControllerCreate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type LeavesControllerCreateMutationRequest = CreateLeaveDto;
 
 export type LeavesControllerCreateMutationResponse = LeavesControllerCreate201;
@@ -26,5 +68,8 @@ export type LeavesControllerCreateMutationResponse = LeavesControllerCreate201;
 export type LeavesControllerCreateMutation = {
   Response: LeavesControllerCreate201;
   Request: LeavesControllerCreateMutationRequest;
-  Errors: any;
+  Errors:
+    | LeavesControllerCreate400
+    | LeavesControllerCreate401
+    | LeavesControllerCreate403;
 };

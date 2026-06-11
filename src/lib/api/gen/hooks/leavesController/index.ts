@@ -1,4 +1,5 @@
 export type { LeavesControllerCreateMutationKey } from "./useLeavesControllerCreate.ts";
+export type { LeavesControllerDeleteMutationKey } from "./useLeavesControllerDelete.ts";
 export type { LeavesControllerFindOneQueryKey } from "./useLeavesControllerFindOne.ts";
 export type { LeavesControllerListQueryKey } from "./useLeavesControllerList.ts";
 export type { LeavesControllerResubmitMutationKey } from "./useLeavesControllerResubmit.ts";
@@ -7,6 +8,9 @@ export type { LeavesControllerUpdateMutationKey } from "./useLeavesControllerUpd
 export { leavesControllerCreateMutationKey } from "./useLeavesControllerCreate.ts";
 export { leavesControllerCreateMutationOptions } from "./useLeavesControllerCreate.ts";
 export { useLeavesControllerCreate } from "./useLeavesControllerCreate.ts";
+export { leavesControllerDeleteMutationKey } from "./useLeavesControllerDelete.ts";
+export { leavesControllerDeleteMutationOptions } from "./useLeavesControllerDelete.ts";
+export { useLeavesControllerDelete } from "./useLeavesControllerDelete.ts";
 export { leavesControllerFindOneQueryKey } from "./useLeavesControllerFindOne.ts";
 export { leavesControllerFindOneQueryOptions } from "./useLeavesControllerFindOne.ts";
 export { useLeavesControllerFindOne } from "./useLeavesControllerFindOne.ts";

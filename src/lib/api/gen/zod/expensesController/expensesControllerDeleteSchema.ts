@@ -5,16 +5,19 @@
 
 import { apiErrorDtoSchema } from "../apiErrorDtoSchema.ts";
 import { apiResponseDtoSchema } from "../apiResponseDtoSchema.ts";
-import { createExpenseDtoSchema } from "../createExpenseDtoSchema.ts";
-import { expenseResponseDtoSchema } from "../expenseResponseDtoSchema.ts";
+import { successResponseDtoSchema } from "../successResponseDtoSchema.ts";
 import { z } from "zod/v4";
 
-export const expensesControllerCreate201Schema = z
+export const expensesControllerDeletePathParamsSchema = z.object({
+  id: z.string(),
+});
+
+export const expensesControllerDelete200Schema = z
   .lazy(() => apiResponseDtoSchema)
   .and(
     z.object({
       get data() {
-        return expenseResponseDtoSchema;
+        return successResponseDtoSchema;
       },
       get error() {
         return apiErrorDtoSchema.nullable();
@@ -25,7 +28,7 @@ export const expensesControllerCreate201Schema = z
 /**
  * @description Validation failed or malformed request
  */
-export const expensesControllerCreate400Schema = z
+export const expensesControllerDelete400Schema = z
   .lazy(() => apiResponseDtoSchema)
   .and(
     z.object({
@@ -39,7 +42,7 @@ export const expensesControllerCreate400Schema = z
 /**
  * @description Unauthenticated
  */
-export const expensesControllerCreate401Schema = z
+export const expensesControllerDelete401Schema = z
   .lazy(() => apiResponseDtoSchema)
   .and(
     z.object({
@@ -53,7 +56,7 @@ export const expensesControllerCreate401Schema = z
 /**
  * @description Insufficient permissions
  */
-export const expensesControllerCreate403Schema = z
+export const expensesControllerDelete403Schema = z
   .lazy(() => apiResponseDtoSchema)
   .and(
     z.object({
@@ -64,10 +67,20 @@ export const expensesControllerCreate403Schema = z
     }),
   );
 
-export const expensesControllerCreateMutationRequestSchema = z.lazy(
-  () => createExpenseDtoSchema,
-);
+/**
+ * @description Resource not found
+ */
+export const expensesControllerDelete404Schema = z
+  .lazy(() => apiResponseDtoSchema)
+  .and(
+    z.object({
+      data: z.nullable(z.null()),
+      get error() {
+        return apiErrorDtoSchema;
+      },
+    }),
+  );
 
-export const expensesControllerCreateMutationResponseSchema = z.lazy(
-  () => expensesControllerCreate201Schema,
+export const expensesControllerDeleteMutationResponseSchema = z.lazy(
+  () => expensesControllerDelete200Schema,
 );

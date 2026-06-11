@@ -5,20 +5,20 @@
 
 import type { ApiErrorDto } from "../ApiErrorDto.ts";
 import type { ApiResponseDto } from "../ApiResponseDto.ts";
-import type { ExpenseResponseDto } from "../ExpenseResponseDto.ts";
+import type { SuccessResponseDto } from "../SuccessResponseDto.ts";
 
-export type ExpensesControllerFindOnePathParams = {
+export type ExpensesControllerDeletePathParams = {
   /**
    * @type string
    */
   id: string;
 };
 
-export type ExpensesControllerFindOne200 = ApiResponseDto & {
+export type ExpensesControllerDelete200 = ApiResponseDto & {
   /**
    * @type object
    */
-  data: ExpenseResponseDto;
+  data: SuccessResponseDto;
   /**
    * @type object
    */
@@ -28,7 +28,7 @@ export type ExpensesControllerFindOne200 = ApiResponseDto & {
 /**
  * @description Validation failed or malformed request
  */
-export type ExpensesControllerFindOne400 = ApiResponseDto & {
+export type ExpensesControllerDelete400 = ApiResponseDto & {
   /**
    * @type null
    */
@@ -42,7 +42,7 @@ export type ExpensesControllerFindOne400 = ApiResponseDto & {
 /**
  * @description Unauthenticated
  */
-export type ExpensesControllerFindOne401 = ApiResponseDto & {
+export type ExpensesControllerDelete401 = ApiResponseDto & {
   /**
    * @type null
    */
@@ -56,7 +56,7 @@ export type ExpensesControllerFindOne401 = ApiResponseDto & {
 /**
  * @description Insufficient permissions
  */
-export type ExpensesControllerFindOne403 = ApiResponseDto & {
+export type ExpensesControllerDelete403 = ApiResponseDto & {
   /**
    * @type null
    */
@@ -70,7 +70,7 @@ export type ExpensesControllerFindOne403 = ApiResponseDto & {
 /**
  * @description Resource not found
  */
-export type ExpensesControllerFindOne404 = ApiResponseDto & {
+export type ExpensesControllerDelete404 = ApiResponseDto & {
   /**
    * @type null
    */
@@ -81,15 +81,15 @@ export type ExpensesControllerFindOne404 = ApiResponseDto & {
   error: ApiErrorDto;
 };
 
-export type ExpensesControllerFindOneQueryResponse =
-  ExpensesControllerFindOne200;
+export type ExpensesControllerDeleteMutationResponse =
+  ExpensesControllerDelete200;
 
-export type ExpensesControllerFindOneQuery = {
-  Response: ExpensesControllerFindOne200;
-  PathParams: ExpensesControllerFindOnePathParams;
+export type ExpensesControllerDeleteMutation = {
+  Response: ExpensesControllerDelete200;
+  PathParams: ExpensesControllerDeletePathParams;
   Errors:
-    | ExpensesControllerFindOne400
-    | ExpensesControllerFindOne401
-    | ExpensesControllerFindOne403
-    | ExpensesControllerFindOne404;
+    | ExpensesControllerDelete400
+    | ExpensesControllerDelete401
+    | ExpensesControllerDelete403
+    | ExpensesControllerDelete404;
 };

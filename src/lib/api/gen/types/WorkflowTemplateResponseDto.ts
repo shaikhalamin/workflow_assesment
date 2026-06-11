@@ -59,6 +59,11 @@ export type WorkflowTemplateResponseDto = {
    */
   allowResubmission: boolean;
   /**
+   * @description Number of workflow runtime instances using this template.
+   * @type number | undefined
+   */
+  workflowInstanceCount?: number;
+  /**
    * @type string
    */
   createdById: string | null;

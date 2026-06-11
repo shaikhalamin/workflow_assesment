@@ -26,6 +26,62 @@ export type ExpensesControllerUpdate200 = ApiResponseDto & {
   error: ApiErrorDto | null;
 };
 
+/**
+ * @description Validation failed or malformed request
+ */
+export type ExpensesControllerUpdate400 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Unauthenticated
+ */
+export type ExpensesControllerUpdate401 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Insufficient permissions
+ */
+export type ExpensesControllerUpdate403 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
+/**
+ * @description Resource not found
+ */
+export type ExpensesControllerUpdate404 = ApiResponseDto & {
+  /**
+   * @type null
+   */
+  data: null | null;
+  /**
+   * @type object
+   */
+  error: ApiErrorDto;
+};
+
 export type ExpensesControllerUpdateMutationRequest = UpdateExpenseDto;
 
 export type ExpensesControllerUpdateMutationResponse =
@@ -35,5 +91,9 @@ export type ExpensesControllerUpdateMutation = {
   Response: ExpensesControllerUpdate200;
   Request: ExpensesControllerUpdateMutationRequest;
   PathParams: ExpensesControllerUpdatePathParams;
-  Errors: any;
+  Errors:
+    | ExpensesControllerUpdate400
+    | ExpensesControllerUpdate401
+    | ExpensesControllerUpdate403
+    | ExpensesControllerUpdate404;
 };
