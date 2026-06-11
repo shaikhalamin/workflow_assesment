@@ -10,6 +10,176 @@ import {
 import { WorkflowRuntimeService } from './workflow-runtime.service';
 
 describe('WorkflowRuntimeService', () => {
+  it('returns pending approval tasks with request summary details', async () => {
+    const createdAt = new Date('2026-06-11T08:00:00.000Z');
+    const requester = {
+      id: 'requester-1',
+      name: 'Expense Requester',
+      email: 'requester@example.com',
+    };
+    const queryBuilder = {
+      innerJoinAndSelect: jest.fn(),
+      leftJoinAndSelect: jest.fn(),
+      leftJoinAndMapOne: jest.fn(),
+      where: jest.fn(),
+      andWhere: jest.fn(),
+      orderBy: jest.fn(),
+      getMany: jest.fn().mockResolvedValue([
+        {
+          id: 'step-1',
+          workflowInstanceId: 'workflow-1',
+          workflowInstance: {
+            id: 'workflow-1',
+            entityType: 'Expense',
+            entityId: 'expense-1',
+            requesterId: requester.id,
+            requester,
+            metadataJson: {
+              title: 'Laptop charger reimbursement',
+              amount: 4500,
+              currency: 'BDT',
+            },
+            createdAt,
+          },
+          stepOrder: 1,
+          stepName: 'Manager approval',
+          stepType: WorkflowStepType.APPROVAL,
+          assignedUserId: 'manager-1',
+          assignedUser: null,
+          assignedRoleSlug: null,
+          assigneeType: WorkflowAssigneeType.USER,
+          status: WorkflowStepStatus.ACTIVE,
+          activatedAt: createdAt,
+          actedAt: null,
+          actionByUserId: null,
+          actionByUser: null,
+          comment: null,
+          rejectionReason: null,
+          actions: [],
+          createdAt,
+          updatedAt: createdAt,
+        },
+      ]),
+    };
+    queryBuilder.innerJoinAndSelect.mockReturnValue(queryBuilder);
+    queryBuilder.leftJoinAndSelect.mockReturnValue(queryBuilder);
+    queryBuilder.leftJoinAndMapOne.mockReturnValue(queryBuilder);
+    queryBuilder.where.mockReturnValue(queryBuilder);
+    queryBuilder.andWhere.mockReturnValue(queryBuilder);
+    queryBuilder.orderBy.mockReturnValue(queryBuilder);
+    const stepsRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    };
+    const service = new WorkflowRuntimeService(
+      {} as never,
+      {} as never,
+      stepsRepository as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+    );
+
+    const response = await service.myPending({
+      userId: 'manager-1',
+      roles: [],
+    } as Express.User);
+
+    expect(response[0]?.request).toEqual({
+      title: 'Laptop charger reimbursement',
+      type: 'Expense',
+      requesterId: 'requester-1',
+      requester,
+      amount: 4500,
+      currency: 'BDT',
+      leaveDays: null,
+      createdAt: '2026-06-11T08:00:00.000Z',
+    });
+  });
+
+  it('uses the expense request title when old workflow metadata has no title', async () => {
+    const createdAt = new Date('2026-06-11T08:00:00.000Z');
+    const queryBuilder = {
+      innerJoinAndSelect: jest.fn(),
+      leftJoinAndSelect: jest.fn(),
+      leftJoinAndMapOne: jest.fn(),
+      where: jest.fn(),
+      andWhere: jest.fn(),
+      orderBy: jest.fn(),
+      getMany: jest.fn().mockResolvedValue([
+        {
+          id: 'step-1',
+          workflowInstanceId: 'workflow-1',
+          workflowInstance: {
+            id: 'workflow-1',
+            entityType: 'Expense',
+            entityId: '78077d9b-831d-421c-8015-ab70f8332084',
+            requesterId: 'requester-1',
+            requester: null,
+            expenseRequest: {
+              title: 'Travel expense monthly',
+            },
+            metadataJson: {
+              amount: 3500,
+              vendor: 'Pathao',
+              category: 'Travel',
+              currency: 'BDT',
+            },
+            createdAt,
+          },
+          stepOrder: 1,
+          stepName: 'Manager approval',
+          stepType: WorkflowStepType.APPROVAL,
+          assignedUserId: 'manager-1',
+          assignedUser: null,
+          assignedRoleSlug: null,
+          assigneeType: WorkflowAssigneeType.USER,
+          status: WorkflowStepStatus.ACTIVE,
+          activatedAt: createdAt,
+          actedAt: null,
+          actionByUserId: null,
+          actionByUser: null,
+          comment: null,
+          rejectionReason: null,
+          actions: [],
+          createdAt,
+          updatedAt: createdAt,
+        },
+      ]),
+    };
+    queryBuilder.innerJoinAndSelect.mockReturnValue(queryBuilder);
+    queryBuilder.leftJoinAndSelect.mockReturnValue(queryBuilder);
+    queryBuilder.leftJoinAndMapOne.mockReturnValue(queryBuilder);
+    queryBuilder.where.mockReturnValue(queryBuilder);
+    queryBuilder.andWhere.mockReturnValue(queryBuilder);
+    queryBuilder.orderBy.mockReturnValue(queryBuilder);
+    const stepsRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    };
+    const service = new WorkflowRuntimeService(
+      {} as never,
+      {} as never,
+      stepsRepository as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+    );
+
+    const response = await service.myPending({
+      userId: 'manager-1',
+      roles: [],
+    } as Express.User);
+
+    expect(response[0]?.request?.title).toBe('Travel expense monthly');
+  });
+
   it('loads workflow instance user relations for approver display', async () => {
     const createdAt = new Date('2026-06-11T08:00:00.000Z');
     const manager = {

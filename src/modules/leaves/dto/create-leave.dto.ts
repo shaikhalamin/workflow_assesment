@@ -26,17 +26,18 @@ export class CreateLeaveDto {
   @IsString()
   endDate!: string;
 
-  @ApiPropertyOptional({ example: 'Family event' })
+  @ApiPropertyOptional({ type: String, example: 'Family event' })
   @IsOptional()
   @IsString()
   reason?: string | null;
 
-  @ApiPropertyOptional({ example: 'M2' })
+  @ApiPropertyOptional({ type: String, example: 'M2' })
   @IsOptional()
   @IsString()
   employeeGrade?: string | null;
 
   @ApiPropertyOptional({
+    type: String,
     example: '61f1d2de-5733-4830-a97c-cb1899482850',
   })
   @IsOptional()

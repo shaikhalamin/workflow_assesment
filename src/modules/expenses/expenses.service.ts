@@ -7,12 +7,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { paginateQb } from '../../common/http/paginate';
+import { Paginated } from '../../common/http/paginated';
 import { CreateExpenseDto } from './dto/create-expense.dto';
+import { ExpenseResponseDto } from './dto/expense-response.dto';
 import { ExpenseQueryDto } from './dto/expense-query.dto';
 import { ResubmitExpenseDto } from './dto/resubmit-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { Expense, ExpenseStatus } from './entities/expense.entity';
 import { WorkflowRuntimeService } from '../workflow-runtime/workflow-runtime.service';
+import { WorkflowUserResponseDto } from '../workflow-runtime/dto/workflow-runtime-response.dto';
 
 @Injectable()
 export class ExpensesService {
@@ -23,10 +26,14 @@ export class ExpensesService {
     private readonly auditLogsService: AuditLogsService,
   ) {}
 
-  async create(dto: CreateExpenseDto, actor: Express.User): Promise<Expense> {
+  async create(
+    dto: CreateExpenseDto,
+    actor: Express.User,
+  ): Promise<ExpenseResponseDto> {
     const expense = await this.expensesRepository.save(
       this.expensesRepository.create({
         requesterId: actor.userId,
+        createdById: actor.userId,
         departmentId: dto.departmentId ?? null,
         title: dto.title,
         description: dto.description ?? null,
@@ -48,10 +55,13 @@ export class ExpensesService {
       entityId: expense.id,
       metadataJson: { amount: expense.amount },
     });
-    return expense;
+    return this.findOne(expense.id, actor);
   }
 
-  list(query: ExpenseQueryDto, actor: Express.User) {
+  async list(
+    query: ExpenseQueryDto,
+    actor: Express.User,
+  ): Promise<Paginated<ExpenseResponseDto>> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 25;
     const adminLike = actor.roles.some((role) =>
@@ -59,6 +69,8 @@ export class ExpensesService {
     );
     const qb = this.expensesRepository
       .createQueryBuilder('expense')
+      .leftJoinAndSelect('expense.requester', 'requester')
+      .leftJoinAndSelect('expense.createdBy', 'createdBy')
       .orderBy('expense.createdAt', 'DESC');
     if (query.status) {
       qb.andWhere('expense.status = :status', { status: query.status });
@@ -66,27 +78,29 @@ export class ExpensesService {
     if (!adminLike) {
       qb.andWhere('expense.requesterId = :userId', { userId: actor.userId });
     }
-    return paginateQb(qb, { page, limit, idColumn: 'expense.id' });
+    const paginated = await paginateQb(qb, {
+      page,
+      limit,
+      idColumn: 'expense.id',
+    });
+    return new Paginated(
+      paginated.items.map((expense) => this.toResponse(expense)),
+      paginated.page,
+      paginated.limit,
+      paginated.total,
+    );
   }
 
-  async findOne(id: string, actor: Express.User): Promise<Expense> {
-    const expense = await this.expensesRepository.findOneBy({ id });
-    if (!expense) throw new NotFoundException('Expense not found');
-    const adminLike = actor.roles.some((role) =>
-      ['admin', 'accounts-officer', 'finance-admin', 'cfo'].includes(role),
-    );
-    if (!adminLike && expense.requesterId !== actor.userId) {
-      throw new BadRequestException('Expense is not visible to this user');
-    }
-    return expense;
+  async findOne(id: string, actor: Express.User): Promise<ExpenseResponseDto> {
+    return this.toResponse(await this.findVisibleExpense(id, actor, true));
   }
 
   async update(
     id: string,
     dto: UpdateExpenseDto,
     actor: Express.User,
-  ): Promise<Expense> {
-    const expense = await this.findOne(id, actor);
+  ): Promise<ExpenseResponseDto> {
+    const expense = await this.findVisibleExpense(id, actor, false);
     if (expense.requesterId !== actor.userId) {
       throw new BadRequestException('Only requester can update expense');
     }
@@ -104,10 +118,11 @@ export class ExpensesService {
       entityType: 'Expense',
       entityId: expense.id,
     });
-    return this.expensesRepository.save(expense);
+    await this.expensesRepository.save(expense);
+    return this.findOne(id, actor);
   }
 
-  async submit(id: string, actor: Express.User): Promise<Expense> {
+  async submit(id: string, actor: Express.User): Promise<ExpenseResponseDto> {
     const expense = await this.expensesRepository.findOneBy({ id });
     if (!expense) throw new NotFoundException('Expense not found');
     if (expense.requesterId !== actor.userId) {
@@ -143,15 +158,17 @@ export class ExpensesService {
       oldStatus: ExpenseStatus.DRAFT,
       newStatus: ExpenseStatus.UNDER_REVIEW,
     });
-    return this.expensesRepository.save(expense);
+    await this.expensesRepository.save(expense);
+    return this.findOne(id, actor);
   }
 
   async resubmit(
     id: string,
     dto: ResubmitExpenseDto,
     actor: Express.User,
-  ): Promise<Expense> {
-    const expense = await this.update(id, dto, actor);
+  ): Promise<ExpenseResponseDto> {
+    await this.update(id, dto, actor);
+    const expense = await this.findVisibleExpense(id, actor, false);
     if (expense.status !== ExpenseStatus.REJECTED) {
       throw new BadRequestException(
         'Only rejected expenses can be resubmitted',
@@ -163,8 +180,31 @@ export class ExpensesService {
     return this.submit(id, actor);
   }
 
+  private async findVisibleExpense(
+    id: string,
+    actor: Express.User,
+    withUsers: boolean,
+  ): Promise<Expense> {
+    const expense = withUsers
+      ? await this.expensesRepository.findOne({
+          where: { id },
+          relations: { createdBy: true, requester: true },
+        })
+      : await this.expensesRepository.findOneBy({ id });
+    if (!expense) throw new NotFoundException('Expense not found');
+
+    const adminLike = actor.roles.some((role) =>
+      ['admin', 'accounts-officer', 'finance-admin', 'cfo'].includes(role),
+    );
+    if (!adminLike && expense.requesterId !== actor.userId) {
+      throw new BadRequestException('Expense is not visible to this user');
+    }
+    return expense;
+  }
+
   private workflowMetadata(expense: Expense): Record<string, unknown> {
     return {
+      title: expense.title,
       amount: Number(expense.amount),
       currency: expense.currency,
       category: expense.category,
@@ -191,5 +231,51 @@ export class ExpensesService {
       departmentId: dto.departmentId,
       customFieldsJson: dto.customFieldsJson,
     };
+  }
+
+  private toResponse(expense: Expense): ExpenseResponseDto {
+    return {
+      id: expense.id,
+      requesterId: expense.requesterId,
+      requester: this.toWorkflowUserResponse(expense.requester),
+      createdById: expense.createdById,
+      createdBy: this.toWorkflowUserResponse(expense.createdBy),
+      departmentId: expense.departmentId,
+      title: expense.title,
+      description: expense.description,
+      amount: expense.amount,
+      currency: expense.currency,
+      category: expense.category,
+      vendor: expense.vendor,
+      itemValue: expense.itemValue,
+      price: expense.price,
+      quantity: expense.quantity,
+      status: expense.status,
+      workflowInstanceId: expense.workflowInstanceId,
+      rejectionReason: expense.rejectionReason,
+      customFieldsJson: expense.customFieldsJson,
+      submittedAt: this.toIsoStringOrNull(expense.submittedAt),
+      approvedAt: this.toIsoStringOrNull(expense.approvedAt),
+      rejectedAt: this.toIsoStringOrNull(expense.rejectedAt),
+      paidAt: this.toIsoStringOrNull(expense.paidAt),
+      createdAt: expense.createdAt.toISOString(),
+      updatedAt: expense.updatedAt.toISOString(),
+    };
+  }
+
+  private toWorkflowUserResponse(
+    user: { id: string; name: string; email: string } | null | undefined,
+  ): WorkflowUserResponseDto | null {
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
+  }
+
+  private toIsoStringOrNull(value: Date | null): string | null {
+    return value ? value.toISOString() : null;
   }
 }

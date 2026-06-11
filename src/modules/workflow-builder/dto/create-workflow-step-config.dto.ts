@@ -31,19 +31,23 @@ export class CreateWorkflowStepConfigDto {
   @IsEnum(WorkflowAssigneeType)
   assigneeType!: WorkflowAssigneeType;
 
-  @ApiPropertyOptional({ example: 'finance-admin' })
+  @ApiPropertyOptional({ type: String, example: 'finance-admin' })
   @IsOptional()
   @IsString()
   assigneeRoleSlug?: string | null;
 
   @ApiPropertyOptional({
+    type: String,
     example: '71cb34da-1809-4c72-b132-2b9860be8936',
   })
   @IsOptional()
   @IsUUID()
   assigneeUserId?: string | null;
 
-  @ApiPropertyOptional({ example: 'customFields.budgetOwnerId' })
+  @ApiPropertyOptional({
+    type: String,
+    example: 'customFields.budgetOwnerId',
+  })
   @IsOptional()
   @IsString()
   assigneeFieldPath?: string | null;
@@ -73,7 +77,7 @@ export class CreateWorkflowStepConfigDto {
   @IsBoolean()
   canReassign?: boolean;
 
-  @ApiPropertyOptional({ minimum: 1, example: 24 })
+  @ApiPropertyOptional({ type: Number, minimum: 1, example: 24 })
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -84,12 +88,13 @@ export class CreateWorkflowStepConfigDto {
   @IsEnum(WorkflowAssigneeType)
   escalationAssigneeType?: WorkflowAssigneeType | null;
 
-  @ApiPropertyOptional({ example: 'department-head' })
+  @ApiPropertyOptional({ type: String, example: 'department-head' })
   @IsOptional()
   @IsString()
   escalationAssigneeRoleSlug?: string | null;
 
   @ApiPropertyOptional({
+    type: String,
     example: '71cb34da-1809-4c72-b132-2b9860be8936',
   })
   @IsOptional()

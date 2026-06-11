@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { paginateRepo } from '../../common/http/paginate';
 import { PaginationQueryDto } from '../../common/http/pagination.query';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { Expense } from '../expenses/entities/expense.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RbacService } from '../rbac/rbac.service';
 import { WorkflowApprovalRule } from '../workflow-builder/entities/workflow-approval-rule.entity';
@@ -21,6 +22,7 @@ import { WorkflowActionDto } from './dto/workflow-action.dto';
 import {
   WorkflowActionResponseDto,
   WorkflowInstanceResponseDto,
+  WorkflowRequestSummaryResponseDto,
   WorkflowStepResponseDto,
   WorkflowUserResponseDto,
 } from './dto/workflow-runtime-response.dto';
@@ -34,6 +36,10 @@ import {
 } from './enums/workflow-runtime.enums';
 import { OutcomeHandlerService } from './outcome-handler.service';
 import { RuleEngineService } from './rule-engine.service';
+
+type WorkflowInstanceWithRequestTitle = WorkflowInstance & {
+  expenseRequest?: Pick<Expense, 'title'> | null;
+};
 
 @Injectable()
 export class WorkflowRuntimeService {
@@ -168,10 +174,18 @@ export class WorkflowRuntimeService {
     return this.toInstanceResponse(instance);
   }
 
-  async myPending(actor: Express.User) {
-    return this.stepsRepository
+  async myPending(actor: Express.User): Promise<WorkflowStepResponseDto[]> {
+    const steps = await this.stepsRepository
       .createQueryBuilder('step')
       .innerJoinAndSelect('step.workflowInstance', 'instance')
+      .leftJoinAndSelect('instance.requester', 'requester')
+      .leftJoinAndMapOne(
+        'instance.expenseRequest',
+        Expense,
+        'expenseRequest',
+        'instance.entityType = :expenseEntityType AND instance.entityId = expenseRequest.id',
+        { expenseEntityType: 'Expense' },
+      )
       .where('step.status = :status', { status: WorkflowStepStatus.ACTIVE })
       .andWhere(
         '(step.assignedUserId = :userId OR step.assignedRoleSlug IN (:...roles))',
@@ -182,13 +196,15 @@ export class WorkflowRuntimeService {
       )
       .orderBy('step.activatedAt', 'ASC')
       .getMany();
+
+    return steps.map((step) => this.toStepResponse(step));
   }
 
   async approveStep(
     stepId: string,
     actor: Express.User,
     dto: WorkflowActionDto,
-  ): Promise<WorkflowStep> {
+  ): Promise<WorkflowStepResponseDto> {
     const step = await this.getActiveStepForAction(stepId, actor);
     step.status = WorkflowStepStatus.APPROVED;
     step.actedAt = new Date();
@@ -252,14 +268,14 @@ export class WorkflowRuntimeService {
       });
     }
 
-    return step;
+    return this.toStepResponse(step);
   }
 
   async rejectStep(
     stepId: string,
     actor: Express.User,
     dto: WorkflowActionDto,
-  ): Promise<WorkflowStep> {
+  ): Promise<WorkflowStepResponseDto> {
     if (!dto.reason)
       throw new BadRequestException('Rejection reason is required');
     const step = await this.getActiveStepForAction(stepId, actor);
@@ -315,7 +331,7 @@ export class WorkflowRuntimeService {
       entityId: instance.entityId,
       workflowInstanceId: instance.id,
     });
-    return step;
+    return this.toStepResponse(step);
   }
 
   async commentStep(
@@ -505,6 +521,7 @@ export class WorkflowRuntimeService {
     return {
       id: step.id,
       workflowInstanceId: step.workflowInstanceId,
+      request: this.toRequestSummary(step.workflowInstance),
       stepOrder: step.stepOrder,
       stepName: step.stepName,
       stepType: step.stepType,
@@ -540,6 +557,75 @@ export class WorkflowRuntimeService {
       metadataJson: action.metadataJson,
       createdAt: action.createdAt.toISOString(),
     };
+  }
+
+  private toRequestSummary(
+    instance: WorkflowInstanceWithRequestTitle | null | undefined,
+  ): WorkflowRequestSummaryResponseDto | null {
+    if (!instance) return null;
+
+    const metadata = instance.metadataJson;
+    return {
+      title: this.requestTitle(instance, metadata),
+      type: instance.entityType,
+      requesterId: instance.requesterId,
+      requester: this.toWorkflowUserResponse(instance.requester),
+      amount: this.metadataNumber(metadata, 'amount'),
+      currency: this.metadataString(metadata, 'currency'),
+      leaveDays: this.metadataNumber(metadata, 'leaveDays'),
+      createdAt: instance.createdAt.toISOString(),
+    };
+  }
+
+  private requestTitle(
+    instance: WorkflowInstanceWithRequestTitle,
+    metadata: Record<string, unknown> | null,
+  ): string {
+    const title =
+      this.metadataString(metadata, 'title') ??
+      this.metadataString(metadata, 'requestTitle');
+    if (title) return title;
+
+    if (instance.entityType === 'Expense' && instance.expenseRequest?.title) {
+      return instance.expenseRequest.title;
+    }
+
+    if (instance.entityType === 'LeaveRequest') {
+      const leaveType = this.metadataString(metadata, 'leaveType');
+      if (leaveType)
+        return `${this.humanizeRequestType(leaveType)} leave request`;
+    }
+
+    return `${instance.entityType} ${instance.entityId}`;
+  }
+
+  private metadataString(
+    metadata: Record<string, unknown> | null,
+    key: string,
+  ): string | null {
+    const value = metadata?.[key];
+    return typeof value === 'string' && value.trim() ? value : null;
+  }
+
+  private metadataNumber(
+    metadata: Record<string, unknown> | null,
+    key: string,
+  ): number | null {
+    const value = metadata?.[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value !== 'string') return null;
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private humanizeRequestType(value: string): string {
+    return value
+      .toLowerCase()
+      .split(/[_\s-]+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   }
 
   private toWorkflowUserResponse(

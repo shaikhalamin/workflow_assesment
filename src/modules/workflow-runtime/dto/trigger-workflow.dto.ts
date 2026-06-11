@@ -23,6 +23,7 @@ export class TriggerWorkflowDto {
   requesterId!: string;
 
   @ApiPropertyOptional({
+    type: String,
     example: '61f1d2de-5733-4830-a97c-cb1899482850',
   })
   @IsOptional()

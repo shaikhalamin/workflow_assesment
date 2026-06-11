@@ -2,9 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 export enum LeaveRequestStatus {
   DRAFT = 'DRAFT',
@@ -22,6 +25,17 @@ export class LeaveRequest {
 
   @Column({ type: 'uuid' })
   requesterId!: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'requesterId' })
+  requester!: User;
+
+  @Column({ type: 'uuid', nullable: true })
+  createdById!: string | null;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'createdById' })
+  createdBy!: User | null;
 
   @Column({ type: 'uuid', nullable: true })
   departmentId!: string | null;

@@ -19,7 +19,10 @@ export class CreateWorkflowTemplateDto {
   @IsString()
   name!: string;
 
-  @ApiPropertyOptional({ example: 'Routes expenses through finance approval' })
+  @ApiPropertyOptional({
+    type: String,
+    example: 'Routes expenses through finance approval',
+  })
   @IsOptional()
   @IsString()
   description?: string | null;
@@ -47,13 +50,21 @@ export class CreateWorkflowTemplateDto {
   @Min(0)
   priority?: number;
 
-  @ApiPropertyOptional({ example: '2026-06-10T00:00:00.000Z' })
+  @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    example: '2026-06-10T00:00:00.000Z',
+  })
   @IsOptional()
   @Type(() => Date)
   @IsDate()
   effectiveFrom?: Date | null;
 
-  @ApiPropertyOptional({ example: '2026-12-31T23:59:59.000Z' })
+  @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    example: '2026-12-31T23:59:59.000Z',
+  })
   @IsOptional()
   @Type(() => Date)
   @IsDate()
@@ -65,6 +76,7 @@ export class CreateWorkflowTemplateDto {
   allowResubmission?: boolean;
 
   @ApiPropertyOptional({
+    type: String,
     example: '71cb34da-1809-4c72-b132-2b9860be8936',
   })
   @IsOptional()

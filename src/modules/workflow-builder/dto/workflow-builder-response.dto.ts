@@ -75,16 +75,21 @@ export class WorkflowApprovalStepConfigResponseDto {
   })
   assigneeType!: WorkflowAssigneeType;
 
-  @ApiProperty({ example: 'accounts', nullable: true })
+  @ApiProperty({ type: String, example: 'accounts', nullable: true })
   assigneeRoleSlug!: string | null;
 
   @ApiProperty({
+    type: String,
     example: '71cb34da-1809-4c72-b132-2b9860be8936',
     nullable: true,
   })
   assigneeUserId!: string | null;
 
-  @ApiProperty({ example: 'customFields.budgetOwnerId', nullable: true })
+  @ApiProperty({
+    type: String,
+    example: 'customFields.budgetOwnerId',
+    nullable: true,
+  })
   assigneeFieldPath!: string | null;
 
   @ApiProperty({ example: true })
@@ -102,7 +107,7 @@ export class WorkflowApprovalStepConfigResponseDto {
   @ApiProperty({ example: false })
   canReassign!: boolean;
 
-  @ApiProperty({ example: 24, nullable: true })
+  @ApiProperty({ type: Number, example: 24, nullable: true })
   slaHours!: number | null;
 
   @ApiProperty({
@@ -112,10 +117,11 @@ export class WorkflowApprovalStepConfigResponseDto {
   })
   escalationAssigneeType!: WorkflowAssigneeType | null;
 
-  @ApiProperty({ example: 'department-head', nullable: true })
+  @ApiProperty({ type: String, example: 'department-head', nullable: true })
   escalationAssigneeRoleSlug!: string | null;
 
   @ApiProperty({
+    type: String,
     example: '71cb34da-1809-4c72-b132-2b9860be8936',
     nullable: true,
   })
@@ -174,6 +180,7 @@ export class WorkflowTemplateResponseDto {
   name!: string;
 
   @ApiProperty({
+    type: String,
     example: 'Routes expenses through finance approval',
     nullable: true,
   })
@@ -197,16 +204,27 @@ export class WorkflowTemplateResponseDto {
   @ApiProperty({ example: 10 })
   priority!: number;
 
-  @ApiProperty({ example: '2026-06-10T00:00:00.000Z', nullable: true })
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    example: '2026-06-10T00:00:00.000Z',
+    nullable: true,
+  })
   effectiveFrom!: string | null;
 
-  @ApiProperty({ example: '2026-12-31T23:59:59.000Z', nullable: true })
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    example: '2026-12-31T23:59:59.000Z',
+    nullable: true,
+  })
   effectiveTo!: string | null;
 
   @ApiProperty({ example: true })
   allowResubmission!: boolean;
 
   @ApiProperty({
+    type: String,
     example: '71cb34da-1809-4c72-b132-2b9860be8936',
     nullable: true,
   })

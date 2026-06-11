@@ -775,6 +775,7 @@ export class SeedService implements OnApplicationBootstrap {
       await this.expensesRepository.save(
         this.expensesRepository.create({
           requesterId: employee.id,
+          createdById: employee.id,
           departmentId: sales?.id ?? null,
           title: 'Demo travel reimbursement',
           description: 'Seeded development expense',

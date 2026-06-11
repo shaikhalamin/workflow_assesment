@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { WorkflowApprovalRule } from '../../workflow-builder/entities/workflow-approval-rule.entity';
 import { WorkflowTemplate } from '../../workflow-builder/entities/workflow-template.entity';
+import { User } from '../../users/entities/user.entity';
 import { WorkflowInstanceStatus } from '../enums/workflow-runtime.enums';
 import { WorkflowAction } from './workflow-action.entity';
 import { WorkflowStep } from './workflow-step.entity';
@@ -47,6 +48,10 @@ export class WorkflowInstance {
 
   @Column({ type: 'uuid' })
   requesterId!: string;
+
+  @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'requesterId' })
+  requester!: User;
 
   @Column({ type: 'uuid', nullable: true })
   departmentId!: string | null;
