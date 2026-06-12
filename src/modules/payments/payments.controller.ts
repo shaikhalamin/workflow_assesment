@@ -16,17 +16,18 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Get()
-  @Permissions('payments.read')
   @ApiPaginatedData(PaymentRequestResponseDto, { errors: [400, 401, 403] })
-  list(@Query() query: PaginationQueryDto) {
-    return this.paymentsService.list(query);
+  list(@Query() query: PaginationQueryDto, @CurrentUser() actor: Express.User) {
+    return this.paymentsService.list(query, actor);
   }
 
   @Get(':id')
-  @Permissions('payments.read')
   @ApiData(PaymentRequestResponseDto, { errors: [400, 401, 403, 404] })
-  findOne(@Param() params: PaymentRequestParamDto) {
-    return this.paymentsService.findOne(params.id);
+  findOne(
+    @Param() params: PaymentRequestParamDto,
+    @CurrentUser() actor: Express.User,
+  ) {
+    return this.paymentsService.findOne(params.id, actor);
   }
 
   @Post(':id/mark-paid')

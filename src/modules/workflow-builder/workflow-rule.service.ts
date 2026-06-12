@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Role } from '../rbac/entities/role.entity';
 import { CreateWorkflowStepConfigDto } from './dto/create-workflow-step-config.dto';
 import { UpdateWorkflowRuleDto } from './dto/update-workflow-rule.dto';
 import { UpdateWorkflowStepConfigDto } from './dto/update-workflow-step-config.dto';
@@ -19,6 +20,8 @@ export class WorkflowRuleService {
     private readonly rulesRepository: Repository<WorkflowApprovalRule>,
     @InjectRepository(WorkflowApprovalStepConfig)
     private readonly stepConfigsRepository: Repository<WorkflowApprovalStepConfig>,
+    @InjectRepository(Role)
+    private readonly rolesRepository?: Repository<Role>,
   ) {}
 
   async updateRule(
@@ -55,7 +58,7 @@ export class WorkflowRuleService {
     workflowApprovalRuleId: string,
     dto: CreateWorkflowStepConfigDto,
   ): Promise<WorkflowApprovalStepConfig> {
-    this.validateStepAssignee(dto);
+    await this.validateStepAssignee(dto);
     await this.assertUniqueStepOrder(workflowApprovalRuleId, dto.stepOrder);
     return this.stepConfigsRepository.save(
       this.stepConfigsRepository.create({
@@ -76,7 +79,7 @@ export class WorkflowRuleService {
     const step = await this.stepConfigsRepository.findOneBy({ id });
     if (!step) throw new NotFoundException('Workflow step config not found');
     const next = { ...step, ...dto };
-    this.validateStepAssignee(next);
+    await this.validateStepAssignee(next);
     if (dto.stepOrder !== undefined) {
       await this.assertUniqueStepOrder(
         step.workflowApprovalRuleId,
@@ -122,17 +125,31 @@ export class WorkflowRuleService {
     }
   }
 
-  private validateStepAssignee(step: {
+  private async validateStepAssignee(step: {
     assigneeType: WorkflowAssigneeType;
     assigneeRoleSlug?: string | null;
     assigneeUserId?: string | null;
     assigneeFieldPath?: string | null;
-  }): void {
+  }): Promise<void> {
     if (
       step.assigneeType === WorkflowAssigneeType.ROLE &&
       !step.assigneeRoleSlug
     ) {
       throw new BadRequestException('ROLE steps require assigneeRoleSlug');
+    }
+    if (
+      step.assigneeType === WorkflowAssigneeType.ROLE &&
+      step.assigneeRoleSlug &&
+      this.rolesRepository
+    ) {
+      const role = await this.rolesRepository.findOneBy({
+        slug: step.assigneeRoleSlug,
+      });
+      if (!role) {
+        throw new BadRequestException(
+          `Workflow role ${step.assigneeRoleSlug} does not exist`,
+        );
+      }
     }
     if (
       step.assigneeType === WorkflowAssigneeType.USER &&

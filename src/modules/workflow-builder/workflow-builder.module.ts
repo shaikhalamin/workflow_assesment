@@ -8,6 +8,7 @@ import { WorkflowOutcomeConfig } from './entities/workflow-outcome-config.entity
 import { WorkflowTemplate } from './entities/workflow-template.entity';
 import { WorkflowTriggerCondition } from './entities/workflow-trigger-condition.entity';
 import { WorkflowInstance } from '../workflow-runtime/entities/workflow-instance.entity';
+import { Role } from '../rbac/entities/role.entity';
 import { WorkflowEventSchemaController } from './workflow-event-schema.controller';
 import { WorkflowEventSchemaService } from './workflow-event-schema.service';
 import { WorkflowRuleController } from './workflow-rule.controller';
@@ -26,6 +27,7 @@ import { WorkflowTemplateService } from './workflow-template.service';
       WorkflowApprovalStepConfig,
       WorkflowOutcomeConfig,
       WorkflowInstance,
+      Role,
     ]),
   ],
   controllers: [

@@ -209,6 +209,7 @@ export class OutcomeHandlerService {
     }
 
     const issuedAt = new Date();
+    const paidAt = new Date();
     const invoice = await this.invoicesRepository.save(
       this.invoicesRepository.create({
         billingRequestId: billingRequest.id,
@@ -223,10 +224,10 @@ export class OutcomeHandlerService {
         amount: billingRequest.amount,
         currency: billingRequest.currency,
         dueDate: this.dueDateFromIssuedAt(issuedAt),
-        status: InvoiceStatus.ISSUED,
+        status: InvoiceStatus.PAID,
         issuedAt,
         cancelledAt: null,
-        paidAt: null,
+        paidAt,
       }),
     );
 
@@ -239,7 +240,7 @@ export class OutcomeHandlerService {
       entityType: 'Invoice',
       entityId: invoice.id,
       workflowInstanceId: instance.id,
-      newStatus: InvoiceStatus.ISSUED,
+      newStatus: InvoiceStatus.PAID,
       metadataJson: { billingRequestId: billingRequest.id },
     });
     await this.notificationsService.createInvoiceCreated({

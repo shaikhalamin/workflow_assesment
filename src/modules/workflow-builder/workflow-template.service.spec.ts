@@ -1,6 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import { Paginated } from '../../common/http/paginated';
 import { WorkflowTemplateService } from './workflow-template.service';
+import {
+  WorkflowAssigneeType,
+  WorkflowStepType,
+} from './enums/workflow-builder.enums';
 
 describe('WorkflowTemplateService publish validation', () => {
   it('rejects publishing templates without active rules', async () => {
@@ -155,5 +159,70 @@ describe('WorkflowTemplateService outcomes', () => {
         rejectedActionsJson: null,
       }),
     );
+  });
+});
+
+describe('WorkflowTemplateService step role validation', () => {
+  it('rejects wizard rules with role assignee slugs that do not exist', async () => {
+    const template = {
+      id: 'template-1',
+      moduleName: 'billing',
+      eventName: 'billing.submitted',
+      entityType: 'BillingRequest',
+    };
+    const templatesRepository = {
+      create: jest.fn().mockReturnValue(template),
+      save: jest.fn().mockResolvedValue(template),
+      findOne: jest.fn().mockResolvedValue(template),
+    };
+    const rulesRepository = {
+      findOneBy: jest.fn().mockResolvedValue(null),
+      create: jest.fn((value: object) => value),
+      save: jest.fn((value: object) => ({ id: 'rule-1', ...value })),
+      findOneOrFail: jest.fn().mockResolvedValue({ id: 'rule-1', steps: [] }),
+    };
+    const stepConfigsRepository = {
+      create: jest.fn((value: object) => value),
+      save: jest.fn((value: object) => value),
+    };
+    const rolesRepository = {
+      findOneBy: jest.fn().mockResolvedValue(null),
+    };
+    const service = new WorkflowTemplateService(
+      templatesRepository as never,
+      {} as never,
+      rulesRepository as never,
+      stepConfigsRepository as never,
+      {} as never,
+      undefined,
+      rolesRepository as never,
+    );
+
+    await expect(
+      service.createWizard({
+        template: {
+          name: 'Billing workflow',
+          moduleName: 'billing',
+          eventName: 'billing.submitted',
+          entityType: 'BillingRequest',
+        },
+        rules: [
+          {
+            name: 'Accounts review',
+            priority: 1,
+            isFallback: true,
+            steps: [
+              {
+                stepOrder: 1,
+                stepName: 'Accounts review',
+                stepType: WorkflowStepType.REVIEW,
+                assigneeType: WorkflowAssigneeType.ROLE,
+                assigneeRoleSlug: 'accounts',
+              },
+            ],
+          },
+        ],
+      }),
+    ).rejects.toThrow('Workflow role accounts does not exist');
   });
 });

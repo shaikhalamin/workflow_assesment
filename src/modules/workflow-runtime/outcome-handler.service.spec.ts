@@ -6,6 +6,11 @@ import { PaymentRequestStatus } from '../payments/entities/payment-request.entit
 import { WorkflowInstanceStatus } from './enums/workflow-runtime.enums';
 import { OutcomeHandlerService } from './outcome-handler.service';
 
+type CreatedInvoiceInput = {
+  status: InvoiceStatus;
+  paidAt: Date | null;
+};
+
 describe('OutcomeHandlerService', () => {
   it('does not create a payment request when an expense workflow outcome disables it', async () => {
     const expense = {
@@ -298,6 +303,7 @@ describe('OutcomeHandlerService', () => {
       invoiceNumber: 'INV-20260612-0001',
       status: InvoiceStatus.ISSUED,
     };
+    let createdInvoiceInput: CreatedInvoiceInput | null = null;
     const expensesRepository = {};
     const paymentsRepository = {};
     const leavesRepository = {};
@@ -311,7 +317,10 @@ describe('OutcomeHandlerService', () => {
         .mockResolvedValueOnce(null)
         .mockResolvedValue(invoice),
       countBy: jest.fn().mockResolvedValue(0),
-      create: jest.fn().mockReturnValue(invoice),
+      create: jest.fn((value: CreatedInvoiceInput) => {
+        createdInvoiceInput = value;
+        return invoice;
+      }),
       save: jest.fn().mockResolvedValue(invoice),
     };
     const notificationsService = {
@@ -344,6 +353,8 @@ describe('OutcomeHandlerService', () => {
     await service.handleApproved(instance, actions);
 
     expect(invoicesRepository.create).toHaveBeenCalledTimes(1);
+    expect(createdInvoiceInput?.status).toBe(InvoiceStatus.PAID);
+    expect(createdInvoiceInput?.paidAt).toBeInstanceOf(Date);
     expect(invoicesRepository.save).toHaveBeenCalledTimes(1);
     expect(billingRequest.status).toBe(BillingRequestStatus.INVOICED);
     expect(billingRequest.invoiceId).toBe('invoice-1');
@@ -378,6 +389,7 @@ describe('OutcomeHandlerService', () => {
       invoiceNumber: 'INV-20260612-0001',
       status: InvoiceStatus.ISSUED,
     };
+    let createdInvoiceInput: CreatedInvoiceInput | null = null;
     const billingRequestsRepository = {
       findOneBy: jest.fn().mockResolvedValue(billingRequest),
       save: jest.fn().mockImplementation((value) => Promise.resolve(value)),
@@ -385,7 +397,10 @@ describe('OutcomeHandlerService', () => {
     const invoicesRepository = {
       findOneBy: jest.fn().mockResolvedValue(null),
       countBy: jest.fn().mockResolvedValue(0),
-      create: jest.fn().mockReturnValue(invoice),
+      create: jest.fn((value: CreatedInvoiceInput) => {
+        createdInvoiceInput = value;
+        return invoice;
+      }),
       save: jest.fn().mockResolvedValue(invoice),
     };
     const notificationsService = {
@@ -419,6 +434,8 @@ describe('OutcomeHandlerService', () => {
     );
 
     expect(invoicesRepository.create).toHaveBeenCalledTimes(1);
+    expect(createdInvoiceInput?.status).toBe(InvoiceStatus.PAID);
+    expect(createdInvoiceInput?.paidAt).toBeInstanceOf(Date);
     expect(invoicesRepository.save).toHaveBeenCalledTimes(1);
     expect(billingRequest.status).toBe(BillingRequestStatus.INVOICED);
     expect(billingRequest.invoiceId).toBe('invoice-1');

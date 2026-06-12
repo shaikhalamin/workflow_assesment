@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Paginated } from '../../common/http/paginated';
 import { paginateRepo } from '../../common/http/paginate';
 import { PaginationQueryDto } from '../../common/http/pagination.query';
+import { Role } from '../rbac/entities/role.entity';
 import { WorkflowInstance } from '../workflow-runtime/entities/workflow-instance.entity';
 import { CreateWorkflowRuleDto } from './dto/create-workflow-rule.dto';
 import { CreateWorkflowTemplateDto } from './dto/create-workflow-template.dto';
@@ -38,6 +39,8 @@ export class WorkflowTemplateService {
     private readonly outcomeConfigsRepository: Repository<WorkflowOutcomeConfig>,
     @InjectRepository(WorkflowInstance)
     private readonly workflowInstancesRepository?: Repository<WorkflowInstance>,
+    @InjectRepository(Role)
+    private readonly rolesRepository?: Repository<Role>,
   ) {}
 
   async list(query: PaginationQueryDto) {
@@ -220,7 +223,9 @@ export class WorkflowTemplateService {
       dto.priority,
       dto.isFallback,
     );
-    for (const step of dto.steps ?? []) this.validateStepAssignee(step);
+    for (const step of dto.steps ?? []) {
+      await this.validateStepAssignee(step);
+    }
 
     const rule = await this.rulesRepository.save(
       this.rulesRepository.create({
@@ -320,17 +325,31 @@ export class WorkflowTemplateService {
     }
   }
 
-  private validateStepAssignee(step: {
+  private async validateStepAssignee(step: {
     assigneeType: WorkflowAssigneeType;
     assigneeRoleSlug?: string | null;
     assigneeUserId?: string | null;
     assigneeFieldPath?: string | null;
-  }): void {
+  }): Promise<void> {
     if (
       step.assigneeType === WorkflowAssigneeType.ROLE &&
       !step.assigneeRoleSlug
     ) {
       throw new BadRequestException('ROLE steps require assigneeRoleSlug');
+    }
+    if (
+      step.assigneeType === WorkflowAssigneeType.ROLE &&
+      step.assigneeRoleSlug &&
+      this.rolesRepository
+    ) {
+      const role = await this.rolesRepository.findOneBy({
+        slug: step.assigneeRoleSlug,
+      });
+      if (!role) {
+        throw new BadRequestException(
+          `Workflow role ${step.assigneeRoleSlug} does not exist`,
+        );
+      }
     }
     if (
       step.assigneeType === WorkflowAssigneeType.USER &&

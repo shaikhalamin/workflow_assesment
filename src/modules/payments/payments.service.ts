@@ -1,14 +1,17 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import type { FindOptionsWhere } from 'typeorm';
 import { Repository } from 'typeorm';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { Expense, ExpenseStatus } from '../expenses/entities/expense.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { paginateRepo } from '../../common/http/paginate';
+import { Paginated } from '../../common/http/paginated';
 import { PaginationQueryDto } from '../../common/http/pagination.query';
 import {
   PaymentRequest,
@@ -26,15 +29,39 @@ export class PaymentsService {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  list(query: PaginationQueryDto) {
+  async list(
+    query: PaginationQueryDto,
+    actor: Express.User,
+  ): Promise<Paginated<PaymentRequest>> {
+    this.assertCanReadPayments(actor);
+    const where: FindOptionsWhere<PaymentRequest> | undefined =
+      this.canReadAllPayments(actor)
+        ? undefined
+        : { requesterId: actor.userId };
+
     return paginateRepo(this.paymentsRepository, {
       page: query.page ?? 1,
       limit: query.limit ?? 25,
+      where,
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findOne(id: string): Promise<PaymentRequest> {
+  async findOne(id: string, actor: Express.User): Promise<PaymentRequest> {
+    this.assertCanReadPayments(actor);
+    const payment = await this.findExistingPayment(id);
+    if (
+      this.canReadAllPayments(actor) ||
+      payment.requesterId === actor.userId
+    ) {
+      return payment;
+    }
+    throw new BadRequestException(
+      'Payment request is not visible to this user',
+    );
+  }
+
+  private async findExistingPayment(id: string): Promise<PaymentRequest> {
     const payment = await this.paymentsRepository.findOneBy({ id });
     if (!payment) throw new NotFoundException('Payment request not found');
     return payment;
@@ -45,7 +72,7 @@ export class PaymentsService {
     actor: Express.User,
     dto: { paymentReference?: string },
   ): Promise<PaymentRequest> {
-    const payment = await this.findOne(id);
+    const payment = await this.findExistingPayment(id);
     if (payment.status !== PaymentRequestStatus.PENDING) {
       throw new BadRequestException('Only pending payments can be marked paid');
     }
@@ -76,5 +103,19 @@ export class PaymentsService {
       entityId: payment.id,
     });
     return this.paymentsRepository.save(payment);
+  }
+
+  private assertCanReadPayments(actor: Express.User): void {
+    if (this.canReadAllPayments(actor) || this.canReadOwnPayments(actor))
+      return;
+    throw new ForbiddenException('Insufficient permission');
+  }
+
+  private canReadAllPayments(actor: Express.User): boolean {
+    return actor.permissions.includes('payments.read');
+  }
+
+  private canReadOwnPayments(actor: Express.User): boolean {
+    return actor.permissions.includes('expenses.read');
   }
 }
