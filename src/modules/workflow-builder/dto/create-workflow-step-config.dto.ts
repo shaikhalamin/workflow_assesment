@@ -62,11 +62,6 @@ export class CreateWorkflowStepConfigDto {
   @IsBoolean()
   requiresComment?: boolean;
 
-  @ApiPropertyOptional({ default: false })
-  @IsOptional()
-  @IsBoolean()
-  requiresAttachment?: boolean;
-
   @ApiPropertyOptional({ default: true })
   @IsOptional()
   @IsBoolean()

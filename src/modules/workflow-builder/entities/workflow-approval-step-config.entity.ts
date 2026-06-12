@@ -56,9 +56,6 @@ export class WorkflowApprovalStepConfig {
   @Column({ default: false })
   requiresComment!: boolean;
 
-  @Column({ default: false })
-  requiresAttachment!: boolean;
-
   @Column({ default: true })
   canReject!: boolean;
 

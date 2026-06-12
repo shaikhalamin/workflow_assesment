@@ -98,9 +98,6 @@ export class WorkflowApprovalStepConfigResponseDto {
   @ApiProperty({ example: false })
   requiresComment!: boolean;
 
-  @ApiProperty({ example: false })
-  requiresAttachment!: boolean;
-
   @ApiProperty({ example: true })
   canReject!: boolean;
 

@@ -85,14 +85,13 @@ describe('SeedService', () => {
     expect(SeedService.developmentPassword).toBe('Password123!');
   });
 
-  it('defines seeded workflow templates for billing, expense, leave, and attendance', () => {
+  it('defines seeded workflow templates for billing, expense, and leave', () => {
     expect(
       SeedService.workflowTemplateSeeds.map((workflow) => workflow.name),
     ).toEqual([
       'Billing Approval Workflow',
       'Expense Approval Workflow',
       'Leave Approval Workflow',
-      'Attendance Adjustment Workflow',
     ]);
   });
 

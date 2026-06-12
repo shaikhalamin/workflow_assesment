@@ -432,14 +432,6 @@ export class SeedService implements OnApplicationBootstrap {
       status: WorkflowTemplateStatus.PUBLISHED,
       priority: 90,
     },
-    {
-      name: 'Attendance Adjustment Workflow',
-      moduleName: 'attendance',
-      eventName: 'attendance.adjustment_submitted',
-      entityType: 'AttendanceAdjustment',
-      status: WorkflowTemplateStatus.DRAFT,
-      priority: 10,
-    },
   ];
 
   constructor(
@@ -979,8 +971,6 @@ export class SeedService implements OnApplicationBootstrap {
         await this.seedExpenseWorkflow(template);
       } else if (seed.entityType === 'LeaveRequest') {
         await this.seedLeaveWorkflow(template);
-      } else if (seed.entityType === 'AttendanceAdjustment') {
-        await this.seedAttendanceWorkflow(template);
       }
     }
   }
@@ -1015,12 +1005,6 @@ export class SeedService implements OnApplicationBootstrap {
           'employeeGrade',
           'departmentId',
         ],
-      },
-      {
-        moduleName: 'attendance',
-        eventName: 'attendance.adjustment_submitted',
-        entityType: 'AttendanceAdjustment',
-        fields: ['adjustmentType', 'employeeGrade', 'departmentId'],
       },
     ];
 
@@ -1148,28 +1132,6 @@ export class SeedService implements OnApplicationBootstrap {
       stepType: WorkflowStepType.HR_CHECK,
       assigneeType: WorkflowAssigneeType.ROLE,
       assigneeRoleSlug: 'hr-manager',
-    });
-  }
-
-  private async seedAttendanceWorkflow(
-    template: WorkflowTemplate,
-  ): Promise<void> {
-    await this.ensureTriggerCondition(template.id, {
-      mode: 'all',
-      conditions: [{ field: 'adjustmentType', operator: 'is_not_empty' }],
-    });
-    const rule = await this.ensureRule(template.id, {
-      name: 'Attendance adjustment',
-      priority: 0,
-      isFallback: true,
-      conditionJson: null,
-    });
-    await this.ensureStep(rule.id, {
-      stepOrder: 1,
-      stepName: 'HR officer review',
-      stepType: WorkflowStepType.HR_CHECK,
-      assigneeType: WorkflowAssigneeType.ROLE,
-      assigneeRoleSlug: 'hr-officer',
     });
   }
 
@@ -1406,7 +1368,6 @@ export class SeedService implements OnApplicationBootstrap {
           assigneeFieldPath: null,
           isRequired: true,
           requiresComment: false,
-          requiresAttachment: false,
           canReject: true,
           canReassign: false,
         }),

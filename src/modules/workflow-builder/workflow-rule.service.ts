@@ -63,7 +63,6 @@ export class WorkflowRuleService {
         workflowApprovalRuleId,
         isRequired: dto.isRequired ?? true,
         requiresComment: dto.requiresComment ?? false,
-        requiresAttachment: dto.requiresAttachment ?? false,
         canReject: dto.canReject ?? true,
         canReassign: dto.canReassign ?? false,
       }),

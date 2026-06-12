@@ -239,7 +239,6 @@ export class WorkflowTemplateService {
           workflowApprovalRuleId: rule.id,
           isRequired: step.isRequired ?? true,
           requiresComment: step.requiresComment ?? false,
-          requiresAttachment: step.requiresAttachment ?? false,
           canReject: step.canReject ?? true,
           canReassign: step.canReassign ?? false,
         }),
