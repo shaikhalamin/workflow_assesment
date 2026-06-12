@@ -3220,26 +3220,7 @@ function TaskTable({
       cell: ({ row }) =>
         requestAmountOrDaysLabel(requestSummaryFromRow(row.original)),
     },
-    {
-      header: 'Created',
-      cell: ({ row }) => {
-        const request = requestSummaryFromRow(row.original)
-        return formatDate(request?.createdAt)
-      },
-    },
-    { header: 'Step', accessorKey: 'stepName' },
     { header: 'Step type', accessorKey: 'stepType' },
-    {
-      header: 'Assignee',
-      cell: ({ row }) => {
-        const original = row.original
-        const assignedRoleSlug =
-          'assignedRoleSlug' in original ? original.assignedRoleSlug : undefined
-        const assignedUserId =
-          'assignedUserId' in original ? original.assignedUserId : undefined
-        return formatValue(assignedRoleSlug ?? assignedUserId ?? original.assigneeType)
-      },
-    },
     { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
     {
       header: 'Activated',

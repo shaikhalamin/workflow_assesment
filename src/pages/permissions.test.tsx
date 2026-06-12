@@ -527,7 +527,7 @@ describe('workspace page permissions', () => {
     expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
   })
 
-  it('shows a workflow details link for pending approvals', () => {
+  it('shows pending approvals without step, created, or assignee columns', () => {
     pendingTasksState.pendingTasks = [
       {
         id: 'step-1',
@@ -558,14 +558,19 @@ describe('workspace page permissions', () => {
 
     render(<TasksPage />)
 
-    expect(screen.getByText('Manager approval')).toBeInTheDocument()
+    expect(screen.queryByRole('columnheader', { name: 'Step' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('columnheader', { name: 'Created' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('columnheader', { name: 'Assignee' })).not.toBeInTheDocument()
     expect(screen.getByText('Laptop charger reimbursement')).toBeInTheDocument()
     expect(screen.getByText('Expense')).toBeInTheDocument()
     expect(screen.getByText(/Employee User/)).toBeInTheDocument()
     expect(screen.getByText('BDT 4,500')).toBeInTheDocument()
-    expect(screen.getAllByText(/Jun 11, 2026/).length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText('APPROVAL')).toBeInTheDocument()
+    expect(screen.getByText('Active')).toBeInTheDocument()
+    expect(screen.getAllByText(/Jun 11, 2026/)).toHaveLength(1)
     expect(
       screen.getByRole('link', { name: /view details/i }),
     ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /approve/i })).toBeInTheDocument()
   })
 })
