@@ -36,7 +36,7 @@ export class WorkflowRuntimeController {
   }
 
   @Get('workflow-instances')
-  @Permissions('workflow.runtime.act')
+  @Permissions('workflow.runtime.read')
   @ApiPaginatedData(WorkflowInstanceResponseDto, {
     errors: [400, 401, 403],
   })
@@ -45,7 +45,7 @@ export class WorkflowRuntimeController {
   }
 
   @Get('workflow-instances/:id')
-  @Permissions('workflow.runtime.act')
+  @Permissions('workflow.runtime.read')
   @ApiData(WorkflowInstanceResponseDto, { errors: [400, 401, 403, 404] })
   findOne(@Param() params: WorkflowInstanceParamDto) {
     return this.workflowRuntimeService.findOne(params.id);

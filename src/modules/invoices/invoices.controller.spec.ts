@@ -2,12 +2,12 @@ import { PERMISSIONS_KEY } from '../../common/decorators/permissions.decorator';
 import { InvoicesController } from './invoices.controller';
 
 describe('InvoicesController', () => {
-  it('allows billing readers to reach invoice read endpoints for row-level visibility checks', () => {
+  it('requires invoice read permission for invoice read endpoints', () => {
     const listPermissions = controllerMethodPermissions('list');
     const findOnePermissions = controllerMethodPermissions('findOne');
 
-    expect(listPermissions).toEqual(['billing.read']);
-    expect(findOnePermissions).toEqual(['billing.read']);
+    expect(listPermissions).toEqual(['invoices.read']);
+    expect(findOnePermissions).toEqual(['invoices.read']);
   });
 });
 

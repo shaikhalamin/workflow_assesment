@@ -34,6 +34,14 @@ import { PaymentsModule } from './payments/payments.module';
 import { PaymentsController } from './payments/payments.controller';
 import { PaymentRequestResponseDto } from './payments/dto/payment-request-response.dto';
 import { PaymentsService } from './payments/payments.service';
+import {
+  RbacPermissionResponseDto,
+  RbacRoleResponseDto,
+  UpdateRolePermissionsDto,
+} from './rbac/dto/rbac-management.dto';
+import { RbacController } from './rbac/rbac.controller';
+import { RbacModule } from './rbac/rbac.module';
+import { RbacService } from './rbac/rbac.service';
 import { UsersModule } from './users/users.module';
 import { UsersController } from './users/users.controller';
 import { UserResponseDto } from './users/dto/user-response.dto';
@@ -127,6 +135,7 @@ const modules = [
   ExpensesModule,
   LeavesModule,
   PaymentsModule,
+  RbacModule,
   UsersModule,
   WorkflowBuilderModule,
   WorkflowRuntimeModule,
@@ -140,6 +149,7 @@ const controllers: Type<unknown>[] = [
   ExpensesController,
   LeavesController,
   PaymentsController,
+  RbacController,
   UsersController,
   WorkflowEventSchemaController,
   WorkflowRuleController,
@@ -156,6 +166,7 @@ const controllerServices: Type<unknown>[] = [
   ExpensesService,
   LeavesService,
   PaymentsService,
+  RbacService,
   UsersService,
   WorkflowEventSchemaService,
   WorkflowRuleService,
@@ -501,6 +512,10 @@ describe('module controller metadata', () => {
           ['escalationAssigneeUserId', String],
         ]),
       ],
+      [
+        UpdateRolePermissionsDto,
+        new Map<string, unknown>([['permissionSlugs', String]]),
+      ],
     ]);
 
     const incorrectlyTypedFields = [...expectedTypes].flatMap(([dto, fields]) =>
@@ -628,6 +643,23 @@ describe('module controller metadata', () => {
           ['paymentReference', String],
           ['paidById', String],
           ['paidAt', String],
+        ]),
+      ],
+      [
+        RbacPermissionResponseDto,
+        new Map<string, unknown>([
+          ['description', String],
+          ['createdAt', String],
+          ['updatedAt', String],
+        ]),
+      ],
+      [
+        RbacRoleResponseDto,
+        new Map<string, unknown>([
+          ['description', String],
+          ['permissionSlugs', String],
+          ['createdAt', String],
+          ['updatedAt', String],
         ]),
       ],
       [

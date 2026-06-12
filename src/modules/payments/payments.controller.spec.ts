@@ -2,9 +2,9 @@ import { PERMISSIONS_KEY } from '../../common/decorators/permissions.decorator';
 import { PaymentsController } from './payments.controller';
 
 describe('PaymentsController', () => {
-  it('leaves payment read authorization to the service for requester-scoped access', () => {
-    expect(controllerMethodPermissions('list')).toBeUndefined();
-    expect(controllerMethodPermissions('findOne')).toBeUndefined();
+  it('requires payment read permission for payment read endpoints', () => {
+    expect(controllerMethodPermissions('list')).toEqual(['payments.read']);
+    expect(controllerMethodPermissions('findOne')).toEqual(['payments.read']);
   });
 
   it('keeps payment mutation restricted to payment writers', () => {

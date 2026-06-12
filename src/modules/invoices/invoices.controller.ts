@@ -15,14 +15,14 @@ export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
-  @Permissions('billing.read')
+  @Permissions('invoices.read')
   @ApiPaginatedData(InvoiceResponseDto, { errors: [400, 401, 403] })
   list(@Query() query: InvoiceQueryDto, @CurrentUser() actor: Express.User) {
     return this.invoicesService.list(query, actor);
   }
 
   @Get(':id')
-  @Permissions('billing.read')
+  @Permissions('invoices.read')
   @ApiData(InvoiceResponseDto, { errors: [400, 401, 403, 404] })
   findOne(
     @Param() params: InvoiceParamDto,

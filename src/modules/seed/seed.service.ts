@@ -122,6 +122,12 @@ export class SeedService implements OnApplicationBootstrap {
       action: 'manage',
     },
     {
+      name: 'Read workflow runtime',
+      slug: 'workflow.runtime.read',
+      resource: 'workflow-runtime',
+      action: 'read',
+    },
+    {
       name: 'Act on workflow runtime',
       slug: 'workflow.runtime.act',
       resource: 'workflow-runtime',
@@ -210,7 +216,13 @@ export class SeedService implements OnApplicationBootstrap {
         'expenses.write',
         'leaves.read',
         'leaves.write',
+        'billing.read',
+        'billing.write',
+        'invoices.read',
+        'payments.read',
+        'audit.read',
         'dashboard.read',
+        'workflow.runtime.read',
         'workflow.runtime.act',
       ],
     },
@@ -221,6 +233,7 @@ export class SeedService implements OnApplicationBootstrap {
         'billing.read',
         'billing.write',
         'dashboard.read',
+        'workflow.runtime.read',
         'workflow.runtime.act',
       ],
     },
@@ -234,6 +247,7 @@ export class SeedService implements OnApplicationBootstrap {
         'billing.read',
         'invoices.read',
         'dashboard.read',
+        'workflow.runtime.read',
         'workflow.runtime.act',
       ],
     },
@@ -244,6 +258,7 @@ export class SeedService implements OnApplicationBootstrap {
         'expenses.read',
         'leaves.read',
         'dashboard.read',
+        'workflow.runtime.read',
         'workflow.runtime.act',
       ],
     },
@@ -257,6 +272,7 @@ export class SeedService implements OnApplicationBootstrap {
         'billing.read',
         'invoices.read',
         'dashboard.read',
+        'workflow.runtime.read',
         'workflow.runtime.act',
       ],
     },
@@ -267,10 +283,12 @@ export class SeedService implements OnApplicationBootstrap {
         'users.read',
         'expenses.read',
         'payments.read',
+        'payments.write',
         'billing.read',
         'invoices.read',
         'invoices.write',
         'dashboard.read',
+        'workflow.runtime.read',
         'workflow.runtime.act',
       ],
     },
@@ -280,6 +298,7 @@ export class SeedService implements OnApplicationBootstrap {
         'auth.profile.read',
         'leaves.read',
         'dashboard.read',
+        'workflow.runtime.read',
         'workflow.runtime.act',
       ],
     },
@@ -290,6 +309,7 @@ export class SeedService implements OnApplicationBootstrap {
         'users.read',
         'leaves.read',
         'dashboard.read',
+        'workflow.runtime.read',
         'workflow.runtime.act',
       ],
     },
@@ -299,7 +319,9 @@ export class SeedService implements OnApplicationBootstrap {
         'auth.profile.read',
         'expenses.read',
         'payments.read',
+        'payments.write',
         'dashboard.read',
+        'workflow.runtime.read',
         'workflow.runtime.act',
       ],
     },
@@ -310,6 +332,7 @@ export class SeedService implements OnApplicationBootstrap {
         'payments.read',
         'payments.write',
         'dashboard.read',
+        'workflow.runtime.read',
         'workflow.runtime.act',
       ],
     },
@@ -334,7 +357,7 @@ export class SeedService implements OnApplicationBootstrap {
       designation: 'Sales Executive',
       departmentSlug: 'sales',
       managerEmail: 'manager@example.com',
-      roles: ['employee', 'sales-officer'],
+      roles: ['employee'],
     },
     {
       name: 'Manager User',
@@ -343,7 +366,7 @@ export class SeedService implements OnApplicationBootstrap {
       employeeGrade: 'G7',
       designation: 'Sales Manager',
       departmentSlug: 'sales',
-      roles: ['manager', 'department-reviewer'],
+      roles: ['employee', 'manager', 'department-reviewer'],
     },
     {
       name: 'Accounts Officer',
@@ -353,7 +376,7 @@ export class SeedService implements OnApplicationBootstrap {
       designation: 'Accounts Officer',
       departmentSlug: 'accounts',
       managerEmail: 'manager@example.com',
-      roles: ['accounts-officer'],
+      roles: ['employee', 'accounts-officer'],
     },
     {
       name: 'Finance Admin',
@@ -363,7 +386,7 @@ export class SeedService implements OnApplicationBootstrap {
       designation: 'Finance Admin',
       departmentSlug: 'finance',
       managerEmail: 'manager@example.com',
-      roles: ['finance-admin'],
+      roles: ['employee', 'finance-admin'],
     },
     {
       name: 'HR Officer',
@@ -373,7 +396,7 @@ export class SeedService implements OnApplicationBootstrap {
       designation: 'HR Officer',
       departmentSlug: 'hr',
       managerEmail: 'manager@example.com',
-      roles: ['hr-officer'],
+      roles: ['employee', 'hr-officer'],
     },
     {
       name: 'HR Manager',
@@ -383,7 +406,7 @@ export class SeedService implements OnApplicationBootstrap {
       designation: 'HR Manager',
       departmentSlug: 'hr',
       managerEmail: 'manager@example.com',
-      roles: ['hr-manager'],
+      roles: ['employee', 'hr-manager'],
     },
     {
       name: 'CFO User',
@@ -393,7 +416,7 @@ export class SeedService implements OnApplicationBootstrap {
       designation: 'Chief Financial Officer',
       departmentSlug: 'finance',
       managerEmail: 'manager@example.com',
-      roles: ['cfo'],
+      roles: ['employee', 'cfo'],
     },
     {
       name: 'Payroll Officer',
@@ -403,7 +426,7 @@ export class SeedService implements OnApplicationBootstrap {
       designation: 'Payroll Officer',
       departmentSlug: 'payroll',
       managerEmail: 'manager@example.com',
-      roles: ['payroll-officer'],
+      roles: ['employee', 'payroll-officer'],
     },
   ];
 
@@ -582,11 +605,14 @@ export class SeedService implements OnApplicationBootstrap {
           );
         }
 
+        const seedRoleIds = seed.roles.flatMap((roleSlug) => {
+          const role = rolesBySlug.get(roleSlug);
+          return role ? [role.id] : [];
+        });
+
+        await this.reconcileSeedUserRoles(user.id, seedRoleIds);
         await Promise.all(
-          seed.roles.flatMap((roleSlug) => {
-            const role = rolesBySlug.get(roleSlug);
-            return role ? [this.ensureUserRole(user.id, role.id)] : [];
-          }),
+          seedRoleIds.map((roleId) => this.ensureUserRole(user.id, roleId)),
         );
 
         return [seed.email, user] as const;
@@ -1415,5 +1441,23 @@ export class SeedService implements OnApplicationBootstrap {
         this.userRolesRepository.create({ userId, roleId }),
       );
     }
+  }
+
+  private async reconcileSeedUserRoles(
+    userId: string,
+    seedRoleIds: string[],
+  ): Promise<void> {
+    const seedRoleIdSet = new Set(seedRoleIds);
+    const existingUserRoles = await this.userRolesRepository.find({
+      where: { userId },
+    });
+
+    await Promise.all(
+      existingUserRoles.flatMap((userRole) =>
+        seedRoleIdSet.has(userRole.roleId)
+          ? []
+          : [this.userRolesRepository.delete({ id: userRole.id })],
+      ),
+    );
   }
 }
