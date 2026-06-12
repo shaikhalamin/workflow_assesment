@@ -684,7 +684,6 @@ function stepFlags(step: WorkflowApprovalStepConfigResponseDto) {
     step.isRequired ? 'Required' : undefined,
     step.canReject ? 'Can reject' : undefined,
     step.requiresComment ? 'Comment required' : undefined,
-    step.requiresAttachment ? 'Attachment required' : undefined,
     step.canReassign ? 'Reassign allowed' : undefined,
   ].filter((item): item is string => Boolean(item))
 }
@@ -1830,7 +1829,7 @@ function ApprovalSteps({
                     />
                   </Field>
                 </div>
-                <div className="mt-4 grid gap-3 border-t border-[var(--border)] pt-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-4 grid gap-3 border-t border-[var(--border)] pt-4 sm:grid-cols-2 lg:grid-cols-3">
                   <FormCheckbox
                     label="Required step"
                     description="The workflow cannot finish without this step."
@@ -1850,17 +1849,6 @@ function ApprovalSteps({
                       updateStep(ruleIndex, stepIndex, {
                         ...step,
                         requiresComment: event.target.checked,
-                      })
-                    }
-                  />
-                  <FormCheckbox
-                    label="Requires attachment"
-                    description="Actor must upload supporting evidence."
-                    checked={step.requiresAttachment}
-                    onChange={(event) =>
-                      updateStep(ruleIndex, stepIndex, {
-                        ...step,
-                        requiresAttachment: event.target.checked,
                       })
                     }
                   />
@@ -1897,7 +1885,6 @@ function ApprovalSteps({
                       assigneeRoleSlug: 'manager',
                       isRequired: true,
                       requiresComment: false,
-                      requiresAttachment: false,
                       canReject: true,
                       canReassign: false,
                       slaHours: 24,
@@ -2093,11 +2080,6 @@ function WorkflowPreview({
                                     {item.requiresComment ? (
                                       <span className="rounded-full border border-[var(--border)] bg-white px-2 py-1 font-mono text-[10px] text-[var(--ink-3)]">
                                         Comment required
-                                      </span>
-                                    ) : null}
-                                    {item.requiresAttachment ? (
-                                      <span className="rounded-full border border-[var(--border)] bg-white px-2 py-1 font-mono text-[10px] text-[var(--ink-3)]">
-                                        Attachment required
                                       </span>
                                     ) : null}
                                     {item.canReassign ? (

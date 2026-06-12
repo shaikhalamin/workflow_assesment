@@ -9,6 +9,7 @@ import {
   parseConditionValue,
   toWorkflowWizardPayload,
   workflowBuilderSteps,
+  workflowModules,
 } from './workflow-builder-store'
 
 describe('workflow builder payload', () => {
@@ -39,7 +40,6 @@ describe('workflow builder payload', () => {
         assigneeRoleSlug: 'finance-admin',
         isRequired: true,
         requiresComment: true,
-        requiresAttachment: false,
         canReject: true,
         canReassign: false,
       }),
@@ -55,7 +55,6 @@ describe('workflow builder payload', () => {
           assigneeUserId: 'user-1',
           isRequired: true,
           requiresComment: false,
-          requiresAttachment: false,
           canReject: true,
           canReassign: false,
         },
@@ -72,7 +71,6 @@ describe('workflow builder payload', () => {
         assigneeFieldPath: 'customFields.budgetOwnerId',
         isRequired: true,
         requiresComment: false,
-        requiresAttachment: false,
         canReject: true,
         canReassign: false,
       }),
@@ -86,7 +84,6 @@ describe('workflow builder payload', () => {
         assigneeType: 'USER',
         isRequired: true,
         requiresComment: false,
-        requiresAttachment: false,
         canReject: true,
         canReassign: false,
       }),
@@ -104,7 +101,6 @@ describe('workflow builder payload', () => {
         assigneeType: 'REQUESTER_MANAGER',
         isRequired: true,
         requiresComment: false,
-        requiresAttachment: false,
         canReject: true,
         canReassign: false,
         slaHours: 24,
@@ -119,6 +115,11 @@ describe('workflow builder payload', () => {
   })
 
   it('exposes backend-backed condition field examples for rule guidance', () => {
+    expect(workflowModules.map((module) => module.label)).toEqual([
+      'Expense',
+      'Leave',
+      'Billing',
+    ])
     expect(getWorkflowModule('expenses')?.fields.map((field) => field.key)).toEqual([
       'amount',
       'currency',
@@ -187,7 +188,6 @@ describe('workflow builder payload', () => {
             assigneeRoleSlug: 'finance-admin',
             isRequired: true,
             requiresComment: true,
-            requiresAttachment: false,
             canReject: true,
             canReassign: false,
             slaHours: 24,
@@ -234,7 +234,6 @@ describe('workflow builder payload', () => {
               assigneeFieldPath: undefined,
               isRequired: true,
               requiresComment: true,
-              requiresAttachment: false,
               canReject: true,
               canReassign: false,
               slaHours: 24,

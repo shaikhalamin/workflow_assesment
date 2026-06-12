@@ -30,7 +30,6 @@ export const workflowApprovalStepConfigResponseDtoSchema = z.object({
   assigneeFieldPath: z.nullable(z.string()),
   isRequired: z.boolean(),
   requiresComment: z.boolean(),
-  requiresAttachment: z.boolean(),
   canReject: z.boolean(),
   canReassign: z.boolean(),
   slaHours: z.nullable(z.number()),

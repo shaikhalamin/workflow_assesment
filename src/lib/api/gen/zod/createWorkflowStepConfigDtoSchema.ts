@@ -28,7 +28,6 @@ export const createWorkflowStepConfigDtoSchema = z.object({
   assigneeFieldPath: z.optional(z.string()),
   isRequired: z.optional(z.boolean().default(true)),
   requiresComment: z.optional(z.boolean().default(false)),
-  requiresAttachment: z.optional(z.boolean().default(false)),
   canReject: z.optional(z.boolean().default(true)),
   canReassign: z.optional(z.boolean().default(false)),
   slaHours: z.optional(z.number().min(1)),

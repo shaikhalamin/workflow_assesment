@@ -73,10 +73,6 @@ export type WorkflowApprovalStepConfigResponseDto = {
   /**
    * @type boolean
    */
-  requiresAttachment: boolean;
-  /**
-   * @type boolean
-   */
   canReject: boolean;
   /**
    * @type boolean

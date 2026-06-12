@@ -169,7 +169,6 @@
                 },
                 "isRequired": { "type": "boolean", "example": true },
                 "requiresComment": { "type": "boolean", "example": false },
-                "requiresAttachment": { "type": "boolean", "example": false },
                 "canReject": { "type": "boolean", "example": true },
                 "canReassign": { "type": "boolean", "example": false },
                 "slaHours": {
@@ -220,7 +219,6 @@
                 "assigneeFieldPath",
                 "isRequired",
                 "requiresComment",
-                "requiresAttachment",
                 "canReject",
                 "canReassign",
                 "slaHours",

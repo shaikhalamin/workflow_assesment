@@ -66,11 +66,6 @@ export type UpdateWorkflowStepConfigDto = {
    */
   requiresComment?: boolean;
   /**
-   * @default false
-   * @type boolean | undefined
-   */
-  requiresAttachment?: boolean;
-  /**
    * @default true
    * @type boolean | undefined
    */

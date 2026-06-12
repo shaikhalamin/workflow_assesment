@@ -35,7 +35,6 @@
     },
     "isRequired": { "type": "boolean", "default": true },
     "requiresComment": { "type": "boolean", "default": false },
-    "requiresAttachment": { "type": "boolean", "default": false },
     "canReject": { "type": "boolean", "default": true },
     "canReassign": { "type": "boolean", "default": false },
     "slaHours": { "type": "number", "minimum": 1, "example": 24 },

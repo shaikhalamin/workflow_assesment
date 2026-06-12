@@ -155,7 +155,6 @@ const baseTemplate = {
           assigneeFieldPath: null,
           isRequired: true,
           requiresComment: true,
-          requiresAttachment: false,
           canReject: true,
           canReassign: false,
           slaHours: 24,
@@ -177,7 +176,6 @@ const baseTemplate = {
           assigneeFieldPath: 'customFields.budgetOwnerId',
           isRequired: true,
           requiresComment: false,
-          requiresAttachment: true,
           canReject: true,
           canReassign: true,
           slaHours: null,
@@ -296,7 +294,7 @@ describe('WorkflowTemplateDetailPage', () => {
     ).toBeInTheDocument()
     expect(screen.getAllByText('Required').length).toBeGreaterThan(0)
     expect(screen.getByText('Comment required')).toBeInTheDocument()
-    expect(screen.getByText('Attachment required')).toBeInTheDocument()
+    expect(screen.queryByText('Attachment required')).not.toBeInTheDocument()
     expect(screen.getByText('Reassign allowed')).toBeInTheDocument()
   })
 

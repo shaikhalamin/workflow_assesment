@@ -63,7 +63,6 @@ export type WorkflowStepDraft = {
   assigneeFieldPath?: string
   isRequired: boolean
   requiresComment: boolean
-  requiresAttachment: boolean
   canReject: boolean
   canReassign: boolean
   slaHours?: number
@@ -207,18 +206,6 @@ export const workflowModules: WorkflowModuleOption[] = [
         type: 'user',
         sampleValue: '71cb34da-1809-4c72-b132-2b9860be8936',
       },
-    ],
-  },
-  {
-    label: 'Attendance',
-    moduleName: 'attendance',
-    eventName: 'attendance.adjustment_submitted',
-    entityType: 'AttendanceAdjustment',
-    description: 'Future event for attendance adjustment workflows.',
-    fields: [
-      { key: 'adjustmentType', type: 'string', sampleValue: 'LATE_CHECK_IN' },
-      { key: 'employeeGrade', type: 'string', sampleValue: 'G5' },
-      { key: 'departmentId', type: 'string', sampleValue: 'sales' },
     ],
   },
 ]
@@ -367,7 +354,6 @@ export function createDefaultWorkflowDraft(): WorkflowDraft {
             assigneeType: 'REQUESTER_MANAGER',
             isRequired: true,
             requiresComment: false,
-            requiresAttachment: false,
             canReject: true,
             canReassign: false,
             slaHours: 24,
@@ -426,7 +412,6 @@ export function toWorkflowWizardPayload(
         assigneeFieldPath: step.assigneeFieldPath,
         isRequired: step.isRequired,
         requiresComment: step.requiresComment,
-        requiresAttachment: step.requiresAttachment,
         canReject: step.canReject,
         canReassign: step.canReassign,
         slaHours: step.slaHours,
