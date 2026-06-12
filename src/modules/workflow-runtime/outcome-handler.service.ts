@@ -288,10 +288,18 @@ export class OutcomeHandlerService {
     actions: Record<string, unknown> | null,
   ): string[] {
     const configuredActions = actions?.actions;
-    if (!Array.isArray(configuredActions)) return [];
-    return configuredActions.flatMap((action) =>
-      this.isWorkflowOutcomeAction(action) ? [action.type] : [],
-    );
+    const actionTypes = Array.isArray(configuredActions)
+      ? configuredActions.flatMap((action) =>
+          this.isWorkflowOutcomeAction(action) ? [action.type] : [],
+        )
+      : [];
+    if (actions?.setStatus === BillingRequestStatus.APPROVED) {
+      actionTypes.push('MARK_BILLING_APPROVED');
+    }
+    if (actions?.createInvoice === true) {
+      actionTypes.push('CREATE_INVOICE');
+    }
+    return actionTypes;
   }
 
   private isWorkflowOutcomeAction(

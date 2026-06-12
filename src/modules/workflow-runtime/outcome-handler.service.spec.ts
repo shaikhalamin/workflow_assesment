@@ -355,6 +355,75 @@ describe('OutcomeHandlerService', () => {
     );
   });
 
+  it('creates an invoice for a billing workflow saved with the legacy createInvoice flag', async () => {
+    const billingRequest = {
+      id: 'billing-1',
+      requesterId: 'requester-1',
+      departmentId: 'dept-1',
+      customerName: 'ACME Bangladesh Ltd.',
+      customerEmail: 'billing@acme.example',
+      customerAddress: 'Dhaka',
+      title: 'Enterprise installation',
+      description: 'Install service',
+      amount: '125000',
+      currency: 'BDT',
+      status: BillingRequestStatus.UNDER_REVIEW,
+      invoiceId: null,
+      approvedAt: null,
+      rejectionReason: 'PO missing',
+    };
+    const invoice = {
+      id: 'invoice-1',
+      billingRequestId: 'billing-1',
+      invoiceNumber: 'INV-20260612-0001',
+      status: InvoiceStatus.ISSUED,
+    };
+    const billingRequestsRepository = {
+      findOneBy: jest.fn().mockResolvedValue(billingRequest),
+      save: jest.fn().mockImplementation((value) => Promise.resolve(value)),
+    };
+    const invoicesRepository = {
+      findOneBy: jest.fn().mockResolvedValue(null),
+      countBy: jest.fn().mockResolvedValue(0),
+      create: jest.fn().mockReturnValue(invoice),
+      save: jest.fn().mockResolvedValue(invoice),
+    };
+    const notificationsService = {
+      createBillingApproved: jest.fn(),
+      createInvoiceCreated: jest.fn(),
+    };
+    const auditLogsService = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new OutcomeHandlerService(
+      {} as never,
+      {} as never,
+      {} as never,
+      billingRequestsRepository as never,
+      invoicesRepository as never,
+      notificationsService as never,
+      auditLogsService as never,
+    );
+
+    await service.handleApproved(
+      {
+        id: 'workflow-1',
+        entityType: 'BillingRequest',
+        entityId: 'billing-1',
+        status: WorkflowInstanceStatus.APPROVED,
+      } as never,
+      {
+        setStatus: 'APPROVED',
+        createInvoice: true,
+      },
+    );
+
+    expect(invoicesRepository.create).toHaveBeenCalledTimes(1);
+    expect(invoicesRepository.save).toHaveBeenCalledTimes(1);
+    expect(billingRequest.status).toBe(BillingRequestStatus.INVOICED);
+    expect(billingRequest.invoiceId).toBe('invoice-1');
+  });
+
   it('does not approve or invoice a cancelled billing request', async () => {
     const billingRequest = {
       id: 'billing-1',
