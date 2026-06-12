@@ -263,7 +263,15 @@ describe('LeavesService', () => {
 
     await service.submit('leave-1', { userId: 'user-1' } as never);
 
+    expect(repo.save.mock.invocationCallOrder[0]).toBeLessThan(
+      runtime.trigger.mock.invocationCallOrder[0],
+    );
     expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: LeaveRequestStatus.UNDER_REVIEW,
+      }),
+    );
+    expect(repo.save).toHaveBeenLastCalledWith(
       expect.objectContaining({
         status: LeaveRequestStatus.UNDER_REVIEW,
         workflowInstanceId: 'wi-2',
@@ -304,9 +312,13 @@ describe('LeavesService', () => {
       createdAt: new Date('2026-06-10T09:30:00.000Z'),
       updatedAt: new Date('2026-06-10T09:30:00.000Z'),
     };
+    const skippedSavedValues: Record<string, unknown>[] = [];
     const repo = {
       findOneBy: jest.fn().mockResolvedValue(leave),
-      save: jest.fn().mockImplementation((value) => Promise.resolve(value)),
+      save: jest.fn().mockImplementation((value: Record<string, unknown>) => {
+        skippedSavedValues.push({ ...value });
+        return Promise.resolve(value);
+      }),
     };
     const runtime = {
       trigger: jest.fn().mockResolvedValue({ status: 'skipped' }),
@@ -321,8 +333,80 @@ describe('LeavesService', () => {
       service.submit('leave-1', { userId: 'user-1' } as never),
     ).rejects.toBeInstanceOf(BadRequestException);
 
-    expect(repo.save).not.toHaveBeenCalled();
+    expect(skippedSavedValues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          status: LeaveRequestStatus.UNDER_REVIEW,
+        }),
+        expect.objectContaining({
+          status: LeaveRequestStatus.DRAFT,
+          workflowInstanceId: null,
+        }),
+      ]),
+    );
+    expect(skippedSavedValues[0]).toEqual(
+      expect.objectContaining({
+        status: LeaveRequestStatus.UNDER_REVIEW,
+      }),
+    );
+    expect(skippedSavedValues.at(-1)).toEqual(
+      expect.objectContaining({
+        status: LeaveRequestStatus.DRAFT,
+        workflowInstanceId: null,
+      }),
+    );
     expect(leave.status).toBe(LeaveRequestStatus.DRAFT);
+  });
+
+  it('allows managers to read leave requests without department matching', async () => {
+    const createdAt = new Date('2026-06-10T09:30:00.000Z');
+    const leave = {
+      id: 'leave-1',
+      requesterId: 'requester-1',
+      requester: null,
+      createdById: 'requester-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      leaveType: 'ANNUAL',
+      leaveDays: 2,
+      startDate: '2026-06-10',
+      endDate: '2026-06-11',
+      reason: 'Family event',
+      employeeGrade: 'G5',
+      status: LeaveRequestStatus.UNDER_REVIEW,
+      workflowInstanceId: 'workflow-1',
+      rejectionReason: null,
+      approvedPeriodJson: null,
+      customFieldsJson: null,
+      submittedAt: createdAt,
+      approvedAt: null,
+      rejectedAt: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const repo = {
+      findOne: jest.fn().mockResolvedValue(leave),
+    };
+    const service = new LeavesService(
+      repo as never,
+      { allowsResubmission: jest.fn().mockResolvedValue(false) } as never,
+      {} as never,
+    );
+
+    await expect(
+      service.findOne('leave-1', {
+        userId: 'manager-1',
+        departmentId: 'dept-1',
+        roles: ['manager'],
+      } as never),
+    ).resolves.toEqual(expect.objectContaining({ id: 'leave-1' }));
+    await expect(
+      service.findOne('leave-1', {
+        userId: 'manager-2',
+        departmentId: 'dept-2',
+        roles: ['manager'],
+      } as never),
+    ).resolves.toEqual(expect.objectContaining({ id: 'leave-1' }));
   });
 
   it('resubmits a rejected leave request with edited fields and triggers workflow', async () => {
@@ -363,21 +447,29 @@ describe('LeavesService', () => {
       allowsResubmission: jest.Mock<Promise<boolean>, [string]>;
       trigger: jest.Mock<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>;
     } = {
-      allowsResubmission: jest.fn<Promise<boolean>, [string]>().mockResolvedValue(true),
-      trigger: jest.fn<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>().mockResolvedValue({
-        status: 'triggered',
-        workflowInstanceId: 'workflow-2',
-        activeStep: {
-          id: 'step-1',
-          stepName: 'Review',
-          stepOrder: 1,
-          assignedUserId: null,
-          assignedRoleSlug: 'manager',
-          status: WorkflowStepStatus.ACTIVE,
-        },
-      }),
+      allowsResubmission: jest
+        .fn<Promise<boolean>, [string]>()
+        .mockResolvedValue(true),
+      trigger: jest
+        .fn<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>()
+        .mockResolvedValue({
+          status: 'triggered',
+          workflowInstanceId: 'workflow-2',
+          activeStep: {
+            id: 'step-1',
+            stepName: 'Review',
+            stepOrder: 1,
+            assignedUserId: null,
+            assignedRoleSlug: 'manager',
+            status: WorkflowStepStatus.ACTIVE,
+          },
+        }),
     };
-    const service = new LeavesService(repo as never, runtime as never, {} as never);
+    const service = new LeavesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
 
     await service.resubmit(
       'leave-1',
@@ -400,16 +492,19 @@ describe('LeavesService', () => {
     expect(leave.rejectionReason).toBeNull();
     expect(leave.status).toBe(LeaveRequestStatus.UNDER_REVIEW);
     expect(leave.workflowInstanceId).toBe('workflow-2');
-    expect(runtime.trigger).toHaveBeenCalledWith(
+    const triggerCall = runtime.trigger.mock.calls[0]?.[0];
+    expect(triggerCall).toEqual(
       expect.objectContaining({
         moduleName: 'leaves',
         eventName: 'leave.submitted',
         entityId: 'leave-1',
-        metadata: expect.objectContaining({
-          title: 'Casual leave request',
-          leaveType: 'CASUAL',
-          leaveDays: 1,
-        }),
+      }),
+    );
+    expect(triggerCall?.metadata).toEqual(
+      expect.objectContaining({
+        title: 'Casual leave request',
+        leaveType: 'CASUAL',
+        leaveDays: 1,
       }),
     );
     expect(savedValues).toEqual(
@@ -443,7 +538,10 @@ describe('LeavesService', () => {
     );
 
     await expect(
-      service.resubmit('leave-1', {}, { userId: 'other-1', roles: [] } as never),
+      service.resubmit('leave-1', {}, {
+        userId: 'other-1',
+        roles: [],
+      } as never),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 

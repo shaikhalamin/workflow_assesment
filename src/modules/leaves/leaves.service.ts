@@ -14,7 +14,10 @@ import {
   toWorkflowUserResponse,
 } from '../../common/workflow.utils';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { WorkflowRuntimeService } from '../workflow-runtime/workflow-runtime.service';
+import {
+  TriggerWorkflowResult,
+  WorkflowRuntimeService,
+} from '../workflow-runtime/workflow-runtime.service';
 import { CreateLeaveDto } from './dto/create-leave.dto';
 import { LeaveResponseDto } from './dto/leave-response.dto';
 import { LeaveQueryDto } from './dto/leave-query.dto';
@@ -68,9 +71,6 @@ export class LeavesService {
   ): Promise<Paginated<LeaveResponseDto>> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 25;
-    const adminLike = actor.roles.some((role) =>
-      ['admin', 'hr-officer', 'hr-manager', 'manager'].includes(role),
-    );
     const qb = this.leavesRepository
       .createQueryBuilder('leave')
       .leftJoinAndSelect('leave.requester', 'requester')
@@ -78,8 +78,9 @@ export class LeavesService {
       .orderBy('leave.createdAt', 'DESC');
     if (query.status)
       qb.andWhere('leave.status = :status', { status: query.status });
-    if (!adminLike)
+    if (!this.canReadAllLeaves(actor)) {
       qb.andWhere('leave.requesterId = :userId', { userId: actor.userId });
+    }
     const paginated = await paginateQb(qb, {
       page,
       limit,
@@ -136,31 +137,57 @@ export class LeavesService {
       throw new BadRequestException('Only draft leave can be submitted');
     }
 
-    const result = await this.workflowRuntimeService.trigger({
-      moduleName: 'leaves',
-      eventName: 'leave.submitted',
-      entityType: 'LeaveRequest',
-      entityId: leave.id,
-      requesterId: leave.requesterId,
-      departmentId: leave.departmentId,
-      metadata: this.workflowMetadata(leave),
-    });
+    const oldStatus = leave.status;
+    const oldWorkflowInstanceId = leave.workflowInstanceId;
+    const oldSubmittedAt = leave.submittedAt;
+    const oldRejectionReason = leave.rejectionReason;
+    leave.status = LeaveRequestStatus.UNDER_REVIEW;
+    leave.submittedAt = new Date();
+    leave.rejectionReason = null;
+    await this.leavesRepository.save(leave);
+
+    let result: TriggerWorkflowResult;
+    try {
+      result = await this.workflowRuntimeService.trigger({
+        moduleName: 'leaves',
+        eventName: 'leave.submitted',
+        entityType: 'LeaveRequest',
+        entityId: leave.id,
+        requesterId: leave.requesterId,
+        departmentId: leave.departmentId,
+        metadata: this.workflowMetadata(leave),
+      });
+    } catch (error: unknown) {
+      await this.restoreSubmitState(
+        leave,
+        oldStatus,
+        oldWorkflowInstanceId,
+        oldSubmittedAt,
+        oldRejectionReason,
+      );
+      throw error;
+    }
     if (result.status !== 'triggered') {
+      await this.restoreSubmitState(
+        leave,
+        oldStatus,
+        oldWorkflowInstanceId,
+        oldSubmittedAt,
+        oldRejectionReason,
+      );
       throw new BadRequestException(
         'No published workflow applies to this leave request',
       );
     }
 
-    leave.status = LeaveRequestStatus.UNDER_REVIEW;
     leave.workflowInstanceId = result.workflowInstanceId;
-    leave.submittedAt = new Date();
     await this.auditLogsService.record?.({
       actorUserId: actor.userId,
       action: 'LEAVE_SUBMITTED',
       entityType: 'LeaveRequest',
       entityId: leave.id,
       workflowInstanceId: leave.workflowInstanceId,
-      oldStatus: LeaveRequestStatus.DRAFT,
+      oldStatus,
       newStatus: LeaveRequestStatus.UNDER_REVIEW,
     });
     return this.toResponse(await this.leavesRepository.save(leave));
@@ -231,15 +258,39 @@ export class LeavesService {
       : await this.leavesRepository.findOneBy({ id });
     if (!leave) throw new NotFoundException('Leave request not found');
 
-    const adminLike = actor.roles.some((role) =>
-      ['admin', 'hr-officer', 'hr-manager', 'manager'].includes(role),
-    );
-    if (!adminLike && leave.requesterId !== actor.userId) {
+    if (!this.canSeeLeave(leave, actor)) {
       throw new BadRequestException(
         'Leave request is not visible to this user',
       );
     }
     return leave;
+  }
+
+  private async restoreSubmitState(
+    leave: LeaveRequest,
+    oldStatus: LeaveRequestStatus,
+    oldWorkflowInstanceId: string | null,
+    oldSubmittedAt: Date | null,
+    oldRejectionReason: string | null,
+  ): Promise<void> {
+    leave.status = oldStatus;
+    leave.workflowInstanceId = oldWorkflowInstanceId;
+    leave.submittedAt = oldSubmittedAt;
+    leave.rejectionReason = oldRejectionReason;
+    await this.leavesRepository.save(leave);
+  }
+
+  private canSeeLeave(leave: LeaveRequest, actor: Express.User): boolean {
+    if (this.canReadAllLeaves(actor) || leave.requesterId === actor.userId) {
+      return true;
+    }
+    return false;
+  }
+
+  private canReadAllLeaves(actor: Express.User): boolean {
+    return actor.roles.some((role) =>
+      ['admin', 'hr-officer', 'hr-manager', 'manager'].includes(role),
+    );
   }
 
   private workflowMetadata(leave: LeaveRequest): Record<string, unknown> {

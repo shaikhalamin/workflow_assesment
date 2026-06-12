@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditLog } from '../audit-logs/entities/audit-log.entity';
+import { BillingRequest } from '../billing/entities/billing-request.entity';
 import { Department } from '../departments/entities/department.entity';
 import { Expense } from '../expenses/entities/expense.entity';
+import { Invoice } from '../invoices/entities/invoice.entity';
 import { LeaveRequest } from '../leaves/entities/leave-request.entity';
 import { Notification } from '../notifications/entities/notification.entity';
 import { PaymentRequest } from '../payments/entities/payment-request.entity';
@@ -37,6 +39,8 @@ import { SeedService } from './seed.service';
       WorkflowApprovalRule,
       WorkflowApprovalStepConfig,
       WorkflowOutcomeConfig,
+      BillingRequest,
+      Invoice,
       Expense,
       LeaveRequest,
       PaymentRequest,

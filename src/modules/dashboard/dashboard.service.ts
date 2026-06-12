@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import {
+  BillingRequest,
+  BillingRequestStatus,
+} from '../billing/entities/billing-request.entity';
 import { Expense, ExpenseStatus } from '../expenses/entities/expense.entity';
+import { Invoice, InvoiceStatus } from '../invoices/entities/invoice.entity';
 import {
   LeaveRequest,
   LeaveRequestStatus,
@@ -22,6 +27,10 @@ export class DashboardService {
   constructor(
     @InjectRepository(Expense)
     private readonly expensesRepository: Repository<Expense>,
+    @InjectRepository(BillingRequest)
+    private readonly billingRequestsRepository: Repository<BillingRequest>,
+    @InjectRepository(Invoice)
+    private readonly invoicesRepository: Repository<Invoice>,
     @InjectRepository(LeaveRequest)
     private readonly leavesRepository: Repository<LeaveRequest>,
     @InjectRepository(WorkflowStep)
@@ -33,35 +42,90 @@ export class DashboardService {
   ) {}
 
   async employee(actor: Express.User) {
-    const [draftExpenses, reviewExpenses, approvedLeaves, pendingLeaves] =
-      await Promise.all([
-        this.expensesRepository.countBy({
-          requesterId: actor.userId,
-          status: ExpenseStatus.DRAFT,
-        }),
-        this.expensesRepository.countBy({
-          requesterId: actor.userId,
-          status: ExpenseStatus.UNDER_REVIEW,
-        }),
-        this.leavesRepository.countBy({
-          requesterId: actor.userId,
-          status: LeaveRequestStatus.APPROVED,
-        }),
-        this.leavesRepository.countBy({
-          requesterId: actor.userId,
-          status: LeaveRequestStatus.UNDER_REVIEW,
-        }),
-      ]);
+    const [
+      draftExpenses,
+      reviewExpenses,
+      approvedLeaves,
+      pendingLeaves,
+      draftBillingRequests,
+      reviewBillingRequests,
+      rejectedBillingRequests,
+      invoicedBillingRequests,
+      recentInvoices,
+    ] = await Promise.all([
+      this.expensesRepository.countBy({
+        requesterId: actor.userId,
+        status: ExpenseStatus.DRAFT,
+      }),
+      this.expensesRepository.countBy({
+        requesterId: actor.userId,
+        status: ExpenseStatus.UNDER_REVIEW,
+      }),
+      this.leavesRepository.countBy({
+        requesterId: actor.userId,
+        status: LeaveRequestStatus.APPROVED,
+      }),
+      this.leavesRepository.countBy({
+        requesterId: actor.userId,
+        status: LeaveRequestStatus.UNDER_REVIEW,
+      }),
+      this.billingRequestsRepository.countBy({
+        requesterId: actor.userId,
+        status: BillingRequestStatus.DRAFT,
+      }),
+      this.billingRequestsRepository.countBy({
+        requesterId: actor.userId,
+        status: BillingRequestStatus.UNDER_REVIEW,
+      }),
+      this.billingRequestsRepository.countBy({
+        requesterId: actor.userId,
+        status: BillingRequestStatus.REJECTED,
+      }),
+      this.billingRequestsRepository.countBy({
+        requesterId: actor.userId,
+        status: BillingRequestStatus.INVOICED,
+      }),
+      this.invoicesRepository.find({
+        where: { requesterId: actor.userId },
+        order: { createdAt: 'DESC' },
+        take: 5,
+      }),
+    ]);
 
     return {
       expenses: { draft: draftExpenses, underReview: reviewExpenses },
       leaves: { approved: approvedLeaves, underReview: pendingLeaves },
+      billing: {
+        draft: draftBillingRequests,
+        underReview: reviewBillingRequests,
+        rejected: rejectedBillingRequests,
+        invoiced: invoicedBillingRequests,
+      },
+      recentInvoices: recentInvoices.map((invoice) => ({
+        id: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        title: invoice.title,
+        amount: invoice.amount,
+        currency: invoice.currency,
+        status: invoice.status,
+        createdAt: invoice.createdAt.toISOString(),
+      })),
       recentItems: [],
     };
   }
 
   async admin() {
-    const [active, approved, rejected, failed] = await Promise.all([
+    const [
+      active,
+      approved,
+      rejected,
+      failed,
+      billingDraft,
+      billingUnderReview,
+      billingRejected,
+      billingInvoiced,
+      issuedInvoices,
+    ] = await Promise.all([
       this.workflowInstancesRepository.countBy({
         status: WorkflowInstanceStatus.ACTIVE,
       }),
@@ -74,9 +138,29 @@ export class DashboardService {
       this.workflowInstancesRepository.countBy({
         status: WorkflowInstanceStatus.FAILED,
       }),
+      this.billingRequestsRepository.countBy({
+        status: BillingRequestStatus.DRAFT,
+      }),
+      this.billingRequestsRepository.countBy({
+        status: BillingRequestStatus.UNDER_REVIEW,
+      }),
+      this.billingRequestsRepository.countBy({
+        status: BillingRequestStatus.REJECTED,
+      }),
+      this.billingRequestsRepository.countBy({
+        status: BillingRequestStatus.INVOICED,
+      }),
+      this.invoicesRepository.countBy({ status: InvoiceStatus.ISSUED }),
     ]);
     return {
       workflows: { active, approved, rejected },
+      billing: {
+        draft: billingDraft,
+        underReview: billingUnderReview,
+        rejected: billingRejected,
+        invoiced: billingInvoiced,
+      },
+      invoices: { issued: issuedInvoices },
       recentWorkflowChanges: [],
       failedTriggers: failed,
     };
@@ -106,14 +190,43 @@ export class DashboardService {
   }
 
   async accounts() {
-    const [pendingPayments, paidPayments] = await Promise.all([
+    const [
+      pendingPayments,
+      paidPayments,
+      billingApprovalTasks,
+      issuedInvoices,
+    ] = await Promise.all([
       this.paymentsRepository.countBy({ status: PaymentRequestStatus.PENDING }),
       this.paymentsRepository.countBy({ status: PaymentRequestStatus.PAID }),
+      this.workflowStepsRepository
+        .createQueryBuilder('step')
+        .innerJoin('step.workflowInstance', 'instance')
+        .where('step.status = :status', { status: WorkflowStepStatus.ACTIVE })
+        .andWhere('step.assignedRoleSlug = :role', {
+          role: 'accounts-officer',
+        })
+        .andWhere('instance.entityType = :entityType', {
+          entityType: 'BillingRequest',
+        })
+        .getCount(),
+      this.invoicesRepository.countBy({ status: InvoiceStatus.ISSUED }),
     ]);
     return {
-      accountsReviewTasks: 0,
+      accountsReviewTasks: billingApprovalTasks,
       pendingPayments,
       paidAmountThisMonth: paidPayments,
+      issuedInvoices,
+    };
+  }
+
+  async finance() {
+    const [issued, paid, cancelled] = await Promise.all([
+      this.invoicesRepository.countBy({ status: InvoiceStatus.ISSUED }),
+      this.invoicesRepository.countBy({ status: InvoiceStatus.PAID }),
+      this.invoicesRepository.countBy({ status: InvoiceStatus.CANCELLED }),
+    ]);
+    return {
+      invoices: { issued, paid, cancelled },
     };
   }
 

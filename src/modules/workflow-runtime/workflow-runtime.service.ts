@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { paginateRepo } from '../../common/http/paginate';
 import { PaginationQueryDto } from '../../common/http/pagination.query';
 import {
@@ -14,6 +14,7 @@ import {
 } from '../../common/workflow.utils';
 import { AuditLog } from '../audit-logs/entities/audit-log.entity';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { BillingRequest } from '../billing/entities/billing-request.entity';
 import { Expense } from '../expenses/entities/expense.entity';
 import { Notification } from '../notifications/entities/notification.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -44,6 +45,7 @@ import { RuleEngineService } from './rule-engine.service';
 
 type WorkflowInstanceWithRequestTitle = WorkflowInstance & {
   expenseRequest?: Pick<Expense, 'title'> | null;
+  billingRequest?: Pick<BillingRequest, 'title'> | null;
 };
 
 type WorkflowStepSummary = {
@@ -245,6 +247,13 @@ export class WorkflowRuntimeService {
         'instance.entityType = :expenseEntityType AND instance.entityId = expense_request.id::text',
         { expenseEntityType: 'Expense' },
       )
+      .leftJoinAndMapOne(
+        'instance.billingRequest',
+        BillingRequest,
+        'billing_request',
+        'instance.entityType = :billingEntityType AND instance.entityId = billing_request.id::text',
+        { billingEntityType: 'BillingRequest' },
+      )
       .where('step.status = :status', { status: WorkflowStepStatus.ACTIVE })
       .andWhere(
         '(step.assignedUserId = :userId OR step.assignedRoleSlug IN (:...roles))',
@@ -335,6 +344,47 @@ export class WorkflowRuntimeService {
     }
 
     return this.toStepResponse(step);
+  }
+
+  async cancelActiveForEntity(input: {
+    entityType: string;
+    entityId: string;
+    actorUserId: string;
+  }): Promise<void> {
+    const instance = await this.instancesRepository.findOneBy({
+      entityType: input.entityType,
+      entityId: input.entityId,
+      status: WorkflowInstanceStatus.ACTIVE,
+    });
+    if (!instance) return;
+
+    const cancelledAt = new Date();
+    instance.status = WorkflowInstanceStatus.CANCELLED;
+    instance.completedAt = cancelledAt;
+    await this.instancesRepository.save(instance);
+    await this.stepsRepository.update(
+      {
+        workflowInstanceId: instance.id,
+        status: In([WorkflowStepStatus.ACTIVE, WorkflowStepStatus.WAITING]),
+      },
+      {
+        status: WorkflowStepStatus.SKIPPED,
+        actedAt: cancelledAt,
+        actionByUserId: input.actorUserId,
+      },
+    );
+    await this.recordAction(instance.id, null, WorkflowActionType.CANCELLED, {
+      actorUserId: input.actorUserId,
+    });
+    await this.auditLogsService.record({
+      actorUserId: input.actorUserId,
+      action: 'WORKFLOW_CANCELLED',
+      entityType: instance.entityType,
+      entityId: instance.entityId,
+      workflowInstanceId: instance.id,
+      oldStatus: WorkflowInstanceStatus.ACTIVE,
+      newStatus: WorkflowInstanceStatus.CANCELLED,
+    });
   }
 
   async rejectStep(
@@ -660,6 +710,13 @@ export class WorkflowRuntimeService {
 
     if (instance.entityType === 'Expense' && instance.expenseRequest?.title) {
       return instance.expenseRequest.title;
+    }
+
+    if (
+      instance.entityType === 'BillingRequest' &&
+      instance.billingRequest?.title
+    ) {
+      return instance.billingRequest.title;
     }
 
     if (instance.entityType === 'LeaveRequest') {

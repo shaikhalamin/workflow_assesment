@@ -5,8 +5,10 @@ import { IsNull, Not, type EntityTarget } from 'typeorm';
 import { AppDataSource } from '../src/database/data-source';
 import { AuditLog } from '../src/modules/audit-logs/entities/audit-log.entity';
 import { RefreshTokenSession } from '../src/modules/auth/entities/refresh-token-session.entity';
+import { BillingRequest } from '../src/modules/billing/entities/billing-request.entity';
 import { Department } from '../src/modules/departments/entities/department.entity';
 import { Expense } from '../src/modules/expenses/entities/expense.entity';
+import { Invoice } from '../src/modules/invoices/entities/invoice.entity';
 import { LeaveRequest } from '../src/modules/leaves/entities/leave-request.entity';
 import { Notification } from '../src/modules/notifications/entities/notification.entity';
 import { PaymentRequest } from '../src/modules/payments/entities/payment-request.entity';
@@ -37,6 +39,8 @@ interface ClearTarget {
 export const CLEAR_ALL_DATA_TABLES = [
   'audit_logs',
   'notifications',
+  'invoices',
+  'billing_requests',
   'payment_requests',
   'workflow_actions',
   'workflow_steps',
@@ -61,6 +65,8 @@ export const CLEAR_ALL_DATA_TABLES = [
 const CLEAR_TARGETS: readonly ClearTarget[] = [
   { tableName: 'audit_logs', target: AuditLog },
   { tableName: 'notifications', target: Notification },
+  { tableName: 'invoices', target: Invoice },
+  { tableName: 'billing_requests', target: BillingRequest },
   { tableName: 'payment_requests', target: PaymentRequest },
   { tableName: 'workflow_actions', target: WorkflowAction },
   { tableName: 'workflow_steps', target: WorkflowStep },
@@ -91,8 +97,7 @@ const CLEAR_TARGETS: readonly ClearTarget[] = [
 function usage(): void {
   console.log('Usage: pnpm clear:all -- [--yes]');
   console.log('');
-  console.log('Clears all TypeORM entity data, including users, roles,');
-  console.log('permissions, user_roles, role_permissions, and departments.');
+  console.log('Clears all TypeORM entity data.');
 }
 
 function parseArgs(args: readonly string[]): boolean {

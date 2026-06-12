@@ -20,7 +20,10 @@ import { ExpenseQueryDto } from './dto/expense-query.dto';
 import { ResubmitExpenseDto } from './dto/resubmit-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { Expense, ExpenseStatus } from './entities/expense.entity';
-import { WorkflowRuntimeService } from '../workflow-runtime/workflow-runtime.service';
+import {
+  TriggerWorkflowResult,
+  WorkflowRuntimeService,
+} from '../workflow-runtime/workflow-runtime.service';
 
 @Injectable()
 export class ExpensesService {
@@ -69,9 +72,6 @@ export class ExpensesService {
   ): Promise<Paginated<ExpenseResponseDto>> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 25;
-    const adminLike = actor.roles.some((role) =>
-      ['admin', 'accounts-officer', 'finance-admin', 'cfo'].includes(role),
-    );
     const qb = this.expensesRepository
       .createQueryBuilder('expense')
       .leftJoinAndSelect('expense.requester', 'requester')
@@ -80,7 +80,7 @@ export class ExpensesService {
     if (query.status) {
       qb.andWhere('expense.status = :status', { status: query.status });
     }
-    if (!adminLike) {
+    if (!this.canReadAllExpenses(actor)) {
       qb.andWhere('expense.requesterId = :userId', { userId: actor.userId });
     }
     const paginated = await paginateQb(qb, {
@@ -139,31 +139,57 @@ export class ExpensesService {
       throw new BadRequestException('Only draft expenses can be submitted');
     }
 
-    const result = await this.workflowRuntimeService.trigger({
-      moduleName: 'expenses',
-      eventName: 'expense.submitted',
-      entityType: 'Expense',
-      entityId: expense.id,
-      requesterId: expense.requesterId,
-      departmentId: expense.departmentId,
-      metadata: this.workflowMetadata(expense),
-    });
+    const oldStatus = expense.status;
+    const oldWorkflowInstanceId = expense.workflowInstanceId;
+    const oldSubmittedAt = expense.submittedAt;
+    const oldRejectionReason = expense.rejectionReason;
+    expense.status = ExpenseStatus.UNDER_REVIEW;
+    expense.submittedAt = new Date();
+    expense.rejectionReason = null;
+    await this.expensesRepository.save(expense);
+
+    let result: TriggerWorkflowResult;
+    try {
+      result = await this.workflowRuntimeService.trigger({
+        moduleName: 'expenses',
+        eventName: 'expense.submitted',
+        entityType: 'Expense',
+        entityId: expense.id,
+        requesterId: expense.requesterId,
+        departmentId: expense.departmentId,
+        metadata: this.workflowMetadata(expense),
+      });
+    } catch (error: unknown) {
+      await this.restoreSubmitState(
+        expense,
+        oldStatus,
+        oldWorkflowInstanceId,
+        oldSubmittedAt,
+        oldRejectionReason,
+      );
+      throw error;
+    }
     if (result.status !== 'triggered') {
+      await this.restoreSubmitState(
+        expense,
+        oldStatus,
+        oldWorkflowInstanceId,
+        oldSubmittedAt,
+        oldRejectionReason,
+      );
       throw new BadRequestException(
         'No published workflow applies to this expense request',
       );
     }
 
-    expense.status = ExpenseStatus.UNDER_REVIEW;
     expense.workflowInstanceId = result.workflowInstanceId;
-    expense.submittedAt = new Date();
     await this.auditLogsService.record?.({
       actorUserId: actor.userId,
       action: 'EXPENSE_SUBMITTED',
       entityType: 'Expense',
       entityId: expense.id,
       workflowInstanceId: expense.workflowInstanceId,
-      oldStatus: ExpenseStatus.DRAFT,
+      oldStatus,
       newStatus: ExpenseStatus.UNDER_REVIEW,
     });
     await this.expensesRepository.save(expense);
@@ -237,13 +263,47 @@ export class ExpensesService {
       : await this.expensesRepository.findOneBy({ id });
     if (!expense) throw new NotFoundException('Expense not found');
 
-    const adminLike = actor.roles.some((role) =>
-      ['admin', 'accounts-officer', 'finance-admin', 'cfo'].includes(role),
-    );
-    if (!adminLike && expense.requesterId !== actor.userId) {
+    if (!this.canSeeExpense(expense, actor)) {
       throw new BadRequestException('Expense is not visible to this user');
     }
     return expense;
+  }
+
+  private async restoreSubmitState(
+    expense: Expense,
+    oldStatus: ExpenseStatus,
+    oldWorkflowInstanceId: string | null,
+    oldSubmittedAt: Date | null,
+    oldRejectionReason: string | null,
+  ): Promise<void> {
+    expense.status = oldStatus;
+    expense.workflowInstanceId = oldWorkflowInstanceId;
+    expense.submittedAt = oldSubmittedAt;
+    expense.rejectionReason = oldRejectionReason;
+    await this.expensesRepository.save(expense);
+  }
+
+  private canSeeExpense(expense: Expense, actor: Express.User): boolean {
+    if (
+      this.canReadAllExpenses(actor) ||
+      expense.requesterId === actor.userId
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  private canReadAllExpenses(actor: Express.User): boolean {
+    return actor.roles.some((role) =>
+      [
+        'admin',
+        'accounts-officer',
+        'finance-admin',
+        'cfo',
+        'manager',
+        'department-reviewer',
+      ].includes(role),
+    );
   }
 
   private workflowMetadata(expense: Expense): Record<string, unknown> {

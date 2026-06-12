@@ -3,7 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Department } from '../departments/entities/department.entity';
 import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { BillingRequest } from '../billing/entities/billing-request.entity';
 import { Expense } from '../expenses/entities/expense.entity';
+import { Invoice } from '../invoices/entities/invoice.entity';
 import { LeaveRequest } from '../leaves/entities/leave-request.entity';
 import { PaymentRequest } from '../payments/entities/payment-request.entity';
 import { RbacModule } from '../rbac/rbac.module';
@@ -30,7 +32,9 @@ import { WorkflowRuntimeService } from './workflow-runtime.service';
       WorkflowApprovalRule,
       User,
       Department,
+      BillingRequest,
       Expense,
+      Invoice,
       LeaveRequest,
       PaymentRequest,
     ]),

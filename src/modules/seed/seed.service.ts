@@ -3,8 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
 import { AuditLog } from '../audit-logs/entities/audit-log.entity';
+import {
+  BillingRequest,
+  BillingRequestStatus,
+} from '../billing/entities/billing-request.entity';
 import { Department } from '../departments/entities/department.entity';
 import { Expense, ExpenseStatus } from '../expenses/entities/expense.entity';
+import { Invoice, InvoiceStatus } from '../invoices/entities/invoice.entity';
 import {
   LeaveRequest,
   LeaveRequestStatus,
@@ -86,6 +91,7 @@ export class SeedService implements OnApplicationBootstrap {
   static readonly roleSeeds: RoleSeed[] = [
     { name: 'Employee', slug: 'employee' },
     { name: 'Department Reviewer', slug: 'department-reviewer' },
+    { name: 'Sales Officer', slug: 'sales-officer' },
     { name: 'Manager', slug: 'manager' },
     { name: 'Accounts Officer', slug: 'accounts-officer' },
     { name: 'Finance Admin', slug: 'finance-admin' },
@@ -158,6 +164,30 @@ export class SeedService implements OnApplicationBootstrap {
       action: 'write',
     },
     {
+      name: 'Read billing requests',
+      slug: 'billing.read',
+      resource: 'billing',
+      action: 'read',
+    },
+    {
+      name: 'Write billing requests',
+      slug: 'billing.write',
+      resource: 'billing',
+      action: 'write',
+    },
+    {
+      name: 'Read invoices',
+      slug: 'invoices.read',
+      resource: 'invoices',
+      action: 'read',
+    },
+    {
+      name: 'Write invoices',
+      slug: 'invoices.write',
+      resource: 'invoices',
+      action: 'write',
+    },
+    {
       name: 'Read dashboard',
       slug: 'dashboard.read',
       resource: 'dashboard',
@@ -185,12 +215,24 @@ export class SeedService implements OnApplicationBootstrap {
       ],
     },
     {
+      roleSlug: 'sales-officer',
+      permissionSlugs: [
+        'auth.profile.read',
+        'billing.read',
+        'billing.write',
+        'dashboard.read',
+        'workflow.runtime.act',
+      ],
+    },
+    {
       roleSlug: 'manager',
       permissionSlugs: [
         'auth.profile.read',
         'users.read',
         'expenses.read',
         'leaves.read',
+        'billing.read',
+        'invoices.read',
         'dashboard.read',
         'workflow.runtime.act',
       ],
@@ -212,6 +254,8 @@ export class SeedService implements OnApplicationBootstrap {
         'expenses.read',
         'payments.read',
         'payments.write',
+        'billing.read',
+        'invoices.read',
         'dashboard.read',
         'workflow.runtime.act',
       ],
@@ -223,6 +267,9 @@ export class SeedService implements OnApplicationBootstrap {
         'users.read',
         'expenses.read',
         'payments.read',
+        'billing.read',
+        'invoices.read',
+        'invoices.write',
         'dashboard.read',
         'workflow.runtime.act',
       ],
@@ -287,7 +334,7 @@ export class SeedService implements OnApplicationBootstrap {
       designation: 'Sales Executive',
       departmentSlug: 'sales',
       managerEmail: 'manager@example.com',
-      roles: ['employee'],
+      roles: ['employee', 'sales-officer'],
     },
     {
       name: 'Manager User',
@@ -362,6 +409,14 @@ export class SeedService implements OnApplicationBootstrap {
 
   static readonly workflowTemplateSeeds: WorkflowTemplateSeed[] = [
     {
+      name: 'Billing Approval Workflow',
+      moduleName: 'billing',
+      eventName: 'billing.submitted',
+      entityType: 'BillingRequest',
+      status: WorkflowTemplateStatus.PUBLISHED,
+      priority: 110,
+    },
+    {
       name: 'Expense Approval Workflow',
       moduleName: 'expenses',
       eventName: 'expense.submitted',
@@ -412,6 +467,10 @@ export class SeedService implements OnApplicationBootstrap {
     private readonly workflowApprovalStepConfigsRepository: Repository<WorkflowApprovalStepConfig>,
     @InjectRepository(WorkflowOutcomeConfig)
     private readonly workflowOutcomeConfigsRepository: Repository<WorkflowOutcomeConfig>,
+    @InjectRepository(BillingRequest)
+    private readonly billingRequestsRepository: Repository<BillingRequest>,
+    @InjectRepository(Invoice)
+    private readonly invoicesRepository: Repository<Invoice>,
     @InjectRepository(Expense)
     private readonly expensesRepository: Repository<Expense>,
     @InjectRepository(LeaveRequest)
@@ -436,7 +495,8 @@ export class SeedService implements OnApplicationBootstrap {
     await this.seedDepartments();
     await this.seedRolesAndPermissions();
     await this.seedUsers(); //
-    // Workflow definition seeds are paused until we need them again.
+    // await this.seedBillingWorkflowDefinitions();
+    // await this.seedBillingDemoRecords();
     // await this.seedWorkflowDefinitions();
     // Demo transaction seeds are paused so development starts from scratch.
     // await this.seedDemoRecords();
@@ -563,6 +623,341 @@ export class SeedService implements OnApplicationBootstrap {
     }
   }
 
+  private async seedBillingWorkflowDefinitions(): Promise<void> {
+    await this.seedBillingEventSchema();
+    const seed = SeedService.workflowTemplateSeeds.find(
+      (template) => template.entityType === 'BillingRequest',
+    );
+    if (!seed) return;
+
+    let template = await this.workflowTemplatesRepository.findOneBy({
+      name: seed.name,
+    });
+    if (!template) {
+      template = await this.workflowTemplatesRepository.save(
+        this.workflowTemplatesRepository.create({
+          ...seed,
+          description: `${seed.name} seeded for development`,
+          allowResubmission: true,
+          createdById: null,
+        }),
+      );
+    }
+
+    await this.seedBillingWorkflow(template);
+  }
+
+  private async seedBillingEventSchema(): Promise<void> {
+    const exists = await this.workflowEventSchemasRepository.findOneBy({
+      moduleName: 'billing',
+      eventName: 'billing.submitted',
+      entityType: 'BillingRequest',
+    });
+    if (exists) return;
+
+    const operators: ConditionOperator[] = [
+      'eq',
+      'neq',
+      'gt',
+      'gte',
+      'lt',
+      'lte',
+      'between',
+      'in',
+      'not_in',
+      'contains',
+      'is_empty',
+      'is_not_empty',
+    ];
+    await this.workflowEventSchemasRepository.save(
+      this.workflowEventSchemasRepository.create({
+        moduleName: 'billing',
+        eventName: 'billing.submitted',
+        entityType: 'BillingRequest',
+        fieldSchemaJson: {
+          fields: [
+            'amount',
+            'currency',
+            'billingCategory',
+            'customerName',
+            'departmentId',
+            'customFields.projectCode',
+            'customFields.accountOwnerId',
+          ].map((field) => ({
+            key: field,
+            type: field === 'amount' ? 'number' : 'string',
+            operators,
+          })),
+        },
+        outcomeActionsJson: {},
+        assigneeResolversJson: {},
+        isActive: true,
+      }),
+    );
+  }
+
+  private async seedBillingWorkflow(template: WorkflowTemplate): Promise<void> {
+    await this.ensureTriggerCondition(template.id, {
+      mode: 'all',
+      conditions: [{ field: 'amount', operator: 'gte', value: 1 }],
+    });
+    await this.ensureOutcomeConfig(template.id, {
+      approvedActionsJson: {
+        actions: [
+          { type: 'MARK_BILLING_APPROVED' },
+          { type: 'CREATE_INVOICE' },
+        ],
+      },
+      rejectedActionsJson: {
+        actions: [{ type: 'MARK_BILLING_REJECTED' }],
+      },
+    });
+    const rule = await this.ensureRule(template.id, {
+      name: 'Accounts Review',
+      priority: 100,
+      isFallback: true,
+      conditionJson: null,
+    });
+    await this.ensureStep(rule.id, {
+      stepOrder: 1,
+      stepName: 'Accounts Review',
+      stepType: WorkflowStepType.REVIEW,
+      assigneeType: WorkflowAssigneeType.ROLE,
+      assigneeRoleSlug: 'accounts-officer',
+    });
+  }
+
+  private async seedBillingDemoRecords(): Promise<void> {
+    const salesUser = await this.usersRepository.findOneBy({
+      email: 'employee@example.com',
+    });
+    const sales = await this.departmentsRepository.findOneBy({ slug: 'sales' });
+    if (!salesUser) return;
+
+    await this.ensureSeedBillingRequest(salesUser, sales, {
+      title: 'Seed draft billing request',
+      status: BillingRequestStatus.DRAFT,
+    });
+
+    const submitted = await this.ensureSeedBillingRequest(salesUser, sales, {
+      title: 'Seed submitted billing request',
+      status: BillingRequestStatus.UNDER_REVIEW,
+    });
+    await this.ensureSeedBillingWorkflowInstance(submitted, salesUser, sales);
+
+    const approved = await this.ensureSeedBillingRequest(salesUser, sales, {
+      title: 'Seed invoiced billing request',
+      status: BillingRequestStatus.INVOICED,
+    });
+    await this.ensureSeedInvoice(approved);
+    await this.ensureSeedAuditLog({
+      actorUserId: salesUser.id,
+      action: 'BILLING_REQUEST_CREATED',
+      entityType: 'BillingRequest',
+      entityId: approved.id,
+      metadataJson: { seeded: true },
+    });
+    await this.ensureSeedNotification({
+      recipientUserId: salesUser.id,
+      title: 'Billing demo invoice ready',
+      message: 'A seeded billing request has an issued invoice',
+      type: NotificationType.INVOICE_CREATED,
+      entityType: 'BillingRequest',
+      entityId: approved.id,
+      workflowInstanceId: null,
+    });
+  }
+
+  private async ensureSeedBillingRequest(
+    salesUser: User,
+    sales: Department | null,
+    values: { title: string; status: BillingRequestStatus },
+  ): Promise<BillingRequest> {
+    let billingRequest = await this.billingRequestsRepository.findOneBy({
+      requesterId: salesUser.id,
+      title: values.title,
+    });
+    if (!billingRequest) {
+      billingRequest = await this.billingRequestsRepository.save(
+        this.billingRequestsRepository.create({
+          requesterId: salesUser.id,
+          departmentId: sales?.id ?? null,
+          customerName: 'ACME Bangladesh Ltd.',
+          customerEmail: 'billing@acme.example',
+          customerAddress: 'Gulshan Avenue, Dhaka',
+          title: values.title,
+          description: 'Seeded development billing request',
+          amount: '125000',
+          currency: 'BDT',
+          billingCategory: 'Installation',
+          status: values.status,
+          rejectionReason: null,
+          customFieldsJson: { projectCode: 'PRJ-2026-001' },
+          submittedAt:
+            values.status === BillingRequestStatus.UNDER_REVIEW
+              ? new Date()
+              : null,
+          approvedAt:
+            values.status === BillingRequestStatus.INVOICED ? new Date() : null,
+          rejectedAt: null,
+        }),
+      );
+    }
+    return billingRequest;
+  }
+
+  private async ensureSeedBillingWorkflowInstance(
+    billingRequest: BillingRequest,
+    salesUser: User,
+    sales: Department | null,
+  ): Promise<void> {
+    if (billingRequest.workflowInstanceId) return;
+    const template = await this.workflowTemplatesRepository.findOneBy({
+      name: 'Billing Approval Workflow',
+    });
+    const rule = template
+      ? await this.workflowApprovalRulesRepository.findOneBy({
+          workflowTemplateId: template.id,
+          name: 'Accounts Review',
+        })
+      : null;
+    if (!template || !rule) return;
+
+    const instance = await this.workflowInstancesRepository.save(
+      this.workflowInstancesRepository.create({
+        workflowTemplateId: template.id,
+        workflowApprovalRuleId: rule.id,
+        moduleName: 'billing',
+        eventName: 'billing.submitted',
+        entityType: 'BillingRequest',
+        entityId: billingRequest.id,
+        requesterId: salesUser.id,
+        departmentId: sales?.id ?? null,
+        status: WorkflowInstanceStatus.ACTIVE,
+        metadataJson: {
+          seeded: true,
+          title: billingRequest.title,
+          amount: Number(billingRequest.amount),
+          currency: billingRequest.currency,
+        },
+        startedAt: new Date(),
+      }),
+    );
+    const step = await this.workflowStepsRepository.save(
+      this.workflowStepsRepository.create({
+        workflowInstanceId: instance.id,
+        stepOrder: 1,
+        stepName: 'Accounts Review',
+        stepType: WorkflowStepType.REVIEW,
+        assigneeType: WorkflowAssigneeType.ROLE,
+        assignedRoleSlug: 'accounts-officer',
+        assignedUserId: null,
+        status: WorkflowStepStatus.ACTIVE,
+        activatedAt: new Date(),
+      }),
+    );
+    await this.workflowActionsRepository.save(
+      this.workflowActionsRepository.create({
+        workflowInstanceId: instance.id,
+        workflowStepId: step.id,
+        action: WorkflowActionType.TRIGGERED,
+        actorUserId: salesUser.id,
+        metadataJson: { seeded: true },
+      }),
+    );
+    billingRequest.workflowInstanceId = instance.id;
+    billingRequest.submittedAt = billingRequest.submittedAt ?? new Date();
+    await this.billingRequestsRepository.save(billingRequest);
+  }
+
+  private async ensureSeedInvoice(
+    billingRequest: BillingRequest,
+  ): Promise<void> {
+    let invoice = await this.invoicesRepository.findOneBy({
+      billingRequestId: billingRequest.id,
+    });
+    if (!invoice) {
+      invoice = await this.invoicesRepository.save(
+        this.invoicesRepository.create({
+          billingRequestId: billingRequest.id,
+          invoiceNumber: 'INV-20260610-0001',
+          requesterId: billingRequest.requesterId,
+          departmentId: billingRequest.departmentId,
+          customerName: billingRequest.customerName,
+          customerEmail: billingRequest.customerEmail,
+          customerAddress: billingRequest.customerAddress,
+          title: billingRequest.title,
+          description: billingRequest.description,
+          amount: billingRequest.amount,
+          currency: billingRequest.currency,
+          dueDate: '2026-07-10',
+          status: InvoiceStatus.ISSUED,
+          issuedAt: new Date('2026-06-10T10:15:00.000Z'),
+          cancelledAt: null,
+          paidAt: null,
+        }),
+      );
+    }
+    if (billingRequest.invoiceId !== invoice.id) {
+      billingRequest.invoiceId = invoice.id;
+      billingRequest.status = BillingRequestStatus.INVOICED;
+      await this.billingRequestsRepository.save(billingRequest);
+    }
+  }
+
+  private async ensureSeedAuditLog(
+    values: Pick<
+      AuditLog,
+      'actorUserId' | 'action' | 'entityType' | 'entityId' | 'metadataJson'
+    >,
+  ): Promise<void> {
+    const exists = await this.auditLogsRepository.findOneBy({
+      action: values.action,
+      entityType: values.entityType,
+      entityId: values.entityId,
+    });
+    if (exists) return;
+    await this.auditLogsRepository.save(
+      this.auditLogsRepository.create({
+        ...values,
+        workflowInstanceId: null,
+        workflowStepId: null,
+        oldStatus: null,
+        newStatus: null,
+        comment: null,
+        reason: null,
+      }),
+    );
+  }
+
+  private async ensureSeedNotification(
+    values: Pick<
+      Notification,
+      | 'recipientUserId'
+      | 'title'
+      | 'message'
+      | 'type'
+      | 'entityType'
+      | 'entityId'
+      | 'workflowInstanceId'
+    >,
+  ): Promise<void> {
+    const exists = await this.notificationsRepository.findOneBy({
+      type: values.type,
+      entityType: values.entityType,
+      entityId: values.entityId,
+    });
+    if (exists) return;
+    await this.notificationsRepository.save(
+      this.notificationsRepository.create({
+        ...values,
+        recipientRoleSlug: null,
+        isRead: false,
+        readAt: null,
+      }),
+    );
+  }
+
   private async seedWorkflowDefinitions(): Promise<void> {
     await this.seedEventSchemas();
     for (const seed of SeedService.workflowTemplateSeeds) {
@@ -684,7 +1079,7 @@ export class SeedService implements OnApplicationBootstrap {
       conditions: [{ field: 'amount', operator: 'gte', value: 1 }],
     });
     await this.ensureOutcomeConfig(template.id, {
-      approvedActionsJson: { expenseStatus: ExpenseStatus.PAYMENT_PENDING },
+      approvedActionsJson: { createPaymentRequest: true },
       rejectedActionsJson: { expenseStatus: ExpenseStatus.REJECTED },
     });
     const highValueRule = await this.ensureRule(template.id, {

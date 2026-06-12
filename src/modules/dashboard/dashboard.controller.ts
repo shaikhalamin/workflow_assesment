@@ -8,6 +8,7 @@ import {
   AdminDashboardResponseDto,
   ApproverDashboardResponseDto,
   EmployeeDashboardResponseDto,
+  FinanceDashboardResponseDto,
   HrDashboardResponseDto,
 } from './dto/dashboard-response.dto';
 import { DashboardService } from './dashboard.service';
@@ -41,6 +42,12 @@ export class DashboardController {
   @ApiData(AccountsDashboardResponseDto, { errors: [401, 403] })
   accounts() {
     return this.dashboardService.accounts();
+  }
+
+  @Get('finance')
+  @ApiData(FinanceDashboardResponseDto, { errors: [401, 403] })
+  finance() {
+    return this.dashboardService.finance();
   }
 
   @Get('hr')

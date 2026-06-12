@@ -16,6 +16,36 @@ class EmployeeLeaveSummaryDto {
   underReview!: number;
 }
 
+class BillingSummaryDto {
+  @ApiProperty({ example: 2 })
+  draft!: number;
+
+  @ApiProperty({ example: 3 })
+  underReview!: number;
+
+  @ApiProperty({ example: 1 })
+  rejected!: number;
+
+  @ApiProperty({ example: 5 })
+  invoiced!: number;
+}
+
+class AdminInvoiceSummaryDto {
+  @ApiProperty({ example: 7 })
+  issued!: number;
+}
+
+class FinanceInvoiceSummaryDto {
+  @ApiProperty({ example: 7 })
+  issued!: number;
+
+  @ApiProperty({ example: 3 })
+  paid!: number;
+
+  @ApiProperty({ example: 1 })
+  cancelled!: number;
+}
+
 class AdminWorkflowSummaryDto {
   @ApiProperty({ example: 8 })
   active!: number;
@@ -49,12 +79,41 @@ class DashboardRecentItemDto {
   createdAt!: string;
 }
 
+class DashboardRecentInvoiceDto {
+  @ApiProperty({ example: 'd1813f59-2289-4a01-9ddd-a93c6cf4fd14' })
+  id!: string;
+
+  @ApiProperty({ example: 'INV-20260610-0001' })
+  invoiceNumber!: string;
+
+  @ApiProperty({ example: 'Enterprise internet installation' })
+  title!: string;
+
+  @ApiProperty({ example: '125000.00' })
+  amount!: string;
+
+  @ApiProperty({ example: 'BDT' })
+  currency!: string;
+
+  @ApiProperty({ example: 'ISSUED' })
+  status!: string;
+
+  @ApiProperty({ example: '2026-06-10T09:30:00.000Z' })
+  createdAt!: string;
+}
+
 export class EmployeeDashboardResponseDto {
   @ApiProperty({ type: EmployeeExpenseSummaryDto })
   expenses!: EmployeeExpenseSummaryDto;
 
   @ApiProperty({ type: EmployeeLeaveSummaryDto })
   leaves!: EmployeeLeaveSummaryDto;
+
+  @ApiProperty({ type: BillingSummaryDto })
+  billing!: BillingSummaryDto;
+
+  @ApiProperty({ type: [DashboardRecentInvoiceDto] })
+  recentInvoices!: DashboardRecentInvoiceDto[];
 
   @ApiProperty({ type: [DashboardRecentItemDto] })
   recentItems!: DashboardRecentItemDto[];
@@ -63,6 +122,12 @@ export class EmployeeDashboardResponseDto {
 export class AdminDashboardResponseDto {
   @ApiProperty({ type: AdminWorkflowSummaryDto })
   workflows!: AdminWorkflowSummaryDto;
+
+  @ApiProperty({ type: BillingSummaryDto })
+  billing!: BillingSummaryDto;
+
+  @ApiProperty({ type: AdminInvoiceSummaryDto })
+  invoices!: AdminInvoiceSummaryDto;
 
   @ApiProperty({ type: [DashboardRecentItemDto] })
   recentWorkflowChanges!: DashboardRecentItemDto[];
@@ -94,6 +159,9 @@ export class AccountsDashboardResponseDto {
 
   @ApiProperty({ example: 120000 })
   paidAmountThisMonth!: number;
+
+  @ApiProperty({ example: 8 })
+  issuedInvoices!: number;
 }
 
 export class HrDashboardResponseDto {
@@ -102,4 +170,9 @@ export class HrDashboardResponseDto {
 
   @ApiProperty({ type: HrLeaveCountsDto })
   leaveCounts!: HrLeaveCountsDto;
+}
+
+export class FinanceDashboardResponseDto {
+  @ApiProperty({ type: FinanceInvoiceSummaryDto })
+  invoices!: FinanceInvoiceSummaryDto;
 }

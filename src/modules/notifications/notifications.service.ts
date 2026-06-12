@@ -133,4 +133,54 @@ export class NotificationsService {
       workflowInstanceId: null,
     });
   }
+
+  createBillingApproved(input: {
+    recipientUserId: string;
+    entityId: string;
+    workflowInstanceId: string;
+  }) {
+    return this.create({
+      recipientUserId: input.recipientUserId,
+      title: 'Billing request approved',
+      message: 'A billing request was approved',
+      type: NotificationType.BILLING_REQUEST_APPROVED,
+      entityType: 'BillingRequest',
+      entityId: input.entityId,
+      workflowInstanceId: input.workflowInstanceId,
+    });
+  }
+
+  createBillingRejected(input: {
+    recipientUserId: string;
+    entityId: string;
+    workflowInstanceId: string;
+  }) {
+    return this.create({
+      recipientUserId: input.recipientUserId,
+      title: 'Billing request rejected',
+      message: 'A billing request was rejected',
+      type: NotificationType.BILLING_REQUEST_REJECTED,
+      entityType: 'BillingRequest',
+      entityId: input.entityId,
+      workflowInstanceId: input.workflowInstanceId,
+    });
+  }
+
+  createInvoiceCreated(input: {
+    recipientUserId?: string | null;
+    recipientRoleSlug?: string | null;
+    entityId: string;
+    workflowInstanceId: string;
+  }) {
+    return this.create({
+      recipientUserId: input.recipientUserId ?? null,
+      recipientRoleSlug: input.recipientRoleSlug ?? null,
+      title: 'Invoice created',
+      message: 'An invoice was issued',
+      type: NotificationType.INVOICE_CREATED,
+      entityType: 'Invoice',
+      entityId: input.entityId,
+      workflowInstanceId: input.workflowInstanceId,
+    });
+  }
 }

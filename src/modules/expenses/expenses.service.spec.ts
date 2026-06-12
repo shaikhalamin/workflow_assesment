@@ -237,7 +237,15 @@ describe('ExpensesService', () => {
 
     await service.submit('expense-1', { userId: 'user-1', roles: [] } as never);
 
+    expect(repo.save.mock.invocationCallOrder[0]).toBeLessThan(
+      runtime.trigger.mock.invocationCallOrder[0],
+    );
     expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: ExpenseStatus.UNDER_REVIEW,
+      }),
+    );
+    expect(repo.save).toHaveBeenLastCalledWith(
       expect.objectContaining({
         status: ExpenseStatus.UNDER_REVIEW,
         workflowInstanceId: 'wi-1',
@@ -265,6 +273,7 @@ describe('ExpensesService', () => {
       status: ExpenseStatus.DRAFT,
       customFieldsJson: {},
     };
+    const skippedSavedValues: Record<string, unknown>[] = [];
     const repo = {
       findOneBy: jest.fn().mockResolvedValue(expense),
       findOne: jest.fn().mockResolvedValue({
@@ -286,7 +295,10 @@ describe('ExpensesService', () => {
         createdAt: new Date('2026-06-10T08:00:00.000Z'),
         updatedAt: new Date('2026-06-11T08:00:00.000Z'),
       }),
-      save: jest.fn(),
+      save: jest.fn().mockImplementation((value: Record<string, unknown>) => {
+        skippedSavedValues.push({ ...value });
+        return Promise.resolve(value);
+      }),
     };
     const runtime = {
       trigger: jest.fn().mockResolvedValue({ status: 'skipped' }),
@@ -301,8 +313,90 @@ describe('ExpensesService', () => {
       service.submit('expense-1', { userId: 'user-1', roles: [] } as never),
     ).rejects.toBeInstanceOf(BadRequestException);
 
-    expect(repo.save).not.toHaveBeenCalled();
+    expect(skippedSavedValues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          status: ExpenseStatus.UNDER_REVIEW,
+        }),
+        expect.objectContaining({
+          status: ExpenseStatus.DRAFT,
+          workflowInstanceId: undefined,
+        }),
+      ]),
+    );
+    expect(skippedSavedValues[0]).toEqual(
+      expect.objectContaining({
+        status: ExpenseStatus.UNDER_REVIEW,
+      }),
+    );
+    expect(skippedSavedValues.at(-1)).toEqual(
+      expect.objectContaining({
+        status: ExpenseStatus.DRAFT,
+        workflowInstanceId: undefined,
+      }),
+    );
     expect(expense.status).toBe(ExpenseStatus.DRAFT);
+  });
+
+  it('allows managers and reviewers to read expenses without department matching', async () => {
+    const createdAt = new Date('2026-06-10T08:00:00.000Z');
+    const expense = {
+      id: 'expense-1',
+      requesterId: 'requester-1',
+      requester: null,
+      createdById: 'requester-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      title: 'Laptop reimbursement',
+      description: null,
+      amount: '4500',
+      currency: 'BDT',
+      category: 'Software',
+      vendor: null,
+      itemValue: null,
+      price: null,
+      quantity: null,
+      status: ExpenseStatus.UNDER_REVIEW,
+      workflowInstanceId: 'workflow-1',
+      rejectionReason: null,
+      customFieldsJson: null,
+      submittedAt: createdAt,
+      approvedAt: null,
+      rejectedAt: null,
+      paidAt: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const repo = {
+      findOne: jest.fn().mockResolvedValue(expense),
+    };
+    const service = new ExpensesService(
+      repo as never,
+      { allowsResubmission: jest.fn().mockResolvedValue(false) } as never,
+      {} as never,
+    );
+
+    await expect(
+      service.findOne('expense-1', {
+        userId: 'manager-1',
+        departmentId: 'dept-1',
+        roles: ['manager'],
+      } as never),
+    ).resolves.toEqual(expect.objectContaining({ id: 'expense-1' }));
+    await expect(
+      service.findOne('expense-1', {
+        userId: 'manager-2',
+        departmentId: 'dept-2',
+        roles: ['manager'],
+      } as never),
+    ).resolves.toEqual(expect.objectContaining({ id: 'expense-1' }));
+    await expect(
+      service.findOne('expense-1', {
+        userId: 'reviewer-1',
+        departmentId: null,
+        roles: ['department-reviewer'],
+      } as never),
+    ).resolves.toEqual(expect.objectContaining({ id: 'expense-1' }));
   });
 
   it('rejects submit by a non-owner', async () => {
@@ -332,7 +426,10 @@ describe('ExpensesService', () => {
     );
 
     await expect(
-      service.resubmit('expense-1', {}, { userId: 'other-1', roles: [] } as never),
+      service.resubmit('expense-1', {}, {
+        userId: 'other-1',
+        roles: [],
+      } as never),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
@@ -379,21 +476,29 @@ describe('ExpensesService', () => {
       allowsResubmission: jest.Mock<Promise<boolean>, [string]>;
       trigger: jest.Mock<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>;
     } = {
-      allowsResubmission: jest.fn<Promise<boolean>, [string]>().mockResolvedValue(true),
-      trigger: jest.fn<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>().mockResolvedValue({
-        status: 'triggered',
-        workflowInstanceId: 'workflow-2',
-        activeStep: {
-          id: 'step-1',
-          stepName: 'Review',
-          stepOrder: 1,
-          assignedUserId: null,
-          assignedRoleSlug: 'manager',
-          status: WorkflowStepStatus.ACTIVE,
-        },
-      }),
+      allowsResubmission: jest
+        .fn<Promise<boolean>, [string]>()
+        .mockResolvedValue(true),
+      trigger: jest
+        .fn<Promise<TriggerWorkflowResult>, [TriggerWorkflowDto]>()
+        .mockResolvedValue({
+          status: 'triggered',
+          workflowInstanceId: 'workflow-2',
+          activeStep: {
+            id: 'step-1',
+            stepName: 'Review',
+            stepOrder: 1,
+            assignedUserId: null,
+            assignedRoleSlug: 'manager',
+            status: WorkflowStepStatus.ACTIVE,
+          },
+        }),
     };
-    const service = new ExpensesService(repo as never, runtime as never, {} as never);
+    const service = new ExpensesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
 
     await service.resubmit(
       'expense-1',
@@ -416,17 +521,20 @@ describe('ExpensesService', () => {
     expect(expense.rejectionReason).toBeNull();
     expect(expense.status).toBe(ExpenseStatus.UNDER_REVIEW);
     expect(expense.workflowInstanceId).toBe('workflow-2');
-    expect(runtime.trigger).toHaveBeenCalledWith(
+    const triggerCall = runtime.trigger.mock.calls[0]?.[0];
+    expect(triggerCall).toEqual(
       expect.objectContaining({
         moduleName: 'expenses',
         eventName: 'expense.submitted',
         entityId: 'expense-1',
-        metadata: expect.objectContaining({
-          title: 'Updated title',
-          amount: 1250,
-          category: 'Meal',
-          vendor: 'Updated vendor',
-        }),
+      }),
+    );
+    expect(triggerCall?.metadata).toEqual(
+      expect.objectContaining({
+        title: 'Updated title',
+        amount: 1250,
+        category: 'Meal',
+        vendor: 'Updated vendor',
       }),
     );
     expect(savedValues).toEqual(

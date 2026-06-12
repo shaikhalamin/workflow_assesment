@@ -1,8 +1,10 @@
 import { SeedService } from './seed.service';
 import type { Repository } from 'typeorm';
 import { AuditLog } from '../audit-logs/entities/audit-log.entity';
+import { BillingRequest } from '../billing/entities/billing-request.entity';
 import { Department } from '../departments/entities/department.entity';
 import { Expense } from '../expenses/entities/expense.entity';
+import { Invoice } from '../invoices/entities/invoice.entity';
 import { LeaveRequest } from '../leaves/entities/leave-request.entity';
 import { Notification } from '../notifications/entities/notification.entity';
 import { PaymentRequest } from '../payments/entities/payment-request.entity';
@@ -67,6 +69,7 @@ describe('SeedService', () => {
     expect(SeedService.roleSeeds.map((role) => role.slug)).toEqual([
       'employee',
       'department-reviewer',
+      'sales-officer',
       'manager',
       'accounts-officer',
       'finance-admin',
@@ -82,10 +85,11 @@ describe('SeedService', () => {
     expect(SeedService.developmentPassword).toBe('Password123!');
   });
 
-  it('defines seeded workflow templates for expense, leave, and attendance', () => {
+  it('defines seeded workflow templates for billing, expense, leave, and attendance', () => {
     expect(
       SeedService.workflowTemplateSeeds.map((workflow) => workflow.name),
     ).toEqual([
+      'Billing Approval Workflow',
       'Expense Approval Workflow',
       'Leave Approval Workflow',
       'Attendance Adjustment Workflow',
@@ -106,7 +110,7 @@ describe('SeedService', () => {
     }
   });
 
-  it('does not delete existing data or seed workflow definitions on development startup', async () => {
+  it('does not delete existing data and seeds the billing workflow on development startup', async () => {
     process.env.NODE_ENV = 'development';
     const departmentsRepository = createMockRepository<Department>('dept');
     const rolesRepository = createMockRepository<Role>('role');
@@ -128,6 +132,9 @@ describe('SeedService', () => {
       createMockRepository<WorkflowApprovalStepConfig>('workflow-step-config');
     const workflowOutcomeConfigsRepository =
       createMockRepository<WorkflowOutcomeConfig>('workflow-outcome');
+    const billingRequestsRepository =
+      createMockRepository<BillingRequest>('billing-request');
+    const invoicesRepository = createMockRepository<Invoice>('invoice');
     const expensesRepository = createMockRepository<Expense>('expense');
     const leavesRepository = createMockRepository<LeaveRequest>('leave');
     const paymentRequestsRepository =
@@ -154,6 +161,8 @@ describe('SeedService', () => {
       workflowApprovalRulesRepository,
       workflowApprovalStepConfigsRepository,
       workflowOutcomeConfigsRepository,
+      billingRequestsRepository,
+      invoicesRepository,
       expensesRepository,
       leavesRepository,
       paymentRequestsRepository,
@@ -176,6 +185,8 @@ describe('SeedService', () => {
       asRepository(workflowApprovalRulesRepository),
       asRepository(workflowApprovalStepConfigsRepository),
       asRepository(workflowOutcomeConfigsRepository),
+      asRepository(billingRequestsRepository),
+      asRepository(invoicesRepository),
       asRepository(expensesRepository),
       asRepository(leavesRepository),
       asRepository(paymentRequestsRepository),
@@ -191,9 +202,39 @@ describe('SeedService', () => {
     for (const repository of repositories) {
       expect(repository.delete).not.toHaveBeenCalled();
     }
-    expect(workflowTemplatesRepository.save).not.toHaveBeenCalled();
-    expect(workflowEventSchemasRepository.save).not.toHaveBeenCalled();
-    expect(workflowApprovalRulesRepository.save).not.toHaveBeenCalled();
-    expect(workflowApprovalStepConfigsRepository.save).not.toHaveBeenCalled();
+    expect(workflowTemplatesRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Billing Approval Workflow',
+        moduleName: 'billing',
+        eventName: 'billing.submitted',
+        entityType: 'BillingRequest',
+      }),
+    );
+    expect(workflowEventSchemasRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        moduleName: 'billing',
+        eventName: 'billing.submitted',
+        entityType: 'BillingRequest',
+      }),
+    );
+    expect(workflowApprovalRulesRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Accounts Review' }),
+    );
+    expect(workflowApprovalStepConfigsRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stepName: 'Accounts Review',
+        assigneeRoleSlug: 'accounts-officer',
+      }),
+    );
+    expect(
+      workflowOutcomeConfigsRepository.create.mock.calls.map((call) => call[0]),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          approvedActionsJson: { createPaymentRequest: true },
+          rejectedActionsJson: { expenseStatus: 'REJECTED' },
+        }),
+      ]),
+    );
   });
 });

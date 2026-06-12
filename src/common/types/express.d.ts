@@ -4,6 +4,7 @@ declare global {
       userId: string;
       email: string;
       employeeGrade: string | null;
+      departmentId: string | null;
       roles: string[];
       permissions: string[];
       sid: string | null;

@@ -477,6 +477,75 @@ describe('WorkflowRuntimeService', () => {
     });
   });
 
+  it('cancels an active workflow instance and skips unfinished steps for an entity', async () => {
+    const instance = {
+      id: 'workflow-1',
+      entityType: 'BillingRequest',
+      entityId: 'billing-1',
+      status: WorkflowInstanceStatus.ACTIVE,
+      completedAt: null,
+    };
+    const instancesRepository = {
+      findOneBy: jest.fn().mockResolvedValue(instance),
+      save: jest.fn().mockResolvedValue(instance),
+    };
+    const stepsRepository = {
+      update: jest.fn().mockResolvedValue({ affected: 1 }),
+    };
+    const actionsRepository = {
+      create: jest.fn((value: unknown) => value),
+      save: jest.fn((value: unknown) => Promise.resolve(value)),
+    };
+    const auditLogsService = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new WorkflowRuntimeService(
+      {} as never,
+      instancesRepository as never,
+      stepsRepository as never,
+      actionsRepository as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      auditLogsService as never,
+      {} as never,
+      {} as never,
+    );
+
+    await service.cancelActiveForEntity({
+      entityType: 'BillingRequest',
+      entityId: 'billing-1',
+      actorUserId: 'user-1',
+    });
+
+    expect(instance.status).toBe(WorkflowInstanceStatus.CANCELLED);
+    expect(instance.completedAt).toBeInstanceOf(Date);
+    expect(stepsRepository.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowInstanceId: 'workflow-1',
+      }),
+      expect.objectContaining({
+        status: WorkflowStepStatus.SKIPPED,
+        actionByUserId: 'user-1',
+      }),
+    );
+    expect(actionsRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowInstanceId: 'workflow-1',
+        action: WorkflowActionType.CANCELLED,
+        actorUserId: 'user-1',
+      }),
+    );
+    expect(auditLogsService.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'WORKFLOW_CANCELLED',
+        oldStatus: WorkflowInstanceStatus.ACTIVE,
+        newStatus: WorkflowInstanceStatus.CANCELLED,
+      }),
+    );
+  });
+
   it('runs trigger writes in a transaction so failed assignee resolution rolls back partial instance', async () => {
     const stepConfig = {
       id: 'step-config-1',
