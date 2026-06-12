@@ -6,6 +6,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { TransformInterceptor } from '../src/common/http/response.interceptor';
+import { SeedService } from '../src/modules/seed/seed.service';
 
 jest.setTimeout(30_000);
 
@@ -103,6 +104,15 @@ describe('workflow demo flow (e2e)', () => {
     expect(body.error).toBeNull();
     expect(body.data.user.email).toBe(`signup-${unique}@example.com`);
     expect(body.data.user.roles).toContain('employee');
+    const employeePermissionSlugs =
+      SeedService.rolePermissionSeeds.find(
+        (seed) => seed.roleSlug === 'employee',
+      )?.permissionSlugs ?? [];
+
+    expect(employeePermissionSlugs).not.toHaveLength(0);
+    expect(body.data.user.permissions).toEqual(
+      expect.arrayContaining(employeePermissionSlugs),
+    );
     expect(response.headers['set-cookie']).toEqual(
       expect.arrayContaining([
         expect.stringContaining('access_token='),
