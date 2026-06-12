@@ -41,7 +41,15 @@ describe('auth routing helpers', () => {
     ).toBe(true)
     expect(
       canAccessPrivatePath('/payments', ['employee'], ['expenses.read']),
-    ).toBe(false)
+    ).toBe(true)
+    expect(
+      canAccessPrivatePath('/invoices', ['sales-officer'], ['billing.read']),
+    ).toBe(true)
+    expect(
+      canAccessPrivatePath('/invoices/invoice-1', ['sales-officer'], [
+        'billing.read',
+      ]),
+    ).toBe(true)
     expect(
       canAccessPrivatePath('/payments', ['accounts-officer'], ['payments.read']),
     ).toBe(true)

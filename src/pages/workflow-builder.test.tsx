@@ -97,6 +97,32 @@ describe('WorkflowBuilderPage trigger setup', () => {
     expect(useWorkflowBuilderStore.getState().draft.rules[0]?.steps).toHaveLength(1)
   })
 
+  it('limits approval step action and handler options to the supported choices', () => {
+    render(<WorkflowBuilderPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /approval chain/i }))
+
+    const actionTypeSelect = screen.getByDisplayValue('Approval')
+    const handlerSelect = screen.getByDisplayValue('Requester manager')
+
+    if (
+      !(actionTypeSelect instanceof HTMLSelectElement) ||
+      !(handlerSelect instanceof HTMLSelectElement)
+    ) {
+      throw new Error('Approval step select fields were not found')
+    }
+
+    expect(Array.from(actionTypeSelect.options).map((option) => option.text)).toEqual([
+      'Review',
+      'Approval',
+    ])
+    expect(Array.from(handlerSelect.options).map((option) => option.text)).toEqual([
+      'Role queue',
+      'Specific user',
+      'Requester manager',
+    ])
+  })
+
   it('expands live preview approval paths into a visual timeline', () => {
     render(<WorkflowBuilderPage />)
 

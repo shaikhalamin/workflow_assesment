@@ -68,6 +68,14 @@ export function canAccessPrivatePath(
 ) {
   if (hasAdminRole(roles)) return true
 
+  if (pathname === '/invoices' || pathname.startsWith('/invoices/')) {
+    return permissions.includes('billing.read') || permissions.includes('invoices.read')
+  }
+
+  if (pathname === '/payments' || pathname.startsWith('/payments/')) {
+    return permissions.includes('expenses.read') || permissions.includes('payments.read')
+  }
+
   const required = privatePathPermissions.find(({ path }) => {
     if (path === '/') return pathname === '/'
     return pathname === path || pathname.startsWith(`${path}/`)

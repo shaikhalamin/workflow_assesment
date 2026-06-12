@@ -113,7 +113,7 @@ describe('PrivateLayout', () => {
     expect(
       screen.queryByRole('link', { name: /workflow builder/i }),
     ).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /payments/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^payments$/i })).toBeInTheDocument()
     expect(
       screen.queryByRole('link', { name: /event schemas/i }),
     ).not.toBeInTheDocument()

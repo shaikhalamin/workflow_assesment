@@ -7,6 +7,7 @@ import {
   getWorkflowBuilderStepState,
   getWorkflowModule,
   parseConditionValue,
+  roleOptions,
   toWorkflowWizardPayload,
   workflowBuilderSteps,
   workflowModules,
@@ -112,6 +113,12 @@ describe('workflow builder payload', () => {
     const draft = createDefaultWorkflowDraft()
 
     expect(draft.approvedActionsJson.createPaymentRequest).toBe(false)
+  })
+
+  it('only exposes backend role slugs for role assignment', () => {
+    expect(roleOptions).toContain('accounts-officer')
+    expect(roleOptions).not.toContain('accounts')
+    expect(roleOptions).not.toContain('management')
   })
 
   it('exposes backend-backed condition field examples for rule guidance', () => {
@@ -270,7 +277,7 @@ describe('workflow builder payload', () => {
     )
   })
 
-  it('maps a billing workflow draft to create invoices after approval', () => {
+  it('maps a billing workflow draft to backend invoice outcome actions', () => {
     const draft = createDefaultWorkflowDraft()
     draft.template.name = 'Billing approval workflow'
     draft.template.moduleName = 'billing'
@@ -287,9 +294,10 @@ describe('workflow builder payload', () => {
           entityType: 'BillingRequest',
         }),
         approvedActionsJson: {
-          createInvoice: true,
-          notifyRequester: true,
-          setStatus: 'APPROVED',
+          actions: [
+            { type: 'MARK_BILLING_APPROVED' },
+            { type: 'CREATE_INVOICE' },
+          ],
         },
       }),
     )

@@ -9,6 +9,7 @@ import {
   BillingCreatePage,
   BillingDetailPage,
   BillingRequestsPage,
+  DashboardPage,
   InvoiceDetailPage,
   InvoicesPage,
 } from './index'
@@ -53,6 +54,9 @@ const billingDetailState = vi.hoisted((): { value: unknown | undefined } => ({
 const invoiceDetailState = vi.hoisted((): { value: unknown | undefined } => ({
   value: undefined,
 }))
+const employeeDashboardState = vi.hoisted((): { value: unknown | undefined } => ({
+  value: undefined,
+}))
 const workflowState = vi.hoisted((): { value: unknown | undefined } => ({
   value: undefined,
 }))
@@ -87,6 +91,29 @@ vi.mock('@tanstack/react-query', () => ({
   }),
 }))
 
+vi.mock('@react-pdf/renderer', () => ({
+  Document: ({ children }: { children?: ReactNode }) => <>{children}</>,
+  Page: ({ children }: { children?: ReactNode }) => <>{children}</>,
+  Text: ({ children }: { children?: ReactNode }) => <>{children}</>,
+  View: ({ children }: { children?: ReactNode }) => <>{children}</>,
+  StyleSheet: {
+    create: <T extends Record<string, unknown>>(styles: T) => styles,
+  },
+  PDFDownloadLink: ({
+    children,
+    className,
+    fileName,
+  }: {
+    children?: ReactNode | ((state: { loading: boolean }) => ReactNode)
+    className?: string
+    fileName: string
+  }) => (
+    <a href={`download://${fileName}`} className={className}>
+      {typeof children === 'function' ? children({ loading: false }) : children}
+    </a>
+  ),
+}))
+
 vi.mock('@/lib/api/gen', () => ({
   useAuditLogsControllerList: () => ({ data: { data: [] }, error: null }),
   useAuditLogsControllerListForWorkflow: () => ({ data: { data: [] }, error: null }),
@@ -106,7 +133,9 @@ vi.mock('@/lib/api/gen', () => ({
   useDashboardControllerAccounts: () => ({ data: undefined }),
   useDashboardControllerAdmin: () => ({ data: undefined }),
   useDashboardControllerApprover: () => ({ data: undefined }),
-  useDashboardControllerEmployee: () => ({ data: undefined }),
+  useDashboardControllerEmployee: () => ({
+    data: employeeDashboardState.value ? { data: employeeDashboardState.value } : undefined,
+  }),
   useDashboardControllerFinance: () => ({ data: undefined }),
   useDashboardControllerHr: () => ({ data: undefined }),
   useExpensesControllerCreate: () => ({ error: null, isPending: false, mutate: vi.fn() }),
@@ -190,6 +219,13 @@ describe('billing and invoice pages', () => {
       updatedAt: '2026-06-10T10:30:00.000Z',
     }
     invoiceDetailState.value = invoiceRowsState.rows[0]
+    employeeDashboardState.value = {
+      expenses: { draft: 0, underReview: 0 },
+      leaves: { approved: 0, underReview: 0 },
+      billing: { draft: 0, underReview: 0, rejected: 0, invoiced: 1 },
+      recentInvoices: invoiceRowsState.rows,
+      recentItems: [],
+    }
     workflowState.value = {
       id: 'wf-1',
       workflowTemplateId: 'template-1',
@@ -280,6 +316,7 @@ describe('billing and invoice pages', () => {
 
     expect(screen.getByText('INV-20260610-0001')).toBeInTheDocument()
     expect(screen.getByText('125000.00 BDT')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /download invoice/i })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /mark paid/i }))
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
@@ -295,9 +332,17 @@ describe('billing and invoice pages', () => {
     expect(screen.getByText('Enterprise installation')).toBeInTheDocument()
     expect(screen.getByText('ACME Bangladesh Ltd.')).toBeInTheDocument()
     expect(screen.getByText('2026-07-10')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /download invoice/i })).toBeInTheDocument()
 
     const reference = screen.getByText('Billing request ID').closest('section')
     if (!reference) throw new Error('Expected invoice reference section')
     expect(within(reference).getByText('billing-1')).toBeInTheDocument()
+  })
+
+  it('shows requester dashboard invoice downloads for recent invoices', () => {
+    render(<DashboardPage />)
+
+    expect(screen.getByText('INV-20260610-0001')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /download invoice/i })).toBeInTheDocument()
   })
 })

@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronRight,
   CheckCircle2,
+  Download,
   Eye,
   FilePlus2,
   Pencil,
@@ -96,6 +97,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { hasPermission } from '@/features/auth/auth-routing'
 import {
+  InvoiceDownloadLink,
+  type InvoicePdfData,
+} from '@/features/invoices/invoice-pdf'
+import {
   createDefaultWorkflowDraft,
   describeWorkflowAssignee,
   formatRoleLabel,
@@ -145,6 +150,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function stringFromObjectField(value: unknown) {
   return typeof value === 'string' ? value : undefined
+}
+
+function optionalStringFromObjectField(value: unknown) {
+  return typeof value === 'string' ? value : null
 }
 
 function idFromObjectField(value: unknown) {
@@ -212,6 +221,41 @@ function requestSummaryFromRow(
   row: Row | WorkflowStepResponseDto,
 ): WorkflowRequestSummaryResponseDto | null {
   return isWorkflowRequestSummary(row.request) ? row.request : null
+}
+
+function invoicePdfDataFromUnknown(value: unknown): InvoicePdfData | null {
+  if (!isRecord(value)) return null
+
+  const id = stringFromObjectField(value.id)
+  const invoiceNumber = stringFromObjectField(value.invoiceNumber)
+  const title = stringFromObjectField(value.title)
+  const currency = stringFromObjectField(value.currency)
+  const status = stringFromObjectField(value.status)
+  const amount =
+    typeof value.amount === 'string' || typeof value.amount === 'number'
+      ? String(value.amount)
+      : undefined
+
+  if (!id || !invoiceNumber || !title || !amount || !currency || !status) {
+    return null
+  }
+
+  return {
+    id,
+    invoiceNumber,
+    title,
+    amount,
+    currency,
+    status,
+    billingRequestId: optionalStringFromObjectField(value.billingRequestId),
+    customerName: optionalStringFromObjectField(value.customerName),
+    customerEmail: optionalStringFromObjectField(value.customerEmail),
+    customerAddress: optionalStringFromObjectField(value.customerAddress),
+    dueDate: optionalStringFromObjectField(value.dueDate),
+    issuedAt: optionalStringFromObjectField(value.issuedAt),
+    paidAt: optionalStringFromObjectField(value.paidAt),
+    description: optionalStringFromObjectField(value.description),
+  }
 }
 
 function requestAmountOrDaysLabel(
@@ -816,6 +860,9 @@ export function DashboardPage() {
       .toLowerCase()
     return matchesStatus && searchable.includes(query.toLowerCase())
   })
+  const recentInvoiceRows = (employeeData?.recentInvoices ?? [])
+    .map(invoicePdfDataFromUnknown)
+    .filter((invoice): invoice is InvoicePdfData => Boolean(invoice))
 
   return (
     <div className="space-y-5">
@@ -845,6 +892,42 @@ export function DashboardPage() {
         <Metric label="Acted tasks" value={approverData?.actedTasks} tone="success" />
         <Metric label="Leave under review" value={employeeData?.leaves?.underReview} />
       </div>
+      {recentInvoiceRows.length ? (
+        <section className="space-y-3">
+          <div>
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">
+              Recent invoices
+            </p>
+            <h2 className="text-lg font-semibold tracking-tight">My invoices</h2>
+          </div>
+          <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-white shadow-sm">
+            <div className="divide-y divide-[var(--border)]">
+              {recentInvoiceRows.map((invoice) => (
+                <div
+                  key={invoice.id}
+                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-[var(--foreground)]">
+                      {invoice.invoiceNumber}
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                      {invoice.title} - {invoice.amount} {invoice.currency}
+                    </p>
+                  </div>
+                  <InvoiceDownloadLink
+                    invoice={invoice}
+                    className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download invoice
+                  </InvoiceDownloadLink>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -1468,26 +1551,6 @@ const stepTypeOptions: Array<{
     label: 'Approval',
     description: 'Approves or rejects the business request.',
   },
-  {
-    value: 'FINANCE_CHECK',
-    label: 'Finance check',
-    description: 'Validates finance impact, budget, or payment readiness.',
-  },
-  {
-    value: 'HR_CHECK',
-    label: 'HR check',
-    description: 'Validates HR policy, leave, or employee data.',
-  },
-  {
-    value: 'MANAGEMENT_APPROVAL',
-    label: 'Management approval',
-    description: 'Routes the request to senior management.',
-  },
-  {
-    value: 'FINAL_VERIFICATION',
-    label: 'Final verification',
-    description: 'Confirms final details before the workflow is completed.',
-  },
 ]
 
 const assigneeTypeOptions: Array<{
@@ -1507,18 +1570,8 @@ const assigneeTypeOptions: Array<{
   },
   {
     value: 'REQUESTER_MANAGER',
-    label: "Requester's manager",
+    label: 'Requester manager',
     description: 'Resolved at runtime from the requester profile.',
-  },
-  {
-    value: 'DEPARTMENT_HEAD',
-    label: 'Department head',
-    description: 'Resolved at runtime from the requester department.',
-  },
-  {
-    value: 'CUSTOM_FIELD_USER',
-    label: 'User from event field',
-    description: 'Resolved from a user ID field in the event payload.',
   },
 ]
 
@@ -4660,6 +4713,7 @@ export function InvoicesPage() {
       cell: ({ row }) => {
         const id = String(row.original.id)
         const status = String(row.original.status)
+        const invoice = invoicePdfDataFromUnknown(row.original)
 
         return (
           <div className="flex flex-wrap items-center gap-2">
@@ -4671,6 +4725,15 @@ export function InvoicesPage() {
               <Eye className="h-4 w-4" />
               Open
             </Link>
+            {invoice ? (
+              <InvoiceDownloadLink
+                invoice={invoice}
+                className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+              >
+                <Download className="h-4 w-4" />
+                Download invoice
+              </InvoiceDownloadLink>
+            ) : null}
             {canWriteInvoices && status === 'ISSUED' ? (
               <>
                 <Button size="sm" type="button" onClick={() => markPaid.mutate({ id })}>
@@ -4719,11 +4782,21 @@ export function InvoiceDetailPage() {
 
 function InvoiceSummary({ invoice }: { invoice: InvoiceResponseDto }) {
   const requester = describeUserReference([], invoice.requester ?? invoice.requesterId)
+  const invoicePdfData = invoicePdfDataFromUnknown(invoice)
 
   return (
     <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Badge>{invoice.status}</Badge>
+        {invoicePdfData ? (
+          <InvoiceDownloadLink
+            invoice={invoicePdfData}
+            className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+          >
+            <Download className="h-4 w-4" />
+            Download invoice
+          </InvoiceDownloadLink>
+        ) : null}
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryValue label="Requester" value={formatValue(requester)} />

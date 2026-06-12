@@ -266,12 +266,10 @@ export function parseConditionValue(
 export const roleOptions = [
   'department-reviewer',
   'manager',
-  'accounts',
   'accounts-officer',
   'hr-officer',
   'finance-admin',
   'cfo',
-  'management',
 ]
 
 export function getWorkflowBuilderStepState(
@@ -378,11 +376,17 @@ export function createDefaultWorkflowDraft(): WorkflowDraft {
 export function toWorkflowWizardPayload(
   draft: WorkflowDraft,
 ): WorkflowTemplateControllerCreateWizardMutationRequest {
-  const approvedActionsJson = { ...draft.approvedActionsJson }
+  let approvedActionsJson = { ...draft.approvedActionsJson }
   if (draft.template.moduleName !== 'expenses') {
     delete approvedActionsJson.createPaymentRequest
   }
-  if (draft.template.moduleName !== 'billing') {
+  if (draft.template.moduleName === 'billing') {
+    const actions = [{ type: 'MARK_BILLING_APPROVED' }]
+    if (approvedActionsJson.createInvoice === true) {
+      actions.push({ type: 'CREATE_INVOICE' })
+    }
+    approvedActionsJson = { actions }
+  } else {
     delete approvedActionsJson.createInvoice
   }
 
