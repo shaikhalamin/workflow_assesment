@@ -1,6 +1,7 @@
 export { accountsDashboardResponseDtoSchema } from "./accountsDashboardResponseDtoSchema.ts";
 export { adminDashboardResponseDtoSchema } from "./adminDashboardResponseDtoSchema.ts";
 export { adminInvoiceSummaryDtoSchema } from "./adminInvoiceSummaryDtoSchema.ts";
+export { adminPaymentSummaryDtoSchema } from "./adminPaymentSummaryDtoSchema.ts";
 export { adminWorkflowSummaryDtoSchema } from "./adminWorkflowSummaryDtoSchema.ts";
 export { apiErrorDtoSchema } from "./apiErrorDtoSchema.ts";
 export { apiResponseDtoSchema } from "./apiResponseDtoSchema.ts";
@@ -156,6 +157,7 @@ export {
   dashboardControllerAdmin200Schema,
   dashboardControllerAdmin401Schema,
   dashboardControllerAdmin403Schema,
+  dashboardControllerAdminQueryParamsSchema,
   dashboardControllerAdminQueryResponseSchema,
 } from "./dashboardController/dashboardControllerAdminSchema.ts";
 export {

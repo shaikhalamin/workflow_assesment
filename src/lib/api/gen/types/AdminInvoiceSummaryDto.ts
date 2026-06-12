@@ -8,4 +8,12 @@ export type AdminInvoiceSummaryDto = {
    * @type number
    */
   issued: number;
+  /**
+   * @type number
+   */
+  paid: number;
+  /**
+   * @type number
+   */
+  cancelled: number;
 };

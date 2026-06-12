@@ -74,6 +74,7 @@ export type { WorkflowTemplateControllerUpdateMutationKey } from "./hooks/workfl
 export type { AccountsDashboardResponseDto } from "./types/AccountsDashboardResponseDto.ts";
 export type { AdminDashboardResponseDto } from "./types/AdminDashboardResponseDto.ts";
 export type { AdminInvoiceSummaryDto } from "./types/AdminInvoiceSummaryDto.ts";
+export type { AdminPaymentSummaryDto } from "./types/AdminPaymentSummaryDto.ts";
 export type { AdminWorkflowSummaryDto } from "./types/AdminWorkflowSummaryDto.ts";
 export type { ApiErrorDto } from "./types/ApiErrorDto.ts";
 export type { ApiResponseDto } from "./types/ApiResponseDto.ts";
@@ -345,6 +346,7 @@ export type {
   DashboardControllerAdmin401,
   DashboardControllerAdmin403,
   DashboardControllerAdminQuery,
+  DashboardControllerAdminQueryParams,
   DashboardControllerAdminQueryResponse,
 } from "./types/dashboardController/DashboardControllerAdmin.ts";
 export type {
@@ -1178,6 +1180,7 @@ export { workflowTemplateControllerUpdateMutationOptions } from "./hooks/workflo
 export { accountsDashboardResponseDtoSchema } from "./zod/accountsDashboardResponseDtoSchema.ts";
 export { adminDashboardResponseDtoSchema } from "./zod/adminDashboardResponseDtoSchema.ts";
 export { adminInvoiceSummaryDtoSchema } from "./zod/adminInvoiceSummaryDtoSchema.ts";
+export { adminPaymentSummaryDtoSchema } from "./zod/adminPaymentSummaryDtoSchema.ts";
 export { adminWorkflowSummaryDtoSchema } from "./zod/adminWorkflowSummaryDtoSchema.ts";
 export { apiErrorDtoSchema } from "./zod/apiErrorDtoSchema.ts";
 export { apiResponseDtoSchema } from "./zod/apiResponseDtoSchema.ts";
@@ -1333,6 +1336,7 @@ export {
   dashboardControllerAdmin200Schema,
   dashboardControllerAdmin401Schema,
   dashboardControllerAdmin403Schema,
+  dashboardControllerAdminQueryParamsSchema,
   dashboardControllerAdminQueryResponseSchema,
 } from "./zod/dashboardController/dashboardControllerAdminSchema.ts";
 export {

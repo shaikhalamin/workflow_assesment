@@ -5,6 +5,7 @@
 
 import type {
   DashboardControllerAdminQueryResponse,
+  DashboardControllerAdminQueryParams,
   DashboardControllerAdmin401,
   DashboardControllerAdmin403,
 } from "../../types/dashboardController/DashboardControllerAdmin.ts";
@@ -22,17 +23,19 @@ import type {
 import { dashboardControllerAdmin } from "../../clients/dashboardController/dashboardControllerAdmin.ts";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
-export const dashboardControllerAdminQueryKey = () =>
-  [{ url: "/api/dashboard/admin" }] as const;
+export const dashboardControllerAdminQueryKey = (
+  params?: DashboardControllerAdminQueryParams,
+) => [{ url: "/api/dashboard/admin" }, ...(params ? [params] : [])] as const;
 
 export type DashboardControllerAdminQueryKey = ReturnType<
   typeof dashboardControllerAdminQueryKey
 >;
 
 export function dashboardControllerAdminQueryOptions(
+  { params }: { params?: DashboardControllerAdminQueryParams } = {},
   config: Partial<RequestConfig> & { client?: Client } = {},
 ) {
-  const queryKey = dashboardControllerAdminQueryKey();
+  const queryKey = dashboardControllerAdminQueryKey(params);
   return queryOptions<
     DashboardControllerAdminQueryResponse,
     ResponseErrorConfig<
@@ -43,10 +46,10 @@ export function dashboardControllerAdminQueryOptions(
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      return dashboardControllerAdmin({
-        ...config,
-        signal: config.signal ?? signal,
-      });
+      return dashboardControllerAdmin(
+        { params: params },
+        { ...config, signal: config.signal ?? signal },
+      );
     },
   });
 }
@@ -59,6 +62,7 @@ export function useDashboardControllerAdmin<
   TQueryData = DashboardControllerAdminQueryResponse,
   TQueryKey extends QueryKey = DashboardControllerAdminQueryKey,
 >(
+  { params }: { params?: DashboardControllerAdminQueryParams } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
@@ -77,11 +81,11 @@ export function useDashboardControllerAdmin<
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
   const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    resolvedOptions?.queryKey ?? dashboardControllerAdminQueryKey();
+    resolvedOptions?.queryKey ?? dashboardControllerAdminQueryKey(params);
 
   const query = useQuery(
     {
-      ...dashboardControllerAdminQueryOptions(config),
+      ...dashboardControllerAdminQueryOptions({ params }, config),
       ...resolvedOptions,
       queryKey,
     } as unknown as QueryObserverOptions,

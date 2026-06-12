@@ -23,11 +23,22 @@
       "type": "object",
       "properties": {
         "draft": { "type": "number", "example": 2 },
+        "submitted": { "type": "number", "example": 4 },
         "underReview": { "type": "number", "example": 3 },
+        "approved": { "type": "number", "example": 6 },
         "rejected": { "type": "number", "example": 1 },
-        "invoiced": { "type": "number", "example": 5 }
+        "invoiced": { "type": "number", "example": 5 },
+        "cancelled": { "type": "number", "example": 1 }
       },
-      "required": ["draft", "underReview", "rejected", "invoiced"],
+      "required": [
+        "draft",
+        "submitted",
+        "underReview",
+        "approved",
+        "rejected",
+        "invoiced",
+        "cancelled"
+      ],
       "x-readme-ref-name": "BillingSummaryDto"
     },
     "recentInvoices": {

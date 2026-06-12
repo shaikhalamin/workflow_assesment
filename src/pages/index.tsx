@@ -25,12 +25,7 @@ import { useBillingControllerFindOne } from '@/lib/api/gen'
 import { useBillingControllerList } from '@/lib/api/gen'
 import { useBillingControllerResubmit } from '@/lib/api/gen'
 import { useBillingControllerSubmit } from '@/lib/api/gen'
-import { useDashboardControllerAccounts } from '@/lib/api/gen'
 import { useDashboardControllerAdmin } from '@/lib/api/gen'
-import { useDashboardControllerApprover } from '@/lib/api/gen'
-import { useDashboardControllerEmployee } from '@/lib/api/gen'
-import { useDashboardControllerFinance } from '@/lib/api/gen'
-import { useDashboardControllerHr } from '@/lib/api/gen'
 import { useExpensesControllerCreate } from '@/lib/api/gen'
 import { useExpensesControllerDelete } from '@/lib/api/gen'
 import { useExpensesControllerFindOne } from '@/lib/api/gen'
@@ -846,6 +841,107 @@ function Metric({
   )
 }
 
+type StatusChartItem = {
+  label: string
+  value: number
+  className: string
+}
+
+function statusTotal(items: StatusChartItem[]) {
+  return items.reduce((total, item) => total + item.value, 0)
+}
+
+function StatusBars({
+  title,
+  items,
+}: {
+  title: string
+  items: StatusChartItem[]
+}) {
+  const total = statusTotal(items)
+
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
+        <span className="font-mono text-xs text-[var(--muted-foreground)]">
+          Total {total}
+        </span>
+      </div>
+      <div className="mt-4 space-y-3">
+        {items.map((item) => {
+          const width = total > 0 ? Math.max((item.value / total) * 100, 4) : 0
+          return (
+            <div key={item.label} className="space-y-1.5">
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span className="font-medium text-[var(--ink-3)]">{item.label}</span>
+                <span className="font-mono text-[var(--muted-foreground)]">
+                  {item.value}
+                </span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-[var(--surface-3)]">
+                <div
+                  className={`h-full rounded-full ${item.className}`}
+                  style={{ width: `${width}%` }}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function RecentActivityList({
+  items,
+}: {
+  items: Array<{ id: string; type: string; title: string; createdAt: string }>
+}) {
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold tracking-tight">
+          Recent workflow activity
+        </h2>
+        <span className="font-mono text-xs text-[var(--muted-foreground)]">
+          Latest {items.length}
+        </span>
+      </div>
+      <div className="mt-4 divide-y divide-[var(--border)]">
+        {items.length ? (
+          items.map((item) => (
+            <div
+              key={item.id}
+              className="grid gap-2 py-3 text-sm sm:grid-cols-[1fr_auto]"
+            >
+              <div className="min-w-0">
+                <p className="truncate font-medium text-[var(--foreground)]">
+                  {item.title}
+                </p>
+                <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                  {item.type}
+                </p>
+              </div>
+              <p className="font-mono text-xs text-[var(--muted-foreground)]">
+                {formatDate(item.createdAt)}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="py-6 text-sm text-[var(--muted-foreground)]">
+            No workflow activity for this date range.
+          </p>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function dateInputValue(value: Date) {
+  return value.toISOString().slice(0, 10)
+}
+
 export function PermissionsPage() {
   const rolesQuery = useRbacControllerListRoles()
   const permissionsQuery = useRbacControllerListPermissions()
@@ -1050,144 +1146,173 @@ export function PermissionsPage() {
 }
 
 export function DashboardPage() {
-  const admin = useDashboardControllerAdmin()
-  const employee = useDashboardControllerEmployee()
-  const approver = useDashboardControllerApprover()
-  const accounts = useDashboardControllerAccounts()
-  const finance = useDashboardControllerFinance()
-  const hr = useDashboardControllerHr()
-  const pending = useWorkflowRuntimeControllerMyPending()
-  const adminData = unwrapData(admin.data)
-  const employeeData = unwrapData(employee.data)
-  const approverData = unwrapData(approver.data)
-  const accountsData = unwrapData(accounts.data)
-  const financeData = unwrapData(finance.data)
-  const hrData = unwrapData(hr.data)
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [query, setQuery] = useState('')
-  const pendingRows = (unwrapData(pending.data) as WorkflowStepResponseDto[] | undefined) ?? []
-  const filteredPendingRows = pendingRows.filter((row) => {
-    const matchesStatus = statusFilter === 'all' || row.status === statusFilter
-    const request = row.request
-    const searchable = [
-      request?.title,
-      request?.type,
-      requesterLabel(request),
-      requestAmountOrDaysLabel(request),
-      row.stepName,
-      row.stepType,
-      row.assigneeType,
-      row.status,
-      formatValue(row.assignedRoleSlug),
-      formatValue(row.assignedUserId),
-    ]
-      .join(' ')
-      .toLowerCase()
-    return matchesStatus && searchable.includes(query.toLowerCase())
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const admin = useDashboardControllerAdmin({
+    params: {
+      ...(from ? { from } : {}),
+      ...(to ? { to } : {}),
+    },
   })
-  const recentInvoiceRows = (employeeData?.recentInvoices ?? [])
-    .map(invoicePdfDataFromUnknown)
-    .filter((invoice): invoice is InvoicePdfData => Boolean(invoice))
+  const adminData = unwrapData(admin.data)
+  const workflows = adminData?.workflows
+  const billing = adminData?.billing
+  const invoices = adminData?.invoices
+  const payments = adminData?.payments
+  const workflowItems = [
+    {
+      label: 'Active',
+      value: workflows?.active ?? 0,
+      className: 'bg-teal-600',
+    },
+    {
+      label: 'Approved',
+      value: workflows?.approved ?? 0,
+      className: 'bg-emerald-600',
+    },
+    {
+      label: 'Rejected',
+      value: workflows?.rejected ?? 0,
+      className: 'bg-rose-600',
+    },
+    {
+      label: 'Failed',
+      value: workflows?.failed ?? 0,
+      className: 'bg-amber-600',
+    },
+  ]
+  const billingItems = [
+    { label: 'Draft', value: billing?.draft ?? 0, className: 'bg-slate-500' },
+    {
+      label: 'Submitted',
+      value: billing?.submitted ?? 0,
+      className: 'bg-sky-600',
+    },
+    {
+      label: 'Under review',
+      value: billing?.underReview ?? 0,
+      className: 'bg-amber-600',
+    },
+    {
+      label: 'Approved',
+      value: billing?.approved ?? 0,
+      className: 'bg-emerald-600',
+    },
+    {
+      label: 'Rejected',
+      value: billing?.rejected ?? 0,
+      className: 'bg-rose-600',
+    },
+    {
+      label: 'Invoiced',
+      value: billing?.invoiced ?? 0,
+      className: 'bg-indigo-600',
+    },
+    {
+      label: 'Cancelled',
+      value: billing?.cancelled ?? 0,
+      className: 'bg-zinc-500',
+    },
+  ]
+  const invoiceItems = [
+    { label: 'Issued', value: invoices?.issued ?? 0, className: 'bg-blue-600' },
+    { label: 'Paid', value: invoices?.paid ?? 0, className: 'bg-emerald-600' },
+    {
+      label: 'Cancelled',
+      value: invoices?.cancelled ?? 0,
+      className: 'bg-zinc-500',
+    },
+  ]
+  const paymentItems = [
+    {
+      label: 'Pending',
+      value: payments?.pending ?? 0,
+      className: 'bg-amber-600',
+    },
+    { label: 'Paid', value: payments?.paid ?? 0, className: 'bg-emerald-600' },
+    {
+      label: 'Cancelled',
+      value: payments?.cancelled ?? 0,
+      className: 'bg-zinc-500',
+    },
+  ]
+
+  const setLastThirtyDays = () => {
+    const end = new Date()
+    const start = new Date()
+    start.setDate(end.getDate() - 29)
+    setFrom(dateInputValue(start))
+    setTo(dateInputValue(end))
+  }
+
+  const clearFilters = () => {
+    setFrom('')
+    setTo('')
+  }
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">
-            Operations
-          </p>
-          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--foreground)] sm:text-[26px]">
-            Dashboard
-          </h1>
-          <p className="mt-1 max-w-3xl text-sm text-[var(--muted-foreground)]">
-            Role-aware operational summary across workflow configuration, approvals, HR, and accounts.
-          </p>
-        </div>
-      </header>
-      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-        <Metric label="Published workflows" value={adminData?.workflows?.active} tone="success" />
-        <Metric label="Pending approvals" value={approverData?.pendingTasks} tone="warning" />
-        <Metric label="Expense drafts" value={employeeData?.expenses?.draft} />
-        <Metric label="Pending payments" value={accountsData?.pendingPayments} tone="warning" />
-        <Metric label="Billing under review" value={employeeData?.billing?.underReview} />
-        <Metric label="Issued invoices" value={accountsData?.issuedInvoices} />
-        <Metric label="Paid invoices" value={financeData?.invoices?.paid} tone="success" />
-        <Metric label="HR leave tasks" value={hrData?.leaveTasks} />
-        <Metric label="Failed triggers" value={adminData?.failedTriggers} tone="warning" />
-        <Metric label="Acted tasks" value={approverData?.actedTasks} tone="success" />
-        <Metric label="Leave under review" value={employeeData?.leaves?.underReview} />
-      </div>
-      {recentInvoiceRows.length ? (
-        <section className="space-y-3">
-          <div>
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">
-              Recent invoices
-            </p>
-            <h2 className="text-lg font-semibold tracking-tight">My invoices</h2>
+      <PageHeader
+        kicker="Operations"
+        title="Executive Operations Summary"
+        description="Management view across workflows, billing, invoices, payments, failed triggers, and recent activity."
+      />
+      <ErrorNotice error={admin.error} />
+      <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[180px] flex-1">
+            <FormField label="From" htmlFor="dashboard-from">
+              <FormInput
+                id="dashboard-from"
+                type="date"
+                value={from}
+                onChange={(event) => setFrom(event.target.value)}
+              />
+            </FormField>
           </div>
-          <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-white shadow-sm">
-            <div className="divide-y divide-[var(--border)]">
-              {recentInvoiceRows.map((invoice) => (
-                <div
-                  key={invoice.id}
-                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium text-[var(--foreground)]">
-                      {invoice.invoiceNumber}
-                    </p>
-                    <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                      {invoice.title} - {invoice.amount} {invoice.currency}
-                    </p>
-                  </div>
-                  <InvoiceDownloadLink
-                    invoice={invoice}
-                    className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download invoice
-                  </InvoiceDownloadLink>
-                </div>
-              ))}
-            </div>
+          <div className="min-w-[180px] flex-1">
+            <FormField label="To" htmlFor="dashboard-to">
+              <FormInput
+                id="dashboard-to"
+                type="date"
+                value={to}
+                onChange={(event) => setTo(event.target.value)}
+              />
+            </FormField>
           </div>
-        </section>
-      ) : null}
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">
-              Pending approvals
-            </p>
-            <h2 className="text-lg font-semibold tracking-tight">My approval queue</h2>
+          <div className="flex flex-wrap gap-2 pb-0.5">
+            <Button type="button" variant="secondary" onClick={setLastThirtyDays}>
+              Last 30 days
+            </Button>
+            <Button type="button" variant="ghost" onClick={clearFilters}>
+              Clear
+            </Button>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {['all', 'ACTIVE', 'WAITING', 'APPROVED', 'REJECTED'].map((status) => (
-            <button
-              key={status}
-              type="button"
-              onClick={() => setStatusFilter(status)}
-              className={`rounded-full border px-2.5 py-1 text-[12px] font-medium ${
-                statusFilter === status
-                  ? 'border-[var(--foreground)] bg-[var(--foreground)] text-white'
-                  : 'border-[var(--border)] bg-white text-[var(--ink-3)] hover:bg-[var(--surface-2)]'
-              }`}
-            >
-              {status === 'all' ? 'All' : status.replaceAll('_', ' ')}
-            </button>
-          ))}
-          <div className="ml-0 flex w-full items-center gap-2 rounded-md border border-[var(--border)] bg-white px-2.5 py-1.5 sm:ml-auto sm:max-w-[280px]">
-            <FormInput
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search task, type, assignee"
-              className="h-7 border-0 px-0 focus:ring-0"
-            />
-          </div>
-        </div>
-        <TaskTable rows={filteredPendingRows} />
       </section>
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+        <Metric label="Active workflows" value={workflows?.active} tone="success" />
+        <Metric label="Approved workflows" value={workflows?.approved} tone="success" />
+        <Metric label="Rejected workflows" value={workflows?.rejected} />
+        <Metric label="Failed workflows" value={workflows?.failed} tone="warning" />
+        <Metric label="Billing under review" value={billing?.underReview} />
+        <Metric label="Issued invoices" value={invoices?.issued} />
+        <Metric label="Paid invoices" value={invoices?.paid} tone="success" />
+        <Metric label="Pending payments" value={payments?.pending} tone="warning" />
+        <Metric label="Failed triggers" value={adminData?.failedTriggers} tone="warning" />
+      </div>
+      {admin.isLoading ? (
+        <p className="rounded-lg border border-[var(--border)] bg-white p-4 text-sm text-[var(--muted-foreground)]">
+          Loading executive summary...
+        </p>
+      ) : null}
+      <div className="grid gap-4 xl:grid-cols-2">
+        <StatusBars title="Workflow status" items={workflowItems} />
+        <StatusBars title="Billing requests" items={billingItems} />
+        <StatusBars title="Invoice status" items={invoiceItems} />
+        <StatusBars title="Payment status" items={paymentItems} />
+      </div>
+      <RecentActivityList items={adminData?.recentWorkflowChanges ?? []} />
     </div>
   )
 }

@@ -8,6 +8,7 @@ export {
   dashboardControllerAdmin200Schema,
   dashboardControllerAdmin401Schema,
   dashboardControllerAdmin403Schema,
+  dashboardControllerAdminQueryParamsSchema,
   dashboardControllerAdminQueryResponseSchema,
 } from "./dashboardControllerAdminSchema.ts";
 export {

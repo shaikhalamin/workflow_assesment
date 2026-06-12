@@ -4,6 +4,7 @@
  */
 
 import { adminInvoiceSummaryDtoSchema } from "./adminInvoiceSummaryDtoSchema.ts";
+import { adminPaymentSummaryDtoSchema } from "./adminPaymentSummaryDtoSchema.ts";
 import { adminWorkflowSummaryDtoSchema } from "./adminWorkflowSummaryDtoSchema.ts";
 import { billingSummaryDtoSchema } from "./billingSummaryDtoSchema.ts";
 import { dashboardRecentItemDtoSchema } from "./dashboardRecentItemDtoSchema.ts";
@@ -18,6 +19,9 @@ export const adminDashboardResponseDtoSchema = z.object({
   },
   get invoices() {
     return adminInvoiceSummaryDtoSchema;
+  },
+  get payments() {
+    return adminPaymentSummaryDtoSchema;
   },
   get recentWorkflowChanges() {
     return z.array(dashboardRecentItemDtoSchema);

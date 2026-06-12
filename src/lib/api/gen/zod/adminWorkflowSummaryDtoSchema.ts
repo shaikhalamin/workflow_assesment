@@ -9,4 +9,5 @@ export const adminWorkflowSummaryDtoSchema = z.object({
   active: z.number(),
   approved: z.number(),
   rejected: z.number(),
+  failed: z.number(),
 });

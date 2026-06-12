@@ -5,8 +5,8 @@
 
 import { z } from "zod/v4";
 
-export const adminInvoiceSummaryDtoSchema = z.object({
-  issued: z.number(),
+export const adminPaymentSummaryDtoSchema = z.object({
+  pending: z.number(),
   paid: z.number(),
   cancelled: z.number(),
 });

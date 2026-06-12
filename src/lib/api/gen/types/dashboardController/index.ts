@@ -10,6 +10,7 @@ export type {
   DashboardControllerAdmin401,
   DashboardControllerAdmin403,
   DashboardControllerAdminQuery,
+  DashboardControllerAdminQueryParams,
   DashboardControllerAdminQueryResponse,
 } from "./DashboardControllerAdmin.ts";
 export type {

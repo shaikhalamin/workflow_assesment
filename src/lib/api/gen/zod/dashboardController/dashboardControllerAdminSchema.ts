@@ -8,6 +8,13 @@ import { apiErrorDtoSchema } from "../apiErrorDtoSchema.ts";
 import { apiResponseDtoSchema } from "../apiResponseDtoSchema.ts";
 import { z } from "zod/v4";
 
+export const dashboardControllerAdminQueryParamsSchema = z
+  .object({
+    from: z.optional(z.iso.date()),
+    to: z.optional(z.iso.date()),
+  })
+  .optional();
+
 export const dashboardControllerAdmin200Schema = z
   .lazy(() => apiResponseDtoSchema)
   .and(

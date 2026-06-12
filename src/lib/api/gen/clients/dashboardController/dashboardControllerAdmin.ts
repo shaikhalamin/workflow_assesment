@@ -6,6 +6,7 @@
 import fetch from "@/lib/api/client.ts";
 import type {
   DashboardControllerAdminQueryResponse,
+  DashboardControllerAdminQueryParams,
   DashboardControllerAdmin401,
   DashboardControllerAdmin403,
 } from "../../types/dashboardController/DashboardControllerAdmin.ts";
@@ -24,6 +25,7 @@ function getDashboardControllerAdminUrl() {
  * {@link /api/dashboard/admin}
  */
 export async function dashboardControllerAdmin(
+  { params }: { params?: DashboardControllerAdminQueryParams } = {},
   config: Partial<RequestConfig> & { client?: Client } = {},
 ) {
   const { client: request = fetch, ...requestConfig } = config;
@@ -37,6 +39,7 @@ export async function dashboardControllerAdmin(
   >({
     method: "GET",
     url: getDashboardControllerAdminUrl().url.toString(),
+    params,
     ...requestConfig,
   });
   return res.data;

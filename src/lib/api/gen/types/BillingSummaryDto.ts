@@ -11,7 +11,15 @@ export type BillingSummaryDto = {
   /**
    * @type number
    */
+  submitted: number;
+  /**
+   * @type number
+   */
   underReview: number;
+  /**
+   * @type number
+   */
+  approved: number;
   /**
    * @type number
    */
@@ -20,4 +28,8 @@ export type BillingSummaryDto = {
    * @type number
    */
   invoiced: number;
+  /**
+   * @type number
+   */
+  cancelled: number;
 };

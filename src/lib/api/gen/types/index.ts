@@ -1,6 +1,7 @@
 export type { AccountsDashboardResponseDto } from "./AccountsDashboardResponseDto.ts";
 export type { AdminDashboardResponseDto } from "./AdminDashboardResponseDto.ts";
 export type { AdminInvoiceSummaryDto } from "./AdminInvoiceSummaryDto.ts";
+export type { AdminPaymentSummaryDto } from "./AdminPaymentSummaryDto.ts";
 export type { AdminWorkflowSummaryDto } from "./AdminWorkflowSummaryDto.ts";
 export type { ApiErrorDto } from "./ApiErrorDto.ts";
 export type { ApiResponseDto } from "./ApiResponseDto.ts";
@@ -272,6 +273,7 @@ export type {
   DashboardControllerAdmin401,
   DashboardControllerAdmin403,
   DashboardControllerAdminQuery,
+  DashboardControllerAdminQueryParams,
   DashboardControllerAdminQueryResponse,
 } from "./dashboardController/DashboardControllerAdmin.ts";
 export type {

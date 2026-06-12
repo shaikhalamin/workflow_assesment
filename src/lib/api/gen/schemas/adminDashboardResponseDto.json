@@ -6,27 +6,53 @@
       "properties": {
         "active": { "type": "number", "example": 8 },
         "approved": { "type": "number", "example": 42 },
-        "rejected": { "type": "number", "example": 3 }
+        "rejected": { "type": "number", "example": 3 },
+        "failed": { "type": "number", "example": 1 }
       },
-      "required": ["active", "approved", "rejected"],
+      "required": ["active", "approved", "rejected", "failed"],
       "x-readme-ref-name": "AdminWorkflowSummaryDto"
     },
     "billing": {
       "type": "object",
       "properties": {
         "draft": { "type": "number", "example": 2 },
+        "submitted": { "type": "number", "example": 4 },
         "underReview": { "type": "number", "example": 3 },
+        "approved": { "type": "number", "example": 6 },
         "rejected": { "type": "number", "example": 1 },
-        "invoiced": { "type": "number", "example": 5 }
+        "invoiced": { "type": "number", "example": 5 },
+        "cancelled": { "type": "number", "example": 1 }
       },
-      "required": ["draft", "underReview", "rejected", "invoiced"],
+      "required": [
+        "draft",
+        "submitted",
+        "underReview",
+        "approved",
+        "rejected",
+        "invoiced",
+        "cancelled"
+      ],
       "x-readme-ref-name": "BillingSummaryDto"
     },
     "invoices": {
       "type": "object",
-      "properties": { "issued": { "type": "number", "example": 7 } },
-      "required": ["issued"],
+      "properties": {
+        "issued": { "type": "number", "example": 7 },
+        "paid": { "type": "number", "example": 3 },
+        "cancelled": { "type": "number", "example": 1 }
+      },
+      "required": ["issued", "paid", "cancelled"],
       "x-readme-ref-name": "AdminInvoiceSummaryDto"
+    },
+    "payments": {
+      "type": "object",
+      "properties": {
+        "pending": { "type": "number", "example": 9 },
+        "paid": { "type": "number", "example": 4 },
+        "cancelled": { "type": "number", "example": 1 }
+      },
+      "required": ["pending", "paid", "cancelled"],
+      "x-readme-ref-name": "AdminPaymentSummaryDto"
     },
     "recentWorkflowChanges": {
       "type": "array",
@@ -54,6 +80,7 @@
     "workflows",
     "billing",
     "invoices",
+    "payments",
     "recentWorkflowChanges",
     "failedTriggers"
   ],

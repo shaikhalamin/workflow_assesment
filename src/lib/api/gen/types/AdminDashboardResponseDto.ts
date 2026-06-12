@@ -4,6 +4,7 @@
  */
 
 import type { AdminInvoiceSummaryDto } from "./AdminInvoiceSummaryDto.ts";
+import type { AdminPaymentSummaryDto } from "./AdminPaymentSummaryDto.ts";
 import type { AdminWorkflowSummaryDto } from "./AdminWorkflowSummaryDto.ts";
 import type { BillingSummaryDto } from "./BillingSummaryDto.ts";
 import type { DashboardRecentItemDto } from "./DashboardRecentItemDto.ts";
@@ -21,6 +22,10 @@ export type AdminDashboardResponseDto = {
    * @type object
    */
   invoices: AdminInvoiceSummaryDto;
+  /**
+   * @type object
+   */
+  payments: AdminPaymentSummaryDto;
   /**
    * @type array
    */

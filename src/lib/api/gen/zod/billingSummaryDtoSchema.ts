@@ -7,7 +7,10 @@ import { z } from "zod/v4";
 
 export const billingSummaryDtoSchema = z.object({
   draft: z.number(),
+  submitted: z.number(),
   underReview: z.number(),
+  approved: z.number(),
   rejected: z.number(),
   invoiced: z.number(),
+  cancelled: z.number(),
 });

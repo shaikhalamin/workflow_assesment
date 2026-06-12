@@ -9,7 +9,6 @@ import {
   BillingCreatePage,
   BillingDetailPage,
   BillingRequestsPage,
-  DashboardPage,
   InvoiceDetailPage,
   InvoicesPage,
 } from './index'
@@ -339,10 +338,4 @@ describe('billing and invoice pages', () => {
     expect(within(reference).getByText('billing-1')).toBeInTheDocument()
   })
 
-  it('shows requester dashboard invoice downloads for recent invoices', () => {
-    render(<DashboardPage />)
-
-    expect(screen.getByText('INV-20260610-0001')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /download invoice/i })).toBeInTheDocument()
-  })
 })

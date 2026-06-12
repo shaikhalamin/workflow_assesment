@@ -3,21 +3,17 @@
  * Do not edit manually.
  */
 
-export type AdminWorkflowSummaryDto = {
+export type AdminPaymentSummaryDto = {
   /**
    * @type number
    */
-  active: number;
+  pending: number;
   /**
    * @type number
    */
-  approved: number;
+  paid: number;
   /**
    * @type number
    */
-  rejected: number;
-  /**
-   * @type number
-   */
-  failed: number;
+  cancelled: number;
 };

@@ -7,6 +7,17 @@ import type { AdminDashboardResponseDto } from "../AdminDashboardResponseDto.ts"
 import type { ApiErrorDto } from "../ApiErrorDto.ts";
 import type { ApiResponseDto } from "../ApiResponseDto.ts";
 
+export type DashboardControllerAdminQueryParams = {
+  /**
+   * @type string | undefined, date
+   */
+  from?: string;
+  /**
+   * @type string | undefined, date
+   */
+  to?: string;
+};
+
 export type DashboardControllerAdmin200 = ApiResponseDto & {
   /**
    * @type object
@@ -50,5 +61,6 @@ export type DashboardControllerAdminQueryResponse = DashboardControllerAdmin200;
 
 export type DashboardControllerAdminQuery = {
   Response: DashboardControllerAdmin200;
+  QueryParams: DashboardControllerAdminQueryParams;
   Errors: DashboardControllerAdmin401 | DashboardControllerAdmin403;
 };

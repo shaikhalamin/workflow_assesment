@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "pending": { "type": "number", "example": 9 },
+    "paid": { "type": "number", "example": 4 },
+    "cancelled": { "type": "number", "example": 1 }
+  },
+  "required": ["pending", "paid", "cancelled"],
+  "x-readme-ref-name": "AdminPaymentSummaryDto"
+}
