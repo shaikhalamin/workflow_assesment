@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "1f8fd6c2-aef2-4f65-b58a-9f145d66a011"
+    },
+    "name": { "type": "string", "example": "Read expenses" },
+    "slug": { "type": "string", "example": "expenses.read" },
+    "description": {
+      "type": "string",
+      "example": "Allows viewing expense requests",
+      "nullable": true
+    },
+    "resource": { "type": "string", "example": "expenses" },
+    "action": { "type": "string", "example": "read" },
+    "createdAt": { "type": "string", "example": "2026-06-12T10:00:00.000Z" },
+    "updatedAt": { "type": "string", "example": "2026-06-12T10:00:00.000Z" }
+  },
+  "required": [
+    "id",
+    "name",
+    "slug",
+    "description",
+    "resource",
+    "action",
+    "createdAt",
+    "updatedAt"
+  ],
+  "x-readme-ref-name": "RbacPermissionResponseDto"
+}

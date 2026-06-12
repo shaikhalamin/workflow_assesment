@@ -58,6 +58,8 @@ export type {
   PaymentRequestResponseDto,
   PaymentRequestResponseDtoStatusEnum,
 } from "./PaymentRequestResponseDto.ts";
+export type { RbacPermissionResponseDto } from "./RbacPermissionResponseDto.ts";
+export type { RbacRoleResponseDto } from "./RbacRoleResponseDto.ts";
 export type { ResubmitBillingRequestDto } from "./ResubmitBillingRequestDto.ts";
 export type { ResubmitExpenseDto } from "./ResubmitExpenseDto.ts";
 export type { ResubmitLeaveDto } from "./ResubmitLeaveDto.ts";
@@ -67,6 +69,7 @@ export type { TriggerWorkflowDto } from "./TriggerWorkflowDto.ts";
 export type { UpdateBillingRequestDto } from "./UpdateBillingRequestDto.ts";
 export type { UpdateExpenseDto } from "./UpdateExpenseDto.ts";
 export type { UpdateLeaveDto } from "./UpdateLeaveDto.ts";
+export type { UpdateRolePermissionsDto } from "./UpdateRolePermissionsDto.ts";
 export type { UpdateWorkflowEventSchemaDto } from "./UpdateWorkflowEventSchemaDto.ts";
 export type { UpdateWorkflowRuleDto } from "./UpdateWorkflowRuleDto.ts";
 export type {
@@ -511,6 +514,34 @@ export type {
   PaymentsControllerMarkPaidMutationResponse,
   PaymentsControllerMarkPaidPathParams,
 } from "./paymentRequestsController/PaymentsControllerMarkPaid.ts";
+export type {
+  RbacControllerListPermissions200,
+  RbacControllerListPermissions401,
+  RbacControllerListPermissions403,
+  RbacControllerListPermissions429,
+  RbacControllerListPermissionsQuery,
+  RbacControllerListPermissionsQueryResponse,
+} from "./rbacController/RbacControllerListPermissions.ts";
+export type {
+  RbacControllerListRoles200,
+  RbacControllerListRoles401,
+  RbacControllerListRoles403,
+  RbacControllerListRoles429,
+  RbacControllerListRolesQuery,
+  RbacControllerListRolesQueryResponse,
+} from "./rbacController/RbacControllerListRoles.ts";
+export type {
+  RbacControllerReplaceRolePermissions200,
+  RbacControllerReplaceRolePermissions400,
+  RbacControllerReplaceRolePermissions401,
+  RbacControllerReplaceRolePermissions403,
+  RbacControllerReplaceRolePermissions404,
+  RbacControllerReplaceRolePermissions429,
+  RbacControllerReplaceRolePermissionsMutation,
+  RbacControllerReplaceRolePermissionsMutationRequest,
+  RbacControllerReplaceRolePermissionsMutationResponse,
+  RbacControllerReplaceRolePermissionsPathParams,
+} from "./rbacController/RbacControllerReplaceRolePermissions.ts";
 export type {
   UsersControllerGetUsers200,
   UsersControllerGetUsers400,

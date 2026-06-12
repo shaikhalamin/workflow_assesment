@@ -41,6 +41,9 @@ export type { LeavesControllerUpdateMutationKey } from "./hooks/leavesController
 export type { PaymentsControllerFindOneQueryKey } from "./hooks/paymentRequestsController/usePaymentsControllerFindOne.ts";
 export type { PaymentsControllerListQueryKey } from "./hooks/paymentRequestsController/usePaymentsControllerList.ts";
 export type { PaymentsControllerMarkPaidMutationKey } from "./hooks/paymentRequestsController/usePaymentsControllerMarkPaid.ts";
+export type { RbacControllerListPermissionsQueryKey } from "./hooks/rbacController/useRbacControllerListPermissions.ts";
+export type { RbacControllerListRolesQueryKey } from "./hooks/rbacController/useRbacControllerListRoles.ts";
+export type { RbacControllerReplaceRolePermissionsMutationKey } from "./hooks/rbacController/useRbacControllerReplaceRolePermissions.ts";
 export type { UsersControllerGetUsersQueryKey } from "./hooks/usersController/useUsersControllerGetUsers.ts";
 export type { WorkflowEventSchemaControllerCreateMutationKey } from "./hooks/workflowEventSchemasController/useWorkflowEventSchemaControllerCreate.ts";
 export type { WorkflowEventSchemaControllerDeactivateMutationKey } from "./hooks/workflowEventSchemasController/useWorkflowEventSchemaControllerDeactivate.ts";
@@ -128,6 +131,8 @@ export type {
   PaymentRequestResponseDto,
   PaymentRequestResponseDtoStatusEnum,
 } from "./types/PaymentRequestResponseDto.ts";
+export type { RbacPermissionResponseDto } from "./types/RbacPermissionResponseDto.ts";
+export type { RbacRoleResponseDto } from "./types/RbacRoleResponseDto.ts";
 export type { ResubmitBillingRequestDto } from "./types/ResubmitBillingRequestDto.ts";
 export type { ResubmitExpenseDto } from "./types/ResubmitExpenseDto.ts";
 export type { ResubmitLeaveDto } from "./types/ResubmitLeaveDto.ts";
@@ -137,6 +142,7 @@ export type { TriggerWorkflowDto } from "./types/TriggerWorkflowDto.ts";
 export type { UpdateBillingRequestDto } from "./types/UpdateBillingRequestDto.ts";
 export type { UpdateExpenseDto } from "./types/UpdateExpenseDto.ts";
 export type { UpdateLeaveDto } from "./types/UpdateLeaveDto.ts";
+export type { UpdateRolePermissionsDto } from "./types/UpdateRolePermissionsDto.ts";
 export type { UpdateWorkflowEventSchemaDto } from "./types/UpdateWorkflowEventSchemaDto.ts";
 export type { UpdateWorkflowRuleDto } from "./types/UpdateWorkflowRuleDto.ts";
 export type {
@@ -582,6 +588,34 @@ export type {
   PaymentsControllerMarkPaidPathParams,
 } from "./types/paymentRequestsController/PaymentsControllerMarkPaid.ts";
 export type {
+  RbacControllerListPermissions200,
+  RbacControllerListPermissions401,
+  RbacControllerListPermissions403,
+  RbacControllerListPermissions429,
+  RbacControllerListPermissionsQuery,
+  RbacControllerListPermissionsQueryResponse,
+} from "./types/rbacController/RbacControllerListPermissions.ts";
+export type {
+  RbacControllerListRoles200,
+  RbacControllerListRoles401,
+  RbacControllerListRoles403,
+  RbacControllerListRoles429,
+  RbacControllerListRolesQuery,
+  RbacControllerListRolesQueryResponse,
+} from "./types/rbacController/RbacControllerListRoles.ts";
+export type {
+  RbacControllerReplaceRolePermissions200,
+  RbacControllerReplaceRolePermissions400,
+  RbacControllerReplaceRolePermissions401,
+  RbacControllerReplaceRolePermissions403,
+  RbacControllerReplaceRolePermissions404,
+  RbacControllerReplaceRolePermissions429,
+  RbacControllerReplaceRolePermissionsMutation,
+  RbacControllerReplaceRolePermissionsMutationRequest,
+  RbacControllerReplaceRolePermissionsMutationResponse,
+  RbacControllerReplaceRolePermissionsPathParams,
+} from "./types/rbacController/RbacControllerReplaceRolePermissions.ts";
+export type {
   UsersControllerGetUsers200,
   UsersControllerGetUsers400,
   UsersControllerGetUsers401,
@@ -892,6 +926,9 @@ export { leavesControllerUpdate } from "./clients/leavesController/leavesControl
 export { paymentsControllerFindOne } from "./clients/paymentRequestsController/paymentsControllerFindOne.ts";
 export { paymentsControllerList } from "./clients/paymentRequestsController/paymentsControllerList.ts";
 export { paymentsControllerMarkPaid } from "./clients/paymentRequestsController/paymentsControllerMarkPaid.ts";
+export { rbacControllerListPermissions } from "./clients/rbacController/rbacControllerListPermissions.ts";
+export { rbacControllerListRoles } from "./clients/rbacController/rbacControllerListRoles.ts";
+export { rbacControllerReplaceRolePermissions } from "./clients/rbacController/rbacControllerReplaceRolePermissions.ts";
 export { usersControllerGetUsers } from "./clients/usersController/usersControllerGetUsers.ts";
 export { workflowEventSchemaControllerCreate } from "./clients/workflowEventSchemasController/workflowEventSchemaControllerCreate.ts";
 export { workflowEventSchemaControllerDeactivate } from "./clients/workflowEventSchemasController/workflowEventSchemaControllerDeactivate.ts";
@@ -1048,6 +1085,15 @@ export { usePaymentsControllerList } from "./hooks/paymentRequestsController/use
 export { paymentsControllerMarkPaidMutationKey } from "./hooks/paymentRequestsController/usePaymentsControllerMarkPaid.ts";
 export { paymentsControllerMarkPaidMutationOptions } from "./hooks/paymentRequestsController/usePaymentsControllerMarkPaid.ts";
 export { usePaymentsControllerMarkPaid } from "./hooks/paymentRequestsController/usePaymentsControllerMarkPaid.ts";
+export { rbacControllerListPermissionsQueryKey } from "./hooks/rbacController/useRbacControllerListPermissions.ts";
+export { rbacControllerListPermissionsQueryOptions } from "./hooks/rbacController/useRbacControllerListPermissions.ts";
+export { useRbacControllerListPermissions } from "./hooks/rbacController/useRbacControllerListPermissions.ts";
+export { rbacControllerListRolesQueryKey } from "./hooks/rbacController/useRbacControllerListRoles.ts";
+export { rbacControllerListRolesQueryOptions } from "./hooks/rbacController/useRbacControllerListRoles.ts";
+export { useRbacControllerListRoles } from "./hooks/rbacController/useRbacControllerListRoles.ts";
+export { rbacControllerReplaceRolePermissionsMutationKey } from "./hooks/rbacController/useRbacControllerReplaceRolePermissions.ts";
+export { rbacControllerReplaceRolePermissionsMutationOptions } from "./hooks/rbacController/useRbacControllerReplaceRolePermissions.ts";
+export { useRbacControllerReplaceRolePermissions } from "./hooks/rbacController/useRbacControllerReplaceRolePermissions.ts";
 export { useUsersControllerGetUsers } from "./hooks/usersController/useUsersControllerGetUsers.ts";
 export { usersControllerGetUsersQueryKey } from "./hooks/usersController/useUsersControllerGetUsers.ts";
 export { usersControllerGetUsersQueryOptions } from "./hooks/usersController/useUsersControllerGetUsers.ts";
@@ -1518,6 +1564,33 @@ export {
   paymentsControllerMarkPaidMutationResponseSchema,
   paymentsControllerMarkPaidPathParamsSchema,
 } from "./zod/paymentRequestsController/paymentsControllerMarkPaidSchema.ts";
+export {
+  rbacControllerListPermissions200Schema,
+  rbacControllerListPermissions401Schema,
+  rbacControllerListPermissions403Schema,
+  rbacControllerListPermissions429Schema,
+  rbacControllerListPermissionsQueryResponseSchema,
+} from "./zod/rbacController/rbacControllerListPermissionsSchema.ts";
+export {
+  rbacControllerListRoles200Schema,
+  rbacControllerListRoles401Schema,
+  rbacControllerListRoles403Schema,
+  rbacControllerListRoles429Schema,
+  rbacControllerListRolesQueryResponseSchema,
+} from "./zod/rbacController/rbacControllerListRolesSchema.ts";
+export {
+  rbacControllerReplaceRolePermissions200Schema,
+  rbacControllerReplaceRolePermissions400Schema,
+  rbacControllerReplaceRolePermissions401Schema,
+  rbacControllerReplaceRolePermissions403Schema,
+  rbacControllerReplaceRolePermissions404Schema,
+  rbacControllerReplaceRolePermissions429Schema,
+  rbacControllerReplaceRolePermissionsMutationRequestSchema,
+  rbacControllerReplaceRolePermissionsMutationResponseSchema,
+  rbacControllerReplaceRolePermissionsPathParamsSchema,
+} from "./zod/rbacController/rbacControllerReplaceRolePermissionsSchema.ts";
+export { rbacPermissionResponseDtoSchema } from "./zod/rbacPermissionResponseDtoSchema.ts";
+export { rbacRoleResponseDtoSchema } from "./zod/rbacRoleResponseDtoSchema.ts";
 export { resubmitBillingRequestDtoSchema } from "./zod/resubmitBillingRequestDtoSchema.ts";
 export { resubmitExpenseDtoSchema } from "./zod/resubmitExpenseDtoSchema.ts";
 export { resubmitLeaveDtoSchema } from "./zod/resubmitLeaveDtoSchema.ts";
@@ -1527,6 +1600,7 @@ export { triggerWorkflowDtoSchema } from "./zod/triggerWorkflowDtoSchema.ts";
 export { updateBillingRequestDtoSchema } from "./zod/updateBillingRequestDtoSchema.ts";
 export { updateExpenseDtoSchema } from "./zod/updateExpenseDtoSchema.ts";
 export { updateLeaveDtoSchema } from "./zod/updateLeaveDtoSchema.ts";
+export { updateRolePermissionsDtoSchema } from "./zod/updateRolePermissionsDtoSchema.ts";
 export { updateWorkflowEventSchemaDtoSchema } from "./zod/updateWorkflowEventSchemaDtoSchema.ts";
 export { updateWorkflowRuleDtoSchema } from "./zod/updateWorkflowRuleDtoSchema.ts";
 export { updateWorkflowStepConfigDtoSchema } from "./zod/updateWorkflowStepConfigDtoSchema.ts";

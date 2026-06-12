@@ -41,6 +41,9 @@ export type { LeavesControllerUpdateMutationKey } from "./leavesController/useLe
 export type { PaymentsControllerFindOneQueryKey } from "./paymentRequestsController/usePaymentsControllerFindOne.ts";
 export type { PaymentsControllerListQueryKey } from "./paymentRequestsController/usePaymentsControllerList.ts";
 export type { PaymentsControllerMarkPaidMutationKey } from "./paymentRequestsController/usePaymentsControllerMarkPaid.ts";
+export type { RbacControllerListPermissionsQueryKey } from "./rbacController/useRbacControllerListPermissions.ts";
+export type { RbacControllerListRolesQueryKey } from "./rbacController/useRbacControllerListRoles.ts";
+export type { RbacControllerReplaceRolePermissionsMutationKey } from "./rbacController/useRbacControllerReplaceRolePermissions.ts";
 export type { UsersControllerGetUsersQueryKey } from "./usersController/useUsersControllerGetUsers.ts";
 export type { WorkflowEventSchemaControllerCreateMutationKey } from "./workflowEventSchemasController/useWorkflowEventSchemaControllerCreate.ts";
 export type { WorkflowEventSchemaControllerDeactivateMutationKey } from "./workflowEventSchemasController/useWorkflowEventSchemaControllerDeactivate.ts";
@@ -197,6 +200,15 @@ export { usePaymentsControllerList } from "./paymentRequestsController/usePaymen
 export { paymentsControllerMarkPaidMutationKey } from "./paymentRequestsController/usePaymentsControllerMarkPaid.ts";
 export { paymentsControllerMarkPaidMutationOptions } from "./paymentRequestsController/usePaymentsControllerMarkPaid.ts";
 export { usePaymentsControllerMarkPaid } from "./paymentRequestsController/usePaymentsControllerMarkPaid.ts";
+export { rbacControllerListPermissionsQueryKey } from "./rbacController/useRbacControllerListPermissions.ts";
+export { rbacControllerListPermissionsQueryOptions } from "./rbacController/useRbacControllerListPermissions.ts";
+export { useRbacControllerListPermissions } from "./rbacController/useRbacControllerListPermissions.ts";
+export { rbacControllerListRolesQueryKey } from "./rbacController/useRbacControllerListRoles.ts";
+export { rbacControllerListRolesQueryOptions } from "./rbacController/useRbacControllerListRoles.ts";
+export { useRbacControllerListRoles } from "./rbacController/useRbacControllerListRoles.ts";
+export { rbacControllerReplaceRolePermissionsMutationKey } from "./rbacController/useRbacControllerReplaceRolePermissions.ts";
+export { rbacControllerReplaceRolePermissionsMutationOptions } from "./rbacController/useRbacControllerReplaceRolePermissions.ts";
+export { useRbacControllerReplaceRolePermissions } from "./rbacController/useRbacControllerReplaceRolePermissions.ts";
 export { useUsersControllerGetUsers } from "./usersController/useUsersControllerGetUsers.ts";
 export { usersControllerGetUsersQueryKey } from "./usersController/useUsersControllerGetUsers.ts";
 export { usersControllerGetUsersQueryOptions } from "./usersController/useUsersControllerGetUsers.ts";

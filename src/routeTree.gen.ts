@@ -17,6 +17,7 @@ import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
 import { Route as PrivateWorkflowTemplatesRouteImport } from './routes/_private/workflow-templates'
 import { Route as PrivateWorkflowInstancesRouteImport } from './routes/_private/workflow-instances'
 import { Route as PrivateTasksRouteImport } from './routes/_private/tasks'
+import { Route as PrivatePermissionsRouteImport } from './routes/_private/permissions'
 import { Route as PrivatePaymentsRouteImport } from './routes/_private/payments'
 import { Route as PrivateLeavesRouteImport } from './routes/_private/leaves'
 import { Route as PrivateInvoicesRouteImport } from './routes/_private/invoices'
@@ -81,6 +82,11 @@ const PrivateWorkflowInstancesRoute =
 const PrivateTasksRoute = PrivateTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
+  getParentRoute: () => PrivateRoute,
+} as any)
+const PrivatePermissionsRoute = PrivatePermissionsRouteImport.update({
+  id: '/permissions',
+  path: '/permissions',
   getParentRoute: () => PrivateRoute,
 } as any)
 const PrivatePaymentsRoute = PrivatePaymentsRouteImport.update({
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/invoices': typeof PrivateInvoicesRouteWithChildren
   '/leaves': typeof PrivateLeavesRouteWithChildren
   '/payments': typeof PrivatePaymentsRoute
+  '/permissions': typeof PrivatePermissionsRoute
   '/tasks': typeof PrivateTasksRoute
   '/workflow-instances': typeof PrivateWorkflowInstancesRouteWithChildren
   '/workflow-templates': typeof PrivateWorkflowTemplatesRouteWithChildren
@@ -258,6 +265,7 @@ export interface FileRoutesByTo {
   '/event-schemas': typeof PrivateEventSchemasRoute
   '/invoices': typeof PrivateInvoicesRouteWithChildren
   '/payments': typeof PrivatePaymentsRoute
+  '/permissions': typeof PrivatePermissionsRoute
   '/tasks': typeof PrivateTasksRoute
   '/sign-in': typeof PublicSignInRoute
   '/sign-up': typeof PublicSignUpRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/_private/invoices': typeof PrivateInvoicesRouteWithChildren
   '/_private/leaves': typeof PrivateLeavesRouteWithChildren
   '/_private/payments': typeof PrivatePaymentsRoute
+  '/_private/permissions': typeof PrivatePermissionsRoute
   '/_private/tasks': typeof PrivateTasksRoute
   '/_private/workflow-instances': typeof PrivateWorkflowInstancesRouteWithChildren
   '/_private/workflow-templates': typeof PrivateWorkflowTemplatesRouteWithChildren
@@ -327,6 +336,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/leaves'
     | '/payments'
+    | '/permissions'
     | '/tasks'
     | '/workflow-instances'
     | '/workflow-templates'
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/event-schemas'
     | '/invoices'
     | '/payments'
+    | '/permissions'
     | '/tasks'
     | '/sign-in'
     | '/sign-up'
@@ -389,6 +400,7 @@ export interface FileRouteTypes {
     | '/_private/invoices'
     | '/_private/leaves'
     | '/_private/payments'
+    | '/_private/permissions'
     | '/_private/tasks'
     | '/_private/workflow-instances'
     | '/_private/workflow-templates'
@@ -476,6 +488,13 @@ declare module '@tanstack/react-router' {
       path: '/tasks'
       fullPath: '/tasks'
       preLoaderRoute: typeof PrivateTasksRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/_private/permissions': {
+      id: '/_private/permissions'
+      path: '/permissions'
+      fullPath: '/permissions'
+      preLoaderRoute: typeof PrivatePermissionsRouteImport
       parentRoute: typeof PrivateRoute
     }
     '/_private/payments': {
@@ -760,6 +779,7 @@ interface PrivateRouteChildren {
   PrivateInvoicesRoute: typeof PrivateInvoicesRouteWithChildren
   PrivateLeavesRoute: typeof PrivateLeavesRouteWithChildren
   PrivatePaymentsRoute: typeof PrivatePaymentsRoute
+  PrivatePermissionsRoute: typeof PrivatePermissionsRoute
   PrivateTasksRoute: typeof PrivateTasksRoute
   PrivateWorkflowInstancesRoute: typeof PrivateWorkflowInstancesRouteWithChildren
   PrivateWorkflowTemplatesRoute: typeof PrivateWorkflowTemplatesRouteWithChildren
@@ -777,6 +797,7 @@ const PrivateRouteChildren: PrivateRouteChildren = {
   PrivateInvoicesRoute: PrivateInvoicesRouteWithChildren,
   PrivateLeavesRoute: PrivateLeavesRouteWithChildren,
   PrivatePaymentsRoute: PrivatePaymentsRoute,
+  PrivatePermissionsRoute: PrivatePermissionsRoute,
   PrivateTasksRoute: PrivateTasksRoute,
   PrivateWorkflowInstancesRoute: PrivateWorkflowInstancesRouteWithChildren,
   PrivateWorkflowTemplatesRoute: PrivateWorkflowTemplatesRouteWithChildren,

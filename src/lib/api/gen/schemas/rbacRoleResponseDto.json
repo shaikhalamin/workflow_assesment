@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "2efdbf50-2d43-4a44-bd48-4f9f05fe9b32"
+    },
+    "name": { "type": "string", "example": "Employee" },
+    "slug": { "type": "string", "example": "employee" },
+    "description": {
+      "type": "string",
+      "example": "Default employee role",
+      "nullable": true
+    },
+    "isSystem": { "type": "boolean", "example": true },
+    "isLocked": { "type": "boolean", "example": false },
+    "permissionSlugs": {
+      "example": ["auth.profile.read", "expenses.read", "expenses.write"],
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "createdAt": { "type": "string", "example": "2026-06-12T10:00:00.000Z" },
+    "updatedAt": { "type": "string", "example": "2026-06-12T10:00:00.000Z" }
+  },
+  "required": [
+    "id",
+    "name",
+    "slug",
+    "description",
+    "isSystem",
+    "isLocked",
+    "permissionSlugs",
+    "createdAt",
+    "updatedAt"
+  ],
+  "x-readme-ref-name": "RbacRoleResponseDto"
+}

@@ -5,6 +5,7 @@ export type PermissionSlug =
   | 'auth.profile.read'
   | 'users.read'
   | 'workflow.builder.manage'
+  | 'workflow.runtime.read'
   | 'workflow.runtime.act'
   | 'expenses.read'
   | 'expenses.write'
@@ -25,7 +26,7 @@ const privatePathPermissions: Array<{
 }> = [
   { path: '/workflow-templates', permission: 'workflow.builder.manage' },
   { path: '/event-schemas', permission: 'workflow.builder.manage' },
-  { path: '/workflow-instances', permission: 'workflow.runtime.act' },
+  { path: '/workflow-instances', permission: 'workflow.runtime.read' },
   { path: '/tasks', permission: 'workflow.runtime.act' },
   { path: '/expenses/new', permission: 'expenses.write' },
   { path: '/expenses', permission: 'expenses.read' },
@@ -68,12 +69,8 @@ export function canAccessPrivatePath(
 ) {
   if (hasAdminRole(roles)) return true
 
-  if (pathname === '/invoices' || pathname.startsWith('/invoices/')) {
-    return permissions.includes('billing.read') || permissions.includes('invoices.read')
-  }
-
-  if (pathname === '/payments' || pathname.startsWith('/payments/')) {
-    return permissions.includes('expenses.read') || permissions.includes('payments.read')
+  if (pathname === '/permissions' || pathname.startsWith('/permissions/')) {
+    return false
   }
 
   const required = privatePathPermissions.find(({ path }) => {

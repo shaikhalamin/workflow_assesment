@@ -41,6 +41,9 @@ export { leavesControllerUpdate } from "./leavesController/leavesControllerUpdat
 export { paymentsControllerFindOne } from "./paymentRequestsController/paymentsControllerFindOne.ts";
 export { paymentsControllerList } from "./paymentRequestsController/paymentsControllerList.ts";
 export { paymentsControllerMarkPaid } from "./paymentRequestsController/paymentsControllerMarkPaid.ts";
+export { rbacControllerListPermissions } from "./rbacController/rbacControllerListPermissions.ts";
+export { rbacControllerListRoles } from "./rbacController/rbacControllerListRoles.ts";
+export { rbacControllerReplaceRolePermissions } from "./rbacController/rbacControllerReplaceRolePermissions.ts";
 export { usersControllerGetUsers } from "./usersController/usersControllerGetUsers.ts";
 export { workflowEventSchemaControllerCreate } from "./workflowEventSchemasController/workflowEventSchemaControllerCreate.ts";
 export { workflowEventSchemaControllerDeactivate } from "./workflowEventSchemasController/workflowEventSchemaControllerDeactivate.ts";

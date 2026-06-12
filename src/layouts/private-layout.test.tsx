@@ -42,25 +42,44 @@ const user: AuthUserDto = {
     'billing.read',
     'billing.write',
     'invoices.read',
+    'payments.read',
     'dashboard.read',
+    'workflow.runtime.read',
     'workflow.runtime.act',
   ],
 }
 
-const meResponse: AuthControllerMeQueryResponse = {
-  data: { user },
-  error: null,
+const adminUser: AuthUserDto = {
+  id: 'admin-1',
+  name: 'Admin User',
+  email: 'admin@example.test',
+  roles: ['admin'],
+  permissions: [],
 }
+
+const workflowBuilderUser: AuthUserDto = {
+  ...user,
+  permissions: [...user.permissions, 'workflow.builder.manage'],
+}
+
+let currentUser = user
 
 vi.mock('@/lib/api/gen', () => ({
   useAuthControllerLogout: () => ({
     mutate: logoutMutateMock,
   }),
-  useAuthControllerMe: () => ({
-    data: meResponse,
-    error: null,
-    isError: false,
-  }),
+  useAuthControllerMe: () => {
+    const meResponse: AuthControllerMeQueryResponse = {
+      data: { user: currentUser },
+      error: null,
+    }
+
+    return {
+      data: meResponse,
+      error: null,
+      isError: false,
+    }
+  },
 }))
 
 describe('PrivateLayout', () => {
@@ -69,6 +88,7 @@ describe('PrivateLayout', () => {
     navigateMock.mockClear()
     clearQueryClientMock.mockClear()
     logoutMutateMock.mockClear()
+    currentUser = user
     useAuthStore.setState({ isAuthenticated: true, user })
   })
 
@@ -119,6 +139,38 @@ describe('PrivateLayout', () => {
     ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('link', { name: /audit logs/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('does not render event schemas navigation even for workflow builders', () => {
+    currentUser = workflowBuilderUser
+    useAuthStore.setState({ isAuthenticated: true, user: workflowBuilderUser })
+
+    render(<PrivateLayout />)
+
+    expect(
+      screen.getByRole('link', { name: /workflow builder/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /event schemas/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows permissions navigation to admins', () => {
+    currentUser = adminUser
+    useAuthStore.setState({ isAuthenticated: true, user: adminUser })
+
+    render(<PrivateLayout />)
+
+    expect(screen.getByText('Administration')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^permissions$/i })).toBeInTheDocument()
+  })
+
+  it('hides permissions navigation from non-admin users', () => {
+    render(<PrivateLayout />)
+
+    expect(
+      screen.queryByRole('link', { name: /^permissions$/i }),
     ).not.toBeInTheDocument()
   })
 })

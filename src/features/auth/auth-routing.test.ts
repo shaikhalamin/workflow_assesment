@@ -41,13 +41,19 @@ describe('auth routing helpers', () => {
     ).toBe(true)
     expect(
       canAccessPrivatePath('/payments', ['employee'], ['expenses.read']),
+    ).toBe(false)
+    expect(
+      canAccessPrivatePath('/payments', ['employee'], ['payments.read']),
     ).toBe(true)
     expect(
       canAccessPrivatePath('/invoices', ['sales-officer'], ['billing.read']),
+    ).toBe(false)
+    expect(
+      canAccessPrivatePath('/invoices', ['employee'], ['invoices.read']),
     ).toBe(true)
     expect(
-      canAccessPrivatePath('/invoices/invoice-1', ['sales-officer'], [
-        'billing.read',
+      canAccessPrivatePath('/invoices/invoice-1', ['employee'], [
+        'invoices.read',
       ]),
     ).toBe(true)
     expect(
@@ -57,9 +63,28 @@ describe('auth routing helpers', () => {
       canAccessPrivatePath('/workflow-instances/123', ['manager'], [
         'workflow.runtime.act',
       ]),
+    ).toBe(false)
+    expect(
+      canAccessPrivatePath('/workflow-instances/123', ['manager'], [
+        'workflow.runtime.read',
+      ]),
     ).toBe(true)
+    expect(canAccessPrivatePath('/tasks', ['manager'], ['workflow.runtime.read'])).toBe(
+      false,
+    )
+    expect(canAccessPrivatePath('/tasks', ['manager'], ['workflow.runtime.act'])).toBe(
+      true,
+    )
     expect(
       canAccessPrivatePath('/audit-logs', ['manager'], ['dashboard.read']),
     ).toBe(false)
+  })
+
+  it('keeps permissions setup admin-only', () => {
+    expect(canAccessPrivatePath('/permissions', ['admin'], [])).toBe(true)
+    expect(
+      canAccessPrivatePath('/permissions', ['manager'], ['dashboard.read']),
+    ).toBe(false)
+    expect(canAccessPrivatePath('/permissions', [], ['dashboard.read'])).toBe(false)
   })
 })

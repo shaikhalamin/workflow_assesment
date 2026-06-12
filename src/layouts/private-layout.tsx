@@ -10,6 +10,7 @@ import {
   Receipt,
   ScrollText,
   Settings2,
+  ShieldCheck,
   Timer,
   WalletCards,
   X,
@@ -35,6 +36,17 @@ const navGroups = [
     ],
   },
   {
+    label: 'Administration',
+    items: [
+      {
+        to: '/permissions',
+        label: 'Permissions',
+        icon: ShieldCheck,
+        color: 'text-emerald-700',
+      },
+    ],
+  },
+  {
     label: 'Modules',
     items: [
       { to: '/expenses', label: 'Expenses', icon: Receipt, color: 'text-orange-700' },
@@ -42,7 +54,6 @@ const navGroups = [
       { to: '/billing', label: 'Billing', icon: ScrollText, color: 'text-rose-700' },
       { to: '/invoices', label: 'Invoices', icon: FileText, color: 'text-blue-700' },
       { to: '/payments', label: 'Payments', icon: WalletCards, color: 'text-cyan-700' },
-      { to: '/event-schemas', label: 'Event Schemas', icon: ScrollText, color: 'text-indigo-700' },
       { to: '/audit-logs', label: 'Audit Logs', icon: ScrollText, color: 'text-violet-700' },
     ],
   },

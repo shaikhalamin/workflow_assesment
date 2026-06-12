@@ -387,6 +387,33 @@ export {
   paymentsControllerMarkPaidMutationResponseSchema,
   paymentsControllerMarkPaidPathParamsSchema,
 } from "./paymentRequestsController/paymentsControllerMarkPaidSchema.ts";
+export {
+  rbacControllerListPermissions200Schema,
+  rbacControllerListPermissions401Schema,
+  rbacControllerListPermissions403Schema,
+  rbacControllerListPermissions429Schema,
+  rbacControllerListPermissionsQueryResponseSchema,
+} from "./rbacController/rbacControllerListPermissionsSchema.ts";
+export {
+  rbacControllerListRoles200Schema,
+  rbacControllerListRoles401Schema,
+  rbacControllerListRoles403Schema,
+  rbacControllerListRoles429Schema,
+  rbacControllerListRolesQueryResponseSchema,
+} from "./rbacController/rbacControllerListRolesSchema.ts";
+export {
+  rbacControllerReplaceRolePermissions200Schema,
+  rbacControllerReplaceRolePermissions400Schema,
+  rbacControllerReplaceRolePermissions401Schema,
+  rbacControllerReplaceRolePermissions403Schema,
+  rbacControllerReplaceRolePermissions404Schema,
+  rbacControllerReplaceRolePermissions429Schema,
+  rbacControllerReplaceRolePermissionsMutationRequestSchema,
+  rbacControllerReplaceRolePermissionsMutationResponseSchema,
+  rbacControllerReplaceRolePermissionsPathParamsSchema,
+} from "./rbacController/rbacControllerReplaceRolePermissionsSchema.ts";
+export { rbacPermissionResponseDtoSchema } from "./rbacPermissionResponseDtoSchema.ts";
+export { rbacRoleResponseDtoSchema } from "./rbacRoleResponseDtoSchema.ts";
 export { resubmitBillingRequestDtoSchema } from "./resubmitBillingRequestDtoSchema.ts";
 export { resubmitExpenseDtoSchema } from "./resubmitExpenseDtoSchema.ts";
 export { resubmitLeaveDtoSchema } from "./resubmitLeaveDtoSchema.ts";
@@ -396,6 +423,7 @@ export { triggerWorkflowDtoSchema } from "./triggerWorkflowDtoSchema.ts";
 export { updateBillingRequestDtoSchema } from "./updateBillingRequestDtoSchema.ts";
 export { updateExpenseDtoSchema } from "./updateExpenseDtoSchema.ts";
 export { updateLeaveDtoSchema } from "./updateLeaveDtoSchema.ts";
+export { updateRolePermissionsDtoSchema } from "./updateRolePermissionsDtoSchema.ts";
 export { updateWorkflowEventSchemaDtoSchema } from "./updateWorkflowEventSchemaDtoSchema.ts";
 export { updateWorkflowRuleDtoSchema } from "./updateWorkflowRuleDtoSchema.ts";
 export { updateWorkflowStepConfigDtoSchema } from "./updateWorkflowStepConfigDtoSchema.ts";
