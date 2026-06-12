@@ -1,4 +1,17 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsDateString, IsOptional } from 'class-validator';
+
+export class DashboardDateRangeQueryDto {
+  @ApiPropertyOptional({ example: '2026-06-01', format: 'date' })
+  @IsOptional()
+  @IsDateString()
+  from?: string;
+
+  @ApiPropertyOptional({ example: '2026-06-30', format: 'date' })
+  @IsOptional()
+  @IsDateString()
+  to?: string;
+}
 
 class EmployeeExpenseSummaryDto {
   @ApiProperty({ example: 3 })
@@ -20,19 +33,45 @@ class BillingSummaryDto {
   @ApiProperty({ example: 2 })
   draft!: number;
 
+  @ApiProperty({ example: 4 })
+  submitted!: number;
+
   @ApiProperty({ example: 3 })
   underReview!: number;
+
+  @ApiProperty({ example: 6 })
+  approved!: number;
 
   @ApiProperty({ example: 1 })
   rejected!: number;
 
   @ApiProperty({ example: 5 })
   invoiced!: number;
+
+  @ApiProperty({ example: 1 })
+  cancelled!: number;
 }
 
 class AdminInvoiceSummaryDto {
   @ApiProperty({ example: 7 })
   issued!: number;
+
+  @ApiProperty({ example: 3 })
+  paid!: number;
+
+  @ApiProperty({ example: 1 })
+  cancelled!: number;
+}
+
+class AdminPaymentSummaryDto {
+  @ApiProperty({ example: 9 })
+  pending!: number;
+
+  @ApiProperty({ example: 4 })
+  paid!: number;
+
+  @ApiProperty({ example: 1 })
+  cancelled!: number;
 }
 
 class FinanceInvoiceSummaryDto {
@@ -55,6 +94,9 @@ class AdminWorkflowSummaryDto {
 
   @ApiProperty({ example: 3 })
   rejected!: number;
+
+  @ApiProperty({ example: 1 })
+  failed!: number;
 }
 
 class HrLeaveCountsDto {
@@ -128,6 +170,9 @@ export class AdminDashboardResponseDto {
 
   @ApiProperty({ type: AdminInvoiceSummaryDto })
   invoices!: AdminInvoiceSummaryDto;
+
+  @ApiProperty({ type: AdminPaymentSummaryDto })
+  payments!: AdminPaymentSummaryDto;
 
   @ApiProperty({ type: [DashboardRecentItemDto] })
   recentWorkflowChanges!: DashboardRecentItemDto[];

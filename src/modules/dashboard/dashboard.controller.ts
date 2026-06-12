@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Permissions } from '../../common/decorators/permissions.decorator';
@@ -7,6 +7,7 @@ import {
   AccountsDashboardResponseDto,
   AdminDashboardResponseDto,
   ApproverDashboardResponseDto,
+  DashboardDateRangeQueryDto,
   EmployeeDashboardResponseDto,
   FinanceDashboardResponseDto,
   HrDashboardResponseDto,
@@ -22,8 +23,8 @@ export class DashboardController {
 
   @Get('admin')
   @ApiData(AdminDashboardResponseDto, { errors: [401, 403] })
-  admin() {
-    return this.dashboardService.admin();
+  admin(@Query() query: DashboardDateRangeQueryDto) {
+    return this.dashboardService.admin(query);
   }
 
   @Get('employee')

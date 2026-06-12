@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {
+  Between,
+  FindOperator,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import {
   BillingRequest,
   BillingRequestStatus,
@@ -21,6 +27,7 @@ import {
   WorkflowInstanceStatus,
   WorkflowStepStatus,
 } from '../workflow-runtime/enums/workflow-runtime.enums';
+import { DashboardDateRangeQueryDto } from './dto/dashboard-response.dto';
 
 @Injectable()
 export class DashboardService {
@@ -97,9 +104,12 @@ export class DashboardService {
       leaves: { approved: approvedLeaves, underReview: pendingLeaves },
       billing: {
         draft: draftBillingRequests,
+        submitted: 0,
         underReview: reviewBillingRequests,
+        approved: 0,
         rejected: rejectedBillingRequests,
         invoiced: invoicedBillingRequests,
+        cancelled: 0,
       },
       recentInvoices: recentInvoices.map((invoice) => ({
         id: invoice.id,
@@ -114,54 +124,133 @@ export class DashboardService {
     };
   }
 
-  async admin() {
+  async admin(query: DashboardDateRangeQueryDto = {}) {
+    const createdAt = this.createdAtCondition(query);
+    const workflowWhere = createdAt ? { createdAt } : {};
+    const billingWhere = createdAt ? { createdAt } : {};
+    const invoiceWhere = createdAt ? { createdAt } : {};
+    const paymentWhere = createdAt ? { createdAt } : {};
     const [
       active,
       approved,
       rejected,
       failed,
       billingDraft,
+      billingSubmitted,
       billingUnderReview,
+      billingApproved,
       billingRejected,
       billingInvoiced,
+      billingCancelled,
       issuedInvoices,
+      paidInvoices,
+      cancelledInvoices,
+      pendingPayments,
+      paidPayments,
+      cancelledPayments,
+      recentWorkflowChanges,
     ] = await Promise.all([
       this.workflowInstancesRepository.countBy({
+        ...workflowWhere,
         status: WorkflowInstanceStatus.ACTIVE,
       }),
       this.workflowInstancesRepository.countBy({
+        ...workflowWhere,
         status: WorkflowInstanceStatus.APPROVED,
       }),
       this.workflowInstancesRepository.countBy({
+        ...workflowWhere,
         status: WorkflowInstanceStatus.REJECTED,
       }),
       this.workflowInstancesRepository.countBy({
+        ...workflowWhere,
         status: WorkflowInstanceStatus.FAILED,
       }),
       this.billingRequestsRepository.countBy({
+        ...billingWhere,
         status: BillingRequestStatus.DRAFT,
       }),
       this.billingRequestsRepository.countBy({
+        ...billingWhere,
+        status: BillingRequestStatus.SUBMITTED,
+      }),
+      this.billingRequestsRepository.countBy({
+        ...billingWhere,
         status: BillingRequestStatus.UNDER_REVIEW,
       }),
       this.billingRequestsRepository.countBy({
+        ...billingWhere,
+        status: BillingRequestStatus.APPROVED,
+      }),
+      this.billingRequestsRepository.countBy({
+        ...billingWhere,
         status: BillingRequestStatus.REJECTED,
       }),
       this.billingRequestsRepository.countBy({
+        ...billingWhere,
         status: BillingRequestStatus.INVOICED,
       }),
-      this.invoicesRepository.countBy({ status: InvoiceStatus.ISSUED }),
+      this.billingRequestsRepository.countBy({
+        ...billingWhere,
+        status: BillingRequestStatus.CANCELLED,
+      }),
+      this.invoicesRepository.countBy({
+        ...invoiceWhere,
+        status: InvoiceStatus.ISSUED,
+      }),
+      this.invoicesRepository.countBy({
+        ...invoiceWhere,
+        status: InvoiceStatus.PAID,
+      }),
+      this.invoicesRepository.countBy({
+        ...invoiceWhere,
+        status: InvoiceStatus.CANCELLED,
+      }),
+      this.paymentsRepository.countBy({
+        ...paymentWhere,
+        status: PaymentRequestStatus.PENDING,
+      }),
+      this.paymentsRepository.countBy({
+        ...paymentWhere,
+        status: PaymentRequestStatus.PAID,
+      }),
+      this.paymentsRepository.countBy({
+        ...paymentWhere,
+        status: PaymentRequestStatus.CANCELLED,
+      }),
+      this.workflowInstancesRepository.find({
+        where: workflowWhere,
+        order: { updatedAt: 'DESC' },
+        take: 5,
+      }),
     ]);
     return {
-      workflows: { active, approved, rejected },
+      workflows: { active, approved, rejected, failed },
       billing: {
         draft: billingDraft,
+        submitted: billingSubmitted,
         underReview: billingUnderReview,
+        approved: billingApproved,
         rejected: billingRejected,
         invoiced: billingInvoiced,
+        cancelled: billingCancelled,
       },
-      invoices: { issued: issuedInvoices },
-      recentWorkflowChanges: [],
+      invoices: {
+        issued: issuedInvoices,
+        paid: paidInvoices,
+        cancelled: cancelledInvoices,
+      },
+      payments: {
+        pending: pendingPayments,
+        paid: paidPayments,
+        cancelled: cancelledPayments,
+      },
+      recentWorkflowChanges: recentWorkflowChanges.map((workflow) => ({
+        id: workflow.id,
+        type: workflow.entityType,
+        title: workflow.eventName,
+        createdAt: workflow.createdAt.toISOString(),
+      })),
       failedTriggers: failed,
     };
   }
@@ -242,5 +331,23 @@ export class DashboardService {
       leaveTasks: underReview,
       leaveCounts: { approved, rejected },
     };
+  }
+
+  private createdAtCondition({
+    from,
+    to,
+  }: DashboardDateRangeQueryDto): Date | FindOperator<Date> | undefined {
+    if (from && to) return Between(this.startOfDay(from), this.endOfDay(to));
+    if (from) return MoreThanOrEqual(this.startOfDay(from));
+    if (to) return LessThanOrEqual(this.endOfDay(to));
+    return undefined;
+  }
+
+  private startOfDay(value: string) {
+    return new Date(`${value}T00:00:00.000Z`);
+  }
+
+  private endOfDay(value: string) {
+    return new Date(`${value}T23:59:59.999Z`);
   }
 }
