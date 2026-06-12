@@ -7,10 +7,18 @@ export type { AuthControllerLogoutMutationKey } from "./hooks/authController/use
 export type { AuthControllerMeQueryKey } from "./hooks/authController/useAuthControllerMe.ts";
 export type { AuthControllerRefreshMutationKey } from "./hooks/authController/useAuthControllerRefresh.ts";
 export type { AuthControllerSignupMutationKey } from "./hooks/authController/useAuthControllerSignup.ts";
+export type { BillingControllerCancelMutationKey } from "./hooks/billingRequestsController/useBillingControllerCancel.ts";
+export type { BillingControllerCreateMutationKey } from "./hooks/billingRequestsController/useBillingControllerCreate.ts";
+export type { BillingControllerFindOneQueryKey } from "./hooks/billingRequestsController/useBillingControllerFindOne.ts";
+export type { BillingControllerListQueryKey } from "./hooks/billingRequestsController/useBillingControllerList.ts";
+export type { BillingControllerResubmitMutationKey } from "./hooks/billingRequestsController/useBillingControllerResubmit.ts";
+export type { BillingControllerSubmitMutationKey } from "./hooks/billingRequestsController/useBillingControllerSubmit.ts";
+export type { BillingControllerUpdateMutationKey } from "./hooks/billingRequestsController/useBillingControllerUpdate.ts";
 export type { DashboardControllerAccountsQueryKey } from "./hooks/dashboardController/useDashboardControllerAccounts.ts";
 export type { DashboardControllerAdminQueryKey } from "./hooks/dashboardController/useDashboardControllerAdmin.ts";
 export type { DashboardControllerApproverQueryKey } from "./hooks/dashboardController/useDashboardControllerApprover.ts";
 export type { DashboardControllerEmployeeQueryKey } from "./hooks/dashboardController/useDashboardControllerEmployee.ts";
+export type { DashboardControllerFinanceQueryKey } from "./hooks/dashboardController/useDashboardControllerFinance.ts";
 export type { DashboardControllerHrQueryKey } from "./hooks/dashboardController/useDashboardControllerHr.ts";
 export type { ExpensesControllerCreateMutationKey } from "./hooks/expensesController/useExpensesControllerCreate.ts";
 export type { ExpensesControllerDeleteMutationKey } from "./hooks/expensesController/useExpensesControllerDelete.ts";
@@ -19,6 +27,10 @@ export type { ExpensesControllerListQueryKey } from "./hooks/expensesController/
 export type { ExpensesControllerResubmitMutationKey } from "./hooks/expensesController/useExpensesControllerResubmit.ts";
 export type { ExpensesControllerSubmitMutationKey } from "./hooks/expensesController/useExpensesControllerSubmit.ts";
 export type { ExpensesControllerUpdateMutationKey } from "./hooks/expensesController/useExpensesControllerUpdate.ts";
+export type { InvoicesControllerCancelMutationKey } from "./hooks/invoicesController/useInvoicesControllerCancel.ts";
+export type { InvoicesControllerFindOneQueryKey } from "./hooks/invoicesController/useInvoicesControllerFindOne.ts";
+export type { InvoicesControllerListQueryKey } from "./hooks/invoicesController/useInvoicesControllerList.ts";
+export type { InvoicesControllerMarkPaidMutationKey } from "./hooks/invoicesController/useInvoicesControllerMarkPaid.ts";
 export type { LeavesControllerCreateMutationKey } from "./hooks/leavesController/useLeavesControllerCreate.ts";
 export type { LeavesControllerDeleteMutationKey } from "./hooks/leavesController/useLeavesControllerDelete.ts";
 export type { LeavesControllerFindOneQueryKey } from "./hooks/leavesController/useLeavesControllerFindOne.ts";
@@ -58,6 +70,7 @@ export type { WorkflowTemplateControllerPublishMutationKey } from "./hooks/workf
 export type { WorkflowTemplateControllerUpdateMutationKey } from "./hooks/workflowTemplatesController/useWorkflowTemplateControllerUpdate.ts";
 export type { AccountsDashboardResponseDto } from "./types/AccountsDashboardResponseDto.ts";
 export type { AdminDashboardResponseDto } from "./types/AdminDashboardResponseDto.ts";
+export type { AdminInvoiceSummaryDto } from "./types/AdminInvoiceSummaryDto.ts";
 export type { AdminWorkflowSummaryDto } from "./types/AdminWorkflowSummaryDto.ts";
 export type { ApiErrorDto } from "./types/ApiErrorDto.ts";
 export type { ApiResponseDto } from "./types/ApiResponseDto.ts";
@@ -66,6 +79,12 @@ export type { ApproverDashboardResponseDto } from "./types/ApproverDashboardResp
 export type { AuditLogResponseDto } from "./types/AuditLogResponseDto.ts";
 export type { AuthResponseDto } from "./types/AuthResponseDto.ts";
 export type { AuthUserDto } from "./types/AuthUserDto.ts";
+export type {
+  BillingRequestResponseDto,
+  BillingRequestResponseDtoStatusEnum,
+} from "./types/BillingRequestResponseDto.ts";
+export type { BillingSummaryDto } from "./types/BillingSummaryDto.ts";
+export type { CreateBillingRequestDto } from "./types/CreateBillingRequestDto.ts";
 export type { CreateExpenseDto } from "./types/CreateExpenseDto.ts";
 export type { CreateLeaveDto } from "./types/CreateLeaveDto.ts";
 export type { CreateWorkflowEventSchemaDto } from "./types/CreateWorkflowEventSchemaDto.ts";
@@ -80,6 +99,7 @@ export type {
   CreateWorkflowTemplateDto,
   CreateWorkflowTemplateDtoStatusEnum,
 } from "./types/CreateWorkflowTemplateDto.ts";
+export type { DashboardRecentInvoiceDto } from "./types/DashboardRecentInvoiceDto.ts";
 export type { DashboardRecentItemDto } from "./types/DashboardRecentItemDto.ts";
 export type { EmployeeDashboardResponseDto } from "./types/EmployeeDashboardResponseDto.ts";
 export type { EmployeeExpenseSummaryDto } from "./types/EmployeeExpenseSummaryDto.ts";
@@ -88,8 +108,14 @@ export type {
   ExpenseResponseDto,
   ExpenseResponseDtoStatusEnum,
 } from "./types/ExpenseResponseDto.ts";
+export type { FinanceDashboardResponseDto } from "./types/FinanceDashboardResponseDto.ts";
+export type { FinanceInvoiceSummaryDto } from "./types/FinanceInvoiceSummaryDto.ts";
 export type { HrDashboardResponseDto } from "./types/HrDashboardResponseDto.ts";
 export type { HrLeaveCountsDto } from "./types/HrLeaveCountsDto.ts";
+export type {
+  InvoiceResponseDto,
+  InvoiceResponseDtoStatusEnum,
+} from "./types/InvoiceResponseDto.ts";
 export type {
   LeaveResponseDto,
   LeaveResponseDtoStatusEnum,
@@ -102,11 +128,13 @@ export type {
   PaymentRequestResponseDto,
   PaymentRequestResponseDtoStatusEnum,
 } from "./types/PaymentRequestResponseDto.ts";
+export type { ResubmitBillingRequestDto } from "./types/ResubmitBillingRequestDto.ts";
 export type { ResubmitExpenseDto } from "./types/ResubmitExpenseDto.ts";
 export type { ResubmitLeaveDto } from "./types/ResubmitLeaveDto.ts";
 export type { SignupDto } from "./types/SignupDto.ts";
 export type { SuccessResponseDto } from "./types/SuccessResponseDto.ts";
 export type { TriggerWorkflowDto } from "./types/TriggerWorkflowDto.ts";
+export type { UpdateBillingRequestDto } from "./types/UpdateBillingRequestDto.ts";
 export type { UpdateExpenseDto } from "./types/UpdateExpenseDto.ts";
 export type { UpdateLeaveDto } from "./types/UpdateLeaveDto.ts";
 export type { UpdateWorkflowEventSchemaDto } from "./types/UpdateWorkflowEventSchemaDto.ts";
@@ -229,6 +257,77 @@ export type {
   AuthControllerSignupMutationResponse,
 } from "./types/authController/AuthControllerSignup.ts";
 export type {
+  BillingControllerCancel201,
+  BillingControllerCancel400,
+  BillingControllerCancel401,
+  BillingControllerCancel403,
+  BillingControllerCancel404,
+  BillingControllerCancelMutation,
+  BillingControllerCancelMutationResponse,
+  BillingControllerCancelPathParams,
+} from "./types/billingRequestsController/BillingControllerCancel.ts";
+export type {
+  BillingControllerCreate201,
+  BillingControllerCreate400,
+  BillingControllerCreate401,
+  BillingControllerCreate403,
+  BillingControllerCreateMutation,
+  BillingControllerCreateMutationRequest,
+  BillingControllerCreateMutationResponse,
+} from "./types/billingRequestsController/BillingControllerCreate.ts";
+export type {
+  BillingControllerFindOne200,
+  BillingControllerFindOne400,
+  BillingControllerFindOne401,
+  BillingControllerFindOne403,
+  BillingControllerFindOne404,
+  BillingControllerFindOnePathParams,
+  BillingControllerFindOneQuery,
+  BillingControllerFindOneQueryResponse,
+} from "./types/billingRequestsController/BillingControllerFindOne.ts";
+export type {
+  BillingControllerList200,
+  BillingControllerList400,
+  BillingControllerList401,
+  BillingControllerList403,
+  BillingControllerListQuery,
+  BillingControllerListQueryParams,
+  BillingControllerListQueryParamsStatusEnum,
+  BillingControllerListQueryResponse,
+} from "./types/billingRequestsController/BillingControllerList.ts";
+export type {
+  BillingControllerResubmit201,
+  BillingControllerResubmit400,
+  BillingControllerResubmit401,
+  BillingControllerResubmit403,
+  BillingControllerResubmit404,
+  BillingControllerResubmitMutation,
+  BillingControllerResubmitMutationRequest,
+  BillingControllerResubmitMutationResponse,
+  BillingControllerResubmitPathParams,
+} from "./types/billingRequestsController/BillingControllerResubmit.ts";
+export type {
+  BillingControllerSubmit201,
+  BillingControllerSubmit400,
+  BillingControllerSubmit401,
+  BillingControllerSubmit403,
+  BillingControllerSubmit404,
+  BillingControllerSubmitMutation,
+  BillingControllerSubmitMutationResponse,
+  BillingControllerSubmitPathParams,
+} from "./types/billingRequestsController/BillingControllerSubmit.ts";
+export type {
+  BillingControllerUpdate200,
+  BillingControllerUpdate400,
+  BillingControllerUpdate401,
+  BillingControllerUpdate403,
+  BillingControllerUpdate404,
+  BillingControllerUpdateMutation,
+  BillingControllerUpdateMutationRequest,
+  BillingControllerUpdateMutationResponse,
+  BillingControllerUpdatePathParams,
+} from "./types/billingRequestsController/BillingControllerUpdate.ts";
+export type {
   DashboardControllerAccounts200,
   DashboardControllerAccounts401,
   DashboardControllerAccounts403,
@@ -256,6 +355,13 @@ export type {
   DashboardControllerEmployeeQuery,
   DashboardControllerEmployeeQueryResponse,
 } from "./types/dashboardController/DashboardControllerEmployee.ts";
+export type {
+  DashboardControllerFinance200,
+  DashboardControllerFinance401,
+  DashboardControllerFinance403,
+  DashboardControllerFinanceQuery,
+  DashboardControllerFinanceQueryResponse,
+} from "./types/dashboardController/DashboardControllerFinance.ts";
 export type {
   DashboardControllerHr200,
   DashboardControllerHr401,
@@ -334,6 +440,46 @@ export type {
   ExpensesControllerUpdateMutationResponse,
   ExpensesControllerUpdatePathParams,
 } from "./types/expensesController/ExpensesControllerUpdate.ts";
+export type {
+  InvoicesControllerCancel201,
+  InvoicesControllerCancel400,
+  InvoicesControllerCancel401,
+  InvoicesControllerCancel403,
+  InvoicesControllerCancel404,
+  InvoicesControllerCancelMutation,
+  InvoicesControllerCancelMutationResponse,
+  InvoicesControllerCancelPathParams,
+} from "./types/invoicesController/InvoicesControllerCancel.ts";
+export type {
+  InvoicesControllerFindOne200,
+  InvoicesControllerFindOne400,
+  InvoicesControllerFindOne401,
+  InvoicesControllerFindOne403,
+  InvoicesControllerFindOne404,
+  InvoicesControllerFindOnePathParams,
+  InvoicesControllerFindOneQuery,
+  InvoicesControllerFindOneQueryResponse,
+} from "./types/invoicesController/InvoicesControllerFindOne.ts";
+export type {
+  InvoicesControllerList200,
+  InvoicesControllerList400,
+  InvoicesControllerList401,
+  InvoicesControllerList403,
+  InvoicesControllerListQuery,
+  InvoicesControllerListQueryParams,
+  InvoicesControllerListQueryParamsStatusEnum,
+  InvoicesControllerListQueryResponse,
+} from "./types/invoicesController/InvoicesControllerList.ts";
+export type {
+  InvoicesControllerMarkPaid201,
+  InvoicesControllerMarkPaid400,
+  InvoicesControllerMarkPaid401,
+  InvoicesControllerMarkPaid403,
+  InvoicesControllerMarkPaid404,
+  InvoicesControllerMarkPaidMutation,
+  InvoicesControllerMarkPaidMutationResponse,
+  InvoicesControllerMarkPaidPathParams,
+} from "./types/invoicesController/InvoicesControllerMarkPaid.ts";
 export type {
   LeavesControllerCreate201,
   LeavesControllerCreate400,
@@ -712,10 +858,18 @@ export { authControllerLogout } from "./clients/authController/authControllerLog
 export { authControllerMe } from "./clients/authController/authControllerMe.ts";
 export { authControllerRefresh } from "./clients/authController/authControllerRefresh.ts";
 export { authControllerSignup } from "./clients/authController/authControllerSignup.ts";
+export { billingControllerCancel } from "./clients/billingRequestsController/billingControllerCancel.ts";
+export { billingControllerCreate } from "./clients/billingRequestsController/billingControllerCreate.ts";
+export { billingControllerFindOne } from "./clients/billingRequestsController/billingControllerFindOne.ts";
+export { billingControllerList } from "./clients/billingRequestsController/billingControllerList.ts";
+export { billingControllerResubmit } from "./clients/billingRequestsController/billingControllerResubmit.ts";
+export { billingControllerSubmit } from "./clients/billingRequestsController/billingControllerSubmit.ts";
+export { billingControllerUpdate } from "./clients/billingRequestsController/billingControllerUpdate.ts";
 export { dashboardControllerAccounts } from "./clients/dashboardController/dashboardControllerAccounts.ts";
 export { dashboardControllerAdmin } from "./clients/dashboardController/dashboardControllerAdmin.ts";
 export { dashboardControllerApprover } from "./clients/dashboardController/dashboardControllerApprover.ts";
 export { dashboardControllerEmployee } from "./clients/dashboardController/dashboardControllerEmployee.ts";
+export { dashboardControllerFinance } from "./clients/dashboardController/dashboardControllerFinance.ts";
 export { dashboardControllerHr } from "./clients/dashboardController/dashboardControllerHr.ts";
 export { expensesControllerCreate } from "./clients/expensesController/expensesControllerCreate.ts";
 export { expensesControllerDelete } from "./clients/expensesController/expensesControllerDelete.ts";
@@ -724,6 +878,10 @@ export { expensesControllerList } from "./clients/expensesController/expensesCon
 export { expensesControllerResubmit } from "./clients/expensesController/expensesControllerResubmit.ts";
 export { expensesControllerSubmit } from "./clients/expensesController/expensesControllerSubmit.ts";
 export { expensesControllerUpdate } from "./clients/expensesController/expensesControllerUpdate.ts";
+export { invoicesControllerCancel } from "./clients/invoicesController/invoicesControllerCancel.ts";
+export { invoicesControllerFindOne } from "./clients/invoicesController/invoicesControllerFindOne.ts";
+export { invoicesControllerList } from "./clients/invoicesController/invoicesControllerList.ts";
+export { invoicesControllerMarkPaid } from "./clients/invoicesController/invoicesControllerMarkPaid.ts";
 export { leavesControllerCreate } from "./clients/leavesController/leavesControllerCreate.ts";
 export { leavesControllerDelete } from "./clients/leavesController/leavesControllerDelete.ts";
 export { leavesControllerFindOne } from "./clients/leavesController/leavesControllerFindOne.ts";
@@ -788,6 +946,27 @@ export { useAuthControllerRefresh } from "./hooks/authController/useAuthControll
 export { authControllerSignupMutationKey } from "./hooks/authController/useAuthControllerSignup.ts";
 export { authControllerSignupMutationOptions } from "./hooks/authController/useAuthControllerSignup.ts";
 export { useAuthControllerSignup } from "./hooks/authController/useAuthControllerSignup.ts";
+export { billingControllerCancelMutationKey } from "./hooks/billingRequestsController/useBillingControllerCancel.ts";
+export { billingControllerCancelMutationOptions } from "./hooks/billingRequestsController/useBillingControllerCancel.ts";
+export { useBillingControllerCancel } from "./hooks/billingRequestsController/useBillingControllerCancel.ts";
+export { billingControllerCreateMutationKey } from "./hooks/billingRequestsController/useBillingControllerCreate.ts";
+export { billingControllerCreateMutationOptions } from "./hooks/billingRequestsController/useBillingControllerCreate.ts";
+export { useBillingControllerCreate } from "./hooks/billingRequestsController/useBillingControllerCreate.ts";
+export { billingControllerFindOneQueryKey } from "./hooks/billingRequestsController/useBillingControllerFindOne.ts";
+export { billingControllerFindOneQueryOptions } from "./hooks/billingRequestsController/useBillingControllerFindOne.ts";
+export { useBillingControllerFindOne } from "./hooks/billingRequestsController/useBillingControllerFindOne.ts";
+export { billingControllerListQueryKey } from "./hooks/billingRequestsController/useBillingControllerList.ts";
+export { billingControllerListQueryOptions } from "./hooks/billingRequestsController/useBillingControllerList.ts";
+export { useBillingControllerList } from "./hooks/billingRequestsController/useBillingControllerList.ts";
+export { billingControllerResubmitMutationKey } from "./hooks/billingRequestsController/useBillingControllerResubmit.ts";
+export { billingControllerResubmitMutationOptions } from "./hooks/billingRequestsController/useBillingControllerResubmit.ts";
+export { useBillingControllerResubmit } from "./hooks/billingRequestsController/useBillingControllerResubmit.ts";
+export { billingControllerSubmitMutationKey } from "./hooks/billingRequestsController/useBillingControllerSubmit.ts";
+export { billingControllerSubmitMutationOptions } from "./hooks/billingRequestsController/useBillingControllerSubmit.ts";
+export { useBillingControllerSubmit } from "./hooks/billingRequestsController/useBillingControllerSubmit.ts";
+export { billingControllerUpdateMutationKey } from "./hooks/billingRequestsController/useBillingControllerUpdate.ts";
+export { billingControllerUpdateMutationOptions } from "./hooks/billingRequestsController/useBillingControllerUpdate.ts";
+export { useBillingControllerUpdate } from "./hooks/billingRequestsController/useBillingControllerUpdate.ts";
 export { dashboardControllerAccountsQueryKey } from "./hooks/dashboardController/useDashboardControllerAccounts.ts";
 export { dashboardControllerAccountsQueryOptions } from "./hooks/dashboardController/useDashboardControllerAccounts.ts";
 export { useDashboardControllerAccounts } from "./hooks/dashboardController/useDashboardControllerAccounts.ts";
@@ -800,6 +979,9 @@ export { useDashboardControllerApprover } from "./hooks/dashboardController/useD
 export { dashboardControllerEmployeeQueryKey } from "./hooks/dashboardController/useDashboardControllerEmployee.ts";
 export { dashboardControllerEmployeeQueryOptions } from "./hooks/dashboardController/useDashboardControllerEmployee.ts";
 export { useDashboardControllerEmployee } from "./hooks/dashboardController/useDashboardControllerEmployee.ts";
+export { dashboardControllerFinanceQueryKey } from "./hooks/dashboardController/useDashboardControllerFinance.ts";
+export { dashboardControllerFinanceQueryOptions } from "./hooks/dashboardController/useDashboardControllerFinance.ts";
+export { useDashboardControllerFinance } from "./hooks/dashboardController/useDashboardControllerFinance.ts";
 export { dashboardControllerHrQueryKey } from "./hooks/dashboardController/useDashboardControllerHr.ts";
 export { dashboardControllerHrQueryOptions } from "./hooks/dashboardController/useDashboardControllerHr.ts";
 export { useDashboardControllerHr } from "./hooks/dashboardController/useDashboardControllerHr.ts";
@@ -824,6 +1006,18 @@ export { useExpensesControllerSubmit } from "./hooks/expensesController/useExpen
 export { expensesControllerUpdateMutationKey } from "./hooks/expensesController/useExpensesControllerUpdate.ts";
 export { expensesControllerUpdateMutationOptions } from "./hooks/expensesController/useExpensesControllerUpdate.ts";
 export { useExpensesControllerUpdate } from "./hooks/expensesController/useExpensesControllerUpdate.ts";
+export { invoicesControllerCancelMutationKey } from "./hooks/invoicesController/useInvoicesControllerCancel.ts";
+export { invoicesControllerCancelMutationOptions } from "./hooks/invoicesController/useInvoicesControllerCancel.ts";
+export { useInvoicesControllerCancel } from "./hooks/invoicesController/useInvoicesControllerCancel.ts";
+export { invoicesControllerFindOneQueryKey } from "./hooks/invoicesController/useInvoicesControllerFindOne.ts";
+export { invoicesControllerFindOneQueryOptions } from "./hooks/invoicesController/useInvoicesControllerFindOne.ts";
+export { useInvoicesControllerFindOne } from "./hooks/invoicesController/useInvoicesControllerFindOne.ts";
+export { invoicesControllerListQueryKey } from "./hooks/invoicesController/useInvoicesControllerList.ts";
+export { invoicesControllerListQueryOptions } from "./hooks/invoicesController/useInvoicesControllerList.ts";
+export { useInvoicesControllerList } from "./hooks/invoicesController/useInvoicesControllerList.ts";
+export { invoicesControllerMarkPaidMutationKey } from "./hooks/invoicesController/useInvoicesControllerMarkPaid.ts";
+export { invoicesControllerMarkPaidMutationOptions } from "./hooks/invoicesController/useInvoicesControllerMarkPaid.ts";
+export { useInvoicesControllerMarkPaid } from "./hooks/invoicesController/useInvoicesControllerMarkPaid.ts";
 export { leavesControllerCreateMutationKey } from "./hooks/leavesController/useLeavesControllerCreate.ts";
 export { leavesControllerCreateMutationOptions } from "./hooks/leavesController/useLeavesControllerCreate.ts";
 export { useLeavesControllerCreate } from "./hooks/leavesController/useLeavesControllerCreate.ts";
@@ -937,6 +1131,7 @@ export { workflowTemplateControllerUpdateMutationKey } from "./hooks/workflowTem
 export { workflowTemplateControllerUpdateMutationOptions } from "./hooks/workflowTemplatesController/useWorkflowTemplateControllerUpdate.ts";
 export { accountsDashboardResponseDtoSchema } from "./zod/accountsDashboardResponseDtoSchema.ts";
 export { adminDashboardResponseDtoSchema } from "./zod/adminDashboardResponseDtoSchema.ts";
+export { adminInvoiceSummaryDtoSchema } from "./zod/adminInvoiceSummaryDtoSchema.ts";
 export { adminWorkflowSummaryDtoSchema } from "./zod/adminWorkflowSummaryDtoSchema.ts";
 export { apiErrorDtoSchema } from "./zod/apiErrorDtoSchema.ts";
 export { apiResponseDtoSchema } from "./zod/apiResponseDtoSchema.ts";
@@ -1010,6 +1205,72 @@ export {
 } from "./zod/authController/authControllerSignupSchema.ts";
 export { authResponseDtoSchema } from "./zod/authResponseDtoSchema.ts";
 export { authUserDtoSchema } from "./zod/authUserDtoSchema.ts";
+export { billingRequestResponseDtoSchema } from "./zod/billingRequestResponseDtoSchema.ts";
+export {
+  billingControllerCancel201Schema,
+  billingControllerCancel400Schema,
+  billingControllerCancel401Schema,
+  billingControllerCancel403Schema,
+  billingControllerCancel404Schema,
+  billingControllerCancelMutationResponseSchema,
+  billingControllerCancelPathParamsSchema,
+} from "./zod/billingRequestsController/billingControllerCancelSchema.ts";
+export {
+  billingControllerCreate201Schema,
+  billingControllerCreate400Schema,
+  billingControllerCreate401Schema,
+  billingControllerCreate403Schema,
+  billingControllerCreateMutationRequestSchema,
+  billingControllerCreateMutationResponseSchema,
+} from "./zod/billingRequestsController/billingControllerCreateSchema.ts";
+export {
+  billingControllerFindOne200Schema,
+  billingControllerFindOne400Schema,
+  billingControllerFindOne401Schema,
+  billingControllerFindOne403Schema,
+  billingControllerFindOne404Schema,
+  billingControllerFindOnePathParamsSchema,
+  billingControllerFindOneQueryResponseSchema,
+} from "./zod/billingRequestsController/billingControllerFindOneSchema.ts";
+export {
+  billingControllerList200Schema,
+  billingControllerList400Schema,
+  billingControllerList401Schema,
+  billingControllerList403Schema,
+  billingControllerListQueryParamsSchema,
+  billingControllerListQueryResponseSchema,
+} from "./zod/billingRequestsController/billingControllerListSchema.ts";
+export {
+  billingControllerResubmit201Schema,
+  billingControllerResubmit400Schema,
+  billingControllerResubmit401Schema,
+  billingControllerResubmit403Schema,
+  billingControllerResubmit404Schema,
+  billingControllerResubmitMutationRequestSchema,
+  billingControllerResubmitMutationResponseSchema,
+  billingControllerResubmitPathParamsSchema,
+} from "./zod/billingRequestsController/billingControllerResubmitSchema.ts";
+export {
+  billingControllerSubmit201Schema,
+  billingControllerSubmit400Schema,
+  billingControllerSubmit401Schema,
+  billingControllerSubmit403Schema,
+  billingControllerSubmit404Schema,
+  billingControllerSubmitMutationResponseSchema,
+  billingControllerSubmitPathParamsSchema,
+} from "./zod/billingRequestsController/billingControllerSubmitSchema.ts";
+export {
+  billingControllerUpdate200Schema,
+  billingControllerUpdate400Schema,
+  billingControllerUpdate401Schema,
+  billingControllerUpdate403Schema,
+  billingControllerUpdate404Schema,
+  billingControllerUpdateMutationRequestSchema,
+  billingControllerUpdateMutationResponseSchema,
+  billingControllerUpdatePathParamsSchema,
+} from "./zod/billingRequestsController/billingControllerUpdateSchema.ts";
+export { billingSummaryDtoSchema } from "./zod/billingSummaryDtoSchema.ts";
+export { createBillingRequestDtoSchema } from "./zod/createBillingRequestDtoSchema.ts";
 export { createExpenseDtoSchema } from "./zod/createExpenseDtoSchema.ts";
 export { createLeaveDtoSchema } from "./zod/createLeaveDtoSchema.ts";
 export { createWorkflowEventSchemaDtoSchema } from "./zod/createWorkflowEventSchemaDtoSchema.ts";
@@ -1041,11 +1302,18 @@ export {
   dashboardControllerEmployeeQueryResponseSchema,
 } from "./zod/dashboardController/dashboardControllerEmployeeSchema.ts";
 export {
+  dashboardControllerFinance200Schema,
+  dashboardControllerFinance401Schema,
+  dashboardControllerFinance403Schema,
+  dashboardControllerFinanceQueryResponseSchema,
+} from "./zod/dashboardController/dashboardControllerFinanceSchema.ts";
+export {
   dashboardControllerHr200Schema,
   dashboardControllerHr401Schema,
   dashboardControllerHr403Schema,
   dashboardControllerHrQueryResponseSchema,
 } from "./zod/dashboardController/dashboardControllerHrSchema.ts";
+export { dashboardRecentInvoiceDtoSchema } from "./zod/dashboardRecentInvoiceDtoSchema.ts";
 export { dashboardRecentItemDtoSchema } from "./zod/dashboardRecentItemDtoSchema.ts";
 export { employeeDashboardResponseDtoSchema } from "./zod/employeeDashboardResponseDtoSchema.ts";
 export { employeeExpenseSummaryDtoSchema } from "./zod/employeeExpenseSummaryDtoSchema.ts";
@@ -1114,8 +1382,46 @@ export {
   expensesControllerUpdateMutationResponseSchema,
   expensesControllerUpdatePathParamsSchema,
 } from "./zod/expensesController/expensesControllerUpdateSchema.ts";
+export { financeDashboardResponseDtoSchema } from "./zod/financeDashboardResponseDtoSchema.ts";
+export { financeInvoiceSummaryDtoSchema } from "./zod/financeInvoiceSummaryDtoSchema.ts";
 export { hrDashboardResponseDtoSchema } from "./zod/hrDashboardResponseDtoSchema.ts";
 export { hrLeaveCountsDtoSchema } from "./zod/hrLeaveCountsDtoSchema.ts";
+export { invoiceResponseDtoSchema } from "./zod/invoiceResponseDtoSchema.ts";
+export {
+  invoicesControllerCancel201Schema,
+  invoicesControllerCancel400Schema,
+  invoicesControllerCancel401Schema,
+  invoicesControllerCancel403Schema,
+  invoicesControllerCancel404Schema,
+  invoicesControllerCancelMutationResponseSchema,
+  invoicesControllerCancelPathParamsSchema,
+} from "./zod/invoicesController/invoicesControllerCancelSchema.ts";
+export {
+  invoicesControllerFindOne200Schema,
+  invoicesControllerFindOne400Schema,
+  invoicesControllerFindOne401Schema,
+  invoicesControllerFindOne403Schema,
+  invoicesControllerFindOne404Schema,
+  invoicesControllerFindOnePathParamsSchema,
+  invoicesControllerFindOneQueryResponseSchema,
+} from "./zod/invoicesController/invoicesControllerFindOneSchema.ts";
+export {
+  invoicesControllerList200Schema,
+  invoicesControllerList400Schema,
+  invoicesControllerList401Schema,
+  invoicesControllerList403Schema,
+  invoicesControllerListQueryParamsSchema,
+  invoicesControllerListQueryResponseSchema,
+} from "./zod/invoicesController/invoicesControllerListSchema.ts";
+export {
+  invoicesControllerMarkPaid201Schema,
+  invoicesControllerMarkPaid400Schema,
+  invoicesControllerMarkPaid401Schema,
+  invoicesControllerMarkPaid403Schema,
+  invoicesControllerMarkPaid404Schema,
+  invoicesControllerMarkPaidMutationResponseSchema,
+  invoicesControllerMarkPaidPathParamsSchema,
+} from "./zod/invoicesController/invoicesControllerMarkPaidSchema.ts";
 export { leaveResponseDtoSchema } from "./zod/leaveResponseDtoSchema.ts";
 export {
   leavesControllerCreate201Schema,
@@ -1212,11 +1518,13 @@ export {
   paymentsControllerMarkPaidMutationResponseSchema,
   paymentsControllerMarkPaidPathParamsSchema,
 } from "./zod/paymentRequestsController/paymentsControllerMarkPaidSchema.ts";
+export { resubmitBillingRequestDtoSchema } from "./zod/resubmitBillingRequestDtoSchema.ts";
 export { resubmitExpenseDtoSchema } from "./zod/resubmitExpenseDtoSchema.ts";
 export { resubmitLeaveDtoSchema } from "./zod/resubmitLeaveDtoSchema.ts";
 export { signupDtoSchema } from "./zod/signupDtoSchema.ts";
 export { successResponseDtoSchema } from "./zod/successResponseDtoSchema.ts";
 export { triggerWorkflowDtoSchema } from "./zod/triggerWorkflowDtoSchema.ts";
+export { updateBillingRequestDtoSchema } from "./zod/updateBillingRequestDtoSchema.ts";
 export { updateExpenseDtoSchema } from "./zod/updateExpenseDtoSchema.ts";
 export { updateLeaveDtoSchema } from "./zod/updateLeaveDtoSchema.ts";
 export { updateWorkflowEventSchemaDtoSchema } from "./zod/updateWorkflowEventSchemaDtoSchema.ts";

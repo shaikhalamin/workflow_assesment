@@ -132,6 +132,17 @@ describe('workflow builder payload', () => {
     ])
     expect(getWorkflowModule('leaves')?.eventName).toBe('leave.submitted')
     expect(getWorkflowModule('leaves')?.entityType).toBe('LeaveRequest')
+    expect(getWorkflowModule('billing')?.fields.map((field) => field.key)).toEqual([
+      'amount',
+      'currency',
+      'billingCategory',
+      'customerName',
+      'departmentId',
+      'customFields.projectCode',
+      'customFields.accountOwnerId',
+    ])
+    expect(getWorkflowModule('billing')?.eventName).toBe('billing.submitted')
+    expect(getWorkflowModule('billing')?.entityType).toBe('BillingRequest')
     expect(getConditionFieldExample('amount')).toEqual({
       value: 5000,
       label: 'Example: amount greater than or equal to 5000',
@@ -253,6 +264,31 @@ describe('workflow builder payload', () => {
     expect(toWorkflowWizardPayload(draft)).toEqual(
       expect.objectContaining({
         approvedActionsJson: {
+          notifyRequester: true,
+          setStatus: 'APPROVED',
+        },
+      }),
+    )
+  })
+
+  it('maps a billing workflow draft to create invoices after approval', () => {
+    const draft = createDefaultWorkflowDraft()
+    draft.template.name = 'Billing approval workflow'
+    draft.template.moduleName = 'billing'
+    draft.template.eventName = 'billing.submitted'
+    draft.template.entityType = 'BillingRequest'
+    draft.approvedActionsJson.createPaymentRequest = true
+    draft.approvedActionsJson.createInvoice = true
+
+    expect(toWorkflowWizardPayload(draft)).toEqual(
+      expect.objectContaining({
+        template: expect.objectContaining({
+          moduleName: 'billing',
+          eventName: 'billing.submitted',
+          entityType: 'BillingRequest',
+        }),
+        approvedActionsJson: {
+          createInvoice: true,
           notifyRequester: true,
           setStatus: 'APPROVED',
         },

@@ -39,6 +39,9 @@ const user: AuthUserDto = {
     'expenses.write',
     'leaves.read',
     'leaves.write',
+    'billing.read',
+    'billing.write',
+    'invoices.read',
     'dashboard.read',
     'workflow.runtime.act',
   ],
@@ -105,6 +108,8 @@ describe('PrivateLayout', () => {
     expect(screen.getByRole('link', { name: /^approvals$/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /^expenses$/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /^leaves$/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^billing$/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^invoices$/i })).toBeInTheDocument()
     expect(
       screen.queryByRole('link', { name: /workflow builder/i }),
     ).not.toBeInTheDocument()

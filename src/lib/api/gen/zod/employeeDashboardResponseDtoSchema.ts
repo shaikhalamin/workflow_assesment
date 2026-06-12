@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import { billingSummaryDtoSchema } from "./billingSummaryDtoSchema.ts";
+import { dashboardRecentInvoiceDtoSchema } from "./dashboardRecentInvoiceDtoSchema.ts";
 import { dashboardRecentItemDtoSchema } from "./dashboardRecentItemDtoSchema.ts";
 import { employeeExpenseSummaryDtoSchema } from "./employeeExpenseSummaryDtoSchema.ts";
 import { employeeLeaveSummaryDtoSchema } from "./employeeLeaveSummaryDtoSchema.ts";
@@ -14,6 +16,12 @@ export const employeeDashboardResponseDtoSchema = z.object({
   },
   get leaves() {
     return employeeLeaveSummaryDtoSchema;
+  },
+  get billing() {
+    return billingSummaryDtoSchema;
+  },
+  get recentInvoices() {
+    return z.array(dashboardRecentInvoiceDtoSchema);
   },
   get recentItems() {
     return z.array(dashboardRecentItemDtoSchema);

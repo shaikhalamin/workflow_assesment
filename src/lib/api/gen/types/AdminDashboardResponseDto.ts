@@ -3,7 +3,9 @@
  * Do not edit manually.
  */
 
+import type { AdminInvoiceSummaryDto } from "./AdminInvoiceSummaryDto.ts";
 import type { AdminWorkflowSummaryDto } from "./AdminWorkflowSummaryDto.ts";
+import type { BillingSummaryDto } from "./BillingSummaryDto.ts";
 import type { DashboardRecentItemDto } from "./DashboardRecentItemDto.ts";
 
 export type AdminDashboardResponseDto = {
@@ -11,6 +13,14 @@ export type AdminDashboardResponseDto = {
    * @type object
    */
   workflows: AdminWorkflowSummaryDto;
+  /**
+   * @type object
+   */
+  billing: BillingSummaryDto;
+  /**
+   * @type object
+   */
+  invoices: AdminInvoiceSummaryDto;
   /**
    * @type array
    */

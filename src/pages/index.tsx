@@ -18,10 +18,17 @@ import { useMemo, useState } from 'react'
 
 import { useAuditLogsControllerList } from '@/lib/api/gen'
 import { useAuditLogsControllerListForWorkflow } from '@/lib/api/gen'
+import { useBillingControllerCancel } from '@/lib/api/gen'
+import { useBillingControllerCreate } from '@/lib/api/gen'
+import { useBillingControllerFindOne } from '@/lib/api/gen'
+import { useBillingControllerList } from '@/lib/api/gen'
+import { useBillingControllerResubmit } from '@/lib/api/gen'
+import { useBillingControllerSubmit } from '@/lib/api/gen'
 import { useDashboardControllerAccounts } from '@/lib/api/gen'
 import { useDashboardControllerAdmin } from '@/lib/api/gen'
 import { useDashboardControllerApprover } from '@/lib/api/gen'
 import { useDashboardControllerEmployee } from '@/lib/api/gen'
+import { useDashboardControllerFinance } from '@/lib/api/gen'
 import { useDashboardControllerHr } from '@/lib/api/gen'
 import { useExpensesControllerCreate } from '@/lib/api/gen'
 import { useExpensesControllerDelete } from '@/lib/api/gen'
@@ -29,6 +36,10 @@ import { useExpensesControllerFindOne } from '@/lib/api/gen'
 import { useExpensesControllerList } from '@/lib/api/gen'
 import { useExpensesControllerResubmit } from '@/lib/api/gen'
 import { useExpensesControllerSubmit } from '@/lib/api/gen'
+import { useInvoicesControllerCancel } from '@/lib/api/gen'
+import { useInvoicesControllerFindOne } from '@/lib/api/gen'
+import { useInvoicesControllerList } from '@/lib/api/gen'
+import { useInvoicesControllerMarkPaid } from '@/lib/api/gen'
 import { useLeavesControllerCreate } from '@/lib/api/gen'
 import { useLeavesControllerDelete } from '@/lib/api/gen'
 import { useLeavesControllerFindOne } from '@/lib/api/gen'
@@ -52,10 +63,14 @@ import { useWorkflowTemplateControllerList } from '@/lib/api/gen'
 import { useWorkflowTemplateControllerPublish } from '@/lib/api/gen'
 import type {
   AuthUserDto,
+  BillingRequestResponseDto,
+  CreateBillingRequestDto,
   CreateExpenseDto,
   CreateLeaveDto,
   ExpenseResponseDto,
+  InvoiceResponseDto,
   LeaveResponseDto,
+  ResubmitBillingRequestDto,
   ResubmitExpenseDto,
   ResubmitLeaveDto,
   UserResponseDto,
@@ -392,6 +407,15 @@ function workflowIdFromExpense(expense: ExpenseResponseDto) {
 function workflowIdFromLeave(leave: LeaveResponseDto) {
   const workflowId = stringFromObjectField(leave.workflowInstanceId)
   return workflowId ?? undefined
+}
+
+function workflowIdFromBilling(billing: BillingRequestResponseDto) {
+  const workflowId = stringFromObjectField(billing.workflowInstanceId)
+  return workflowId ?? undefined
+}
+
+function moneyLabel(amount: unknown, currency: unknown) {
+  return `${formatValue(amount)} ${formatValue(currency)}`
 }
 
 function formatOptionalDate(value: unknown) {
@@ -762,12 +786,14 @@ export function DashboardPage() {
   const employee = useDashboardControllerEmployee()
   const approver = useDashboardControllerApprover()
   const accounts = useDashboardControllerAccounts()
+  const finance = useDashboardControllerFinance()
   const hr = useDashboardControllerHr()
   const pending = useWorkflowRuntimeControllerMyPending()
   const adminData = unwrapData(admin.data)
   const employeeData = unwrapData(employee.data)
   const approverData = unwrapData(approver.data)
   const accountsData = unwrapData(accounts.data)
+  const financeData = unwrapData(finance.data)
   const hrData = unwrapData(hr.data)
   const [statusFilter, setStatusFilter] = useState('all')
   const [query, setQuery] = useState('')
@@ -812,6 +838,9 @@ export function DashboardPage() {
         <Metric label="Pending approvals" value={approverData?.pendingTasks} tone="warning" />
         <Metric label="Expense drafts" value={employeeData?.expenses?.draft} />
         <Metric label="Pending payments" value={accountsData?.pendingPayments} tone="warning" />
+        <Metric label="Billing under review" value={employeeData?.billing?.underReview} />
+        <Metric label="Issued invoices" value={accountsData?.issuedInvoices} />
+        <Metric label="Paid invoices" value={financeData?.invoices?.paid} tone="success" />
         <Metric label="HR leave tasks" value={hrData?.leaveTasks} />
         <Metric label="Failed triggers" value={adminData?.failedTriggers} tone="warning" />
         <Metric label="Acted tasks" value={approverData?.actedTasks} tone="success" />
@@ -2107,6 +2136,7 @@ function Outcomes({
   setDraft: (draft: WorkflowDraft) => void
 }) {
   const isExpenseWorkflow = draft.template.moduleName === 'expenses'
+  const isBillingWorkflow = draft.template.moduleName === 'billing'
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -2121,6 +2151,13 @@ function Outcomes({
           label="Create payment request after expense approval"
           checked={Boolean(draft.approvedActionsJson.createPaymentRequest)}
           onChange={(event) => setDraft({ ...draft, approvedActionsJson: { ...draft.approvedActionsJson, createPaymentRequest: event.target.checked } })}
+        />
+      ) : null}
+      {isBillingWorkflow ? (
+        <FormCheckbox
+          label="Create invoice after billing approval"
+          checked={Boolean(draft.approvedActionsJson.createInvoice)}
+          onChange={(event) => setDraft({ ...draft, approvedActionsJson: { ...draft.approvedActionsJson, createInvoice: event.target.checked } })}
         />
       ) : null}
     </div>
@@ -4185,6 +4222,568 @@ function LeaveTechnicalReference({
         <SummaryValue label="Leave ID" value={leave.id} />
         <SummaryValue label="Department" value={formatValue(leave.departmentId)} />
         <SummaryValue label="Workflow ID" value={formatValue(workflowIdFromLeave(leave))} />
+      </div>
+    </section>
+  )
+}
+
+const billingCategoryOptions = ['Installation', 'Service', 'Subscription', 'Hardware']
+
+export function BillingRequestsPage() {
+  const user = useAuthStore((state) => state.user)
+  const query = useBillingControllerList({ params: { page: 1, limit: 50 } })
+  const submit = useBillingControllerSubmit({ mutation: { onSuccess: () => void query.refetch() } })
+  const cancel = useBillingControllerCancel({ mutation: { onSuccess: () => void query.refetch() } })
+  const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
+  const canWriteBilling = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'billing.write',
+  )
+
+  return (
+    <>
+      <PageHeader
+        title="Billing"
+        kicker="Requests"
+        action={
+          canWriteBilling ? (
+            <Button type="button">
+              <Link to="/billing/new" className="inline-flex items-center gap-2">
+                <FilePlus2 className="h-4 w-4" /> New billing
+              </Link>
+            </Button>
+          ) : undefined
+        }
+      />
+      <ErrorNotice error={query.error ?? submit.error ?? cancel.error} />
+      <DataTable
+        data={rows}
+        empty={
+          canWriteBilling ? (
+            <Button type="button">
+              <Link to="/billing/new" className="inline-flex items-center gap-2">
+                <FilePlus2 className="h-4 w-4" />
+                New Billing Request
+              </Link>
+            </Button>
+          ) : (
+            'No records found.'
+          )
+        }
+        columns={[
+          { header: 'Title', accessorKey: 'title' },
+          { header: 'Customer', accessorKey: 'customerName' },
+          { header: 'Amount', cell: ({ row }) => moneyLabel(row.original.amount, row.original.currency) },
+          { header: 'Category', accessorKey: 'billingCategory' },
+          { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
+          {
+            header: 'Actions',
+            cell: ({ row }) => {
+              const status = String(row.original.status)
+              const canResubmit = row.original.canResubmit === true
+              const id = String(row.original.id)
+
+              return (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+                    to="/billing/$billingId"
+                    params={{ billingId: id }}
+                  >
+                    <Eye className="h-4 w-4" />
+                    Open
+                  </Link>
+                  {canWriteBilling && status === 'DRAFT' ? (
+                    <Button
+                      className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+                      disabled={submit.isPending}
+                      size="sm"
+                      type="button"
+                      onClick={() => submit.mutate({ id })}
+                    >
+                      <Send className="h-4 w-4" />
+                      Submit
+                    </Button>
+                  ) : null}
+                  {canWriteBilling && status === 'REJECTED' && canResubmit ? (
+                    <Link
+                      className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-emerald-600 bg-emerald-600 px-3 text-xs font-medium text-white shadow-sm transition hover:bg-emerald-700"
+                      to="/billing/$billingId/edit"
+                      params={{ billingId: id }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Edit and resubmit
+                    </Link>
+                  ) : null}
+                  {canWriteBilling && !['DRAFT', 'REJECTED'].includes(status) ? (
+                    <Button className="whitespace-nowrap" disabled size="sm" type="button" variant="secondary">
+                      Submitted
+                    </Button>
+                  ) : null}
+                  {canWriteBilling && status === 'DRAFT' ? (
+                    <Button
+                      className="whitespace-nowrap"
+                      disabled={cancel.isPending}
+                      size="sm"
+                      type="button"
+                      variant="destructive"
+                      onClick={() => cancel.mutate({ id })}
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Cancel
+                    </Button>
+                  ) : null}
+                </div>
+              )
+            },
+          },
+        ]}
+      />
+    </>
+  )
+}
+
+export function BillingCreatePage() {
+  const navigate = useNavigate()
+  const createBilling = useBillingControllerCreate({ mutation: { onSuccess: async () => navigate({ to: '/billing' }) } })
+  const [form, setForm] = useState({
+    title: '',
+    customerName: '',
+    customerEmail: '',
+    customerAddress: '',
+    amount: '',
+    currency: 'BDT',
+    billingCategory: billingCategoryOptions[0],
+    description: '',
+  })
+  const billingPayload: CreateBillingRequestDto = {
+    title: form.title,
+    customerName: form.customerName,
+    amount: Number(form.amount),
+    currency: form.currency,
+    billingCategory: form.billingCategory,
+    customerEmail: form.customerEmail || undefined,
+    customerAddress: form.customerAddress || undefined,
+    description: form.description || undefined,
+  }
+
+  return (
+    <div className="max-w-3xl">
+      <CreatePanel
+        title="New billing"
+        kicker="Billing request"
+        description="Capture customer, billing category, and amount before sending through workflow."
+        error={createBilling.error}
+        onSubmit={() => createBilling.mutate({ data: billingPayload })}
+        submitLabel={createBilling.isPending ? 'Saving...' : 'Save billing request'}
+      >
+        <FormSection index="01" title="Billing details" hint="Required for approval routing.">
+          <div className="grid gap-3 md:grid-cols-2">
+            <FormField label="Title" htmlFor="billing-title">
+              <FormInput id="billing-title" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
+            </FormField>
+            <FormField label="Customer name" htmlFor="billing-customer-name">
+              <FormInput id="billing-customer-name" value={form.customerName} onChange={(event) => setForm({ ...form, customerName: event.target.value })} />
+            </FormField>
+            <FormField label="Amount" htmlFor="billing-amount">
+              <FormInput id="billing-amount" type="number" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
+            </FormField>
+            <FormField label="Currency" htmlFor="billing-currency">
+              <FormInput id="billing-currency" value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value })} />
+            </FormField>
+            <FormField label="Category" htmlFor="billing-category">
+              <FormSelect id="billing-category" value={form.billingCategory} onChange={(event) => setForm({ ...form, billingCategory: event.target.value })}>
+                {billingCategoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </FormSelect>
+            </FormField>
+            <FormField label="Customer email" htmlFor="billing-customer-email">
+              <FormInput id="billing-customer-email" type="email" value={form.customerEmail} onChange={(event) => setForm({ ...form, customerEmail: event.target.value })} />
+            </FormField>
+          </div>
+        </FormSection>
+        <FormSection index="02" title="Customer context">
+          <FormField label="Customer address" htmlFor="billing-customer-address">
+            <FormTextarea id="billing-customer-address" value={form.customerAddress} onChange={(event) => setForm({ ...form, customerAddress: event.target.value })} />
+          </FormField>
+          <FormField label="Description" htmlFor="billing-description">
+            <FormTextarea id="billing-description" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+          </FormField>
+        </FormSection>
+      </CreatePanel>
+    </div>
+  )
+}
+
+export function BillingEditPage() {
+  const { billingId } = useParams({ strict: false }) as { billingId: string }
+  const navigate = useNavigate()
+  const query = useBillingControllerFindOne({ id: billingId })
+  const billing = unwrapData(query.data) as BillingRequestResponseDto | undefined
+  const resubmitBilling = useBillingControllerResubmit({
+    mutation: {
+      onSuccess: async () => navigate({ to: '/billing/$billingId', params: { billingId } }),
+    },
+  })
+  const isEditable = billing?.status === 'REJECTED' && billing.canResubmit === true
+
+  return (
+    <div className="max-w-3xl">
+      <PageHeader title={billing ? `Edit ${billing.title}` : `Edit billing ${billingId}`} kicker="Billing request" />
+      <ErrorNotice error={query.error ?? resubmitBilling.error} />
+      {billing && !isEditable ? (
+        <EmptyState message="This billing request cannot be edited and resubmitted." />
+      ) : null}
+      {billing && isEditable ? (
+        <BillingEditForm
+          billing={billing}
+          error={resubmitBilling.error}
+          isPending={resubmitBilling.isPending}
+          onSubmit={(data) => resubmitBilling.mutate({ id: billingId, data })}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+function BillingEditForm({
+  billing,
+  error,
+  isPending,
+  onSubmit,
+}: {
+  billing: BillingRequestResponseDto
+  error: unknown
+  isPending: boolean
+  onSubmit: (data: ResubmitBillingRequestDto) => void
+}) {
+  const [form, setForm] = useState({
+    title: billing.title,
+    customerName: billing.customerName,
+    customerEmail: billing.customerEmail ?? '',
+    customerAddress: billing.customerAddress ?? '',
+    amount: billing.amount,
+    currency: billing.currency,
+    billingCategory: billing.billingCategory,
+    description: billing.description ?? '',
+  })
+  const billingPayload: ResubmitBillingRequestDto = {
+    title: form.title,
+    customerName: form.customerName,
+    amount: Number(form.amount),
+    currency: form.currency,
+    billingCategory: form.billingCategory,
+    customerEmail: form.customerEmail || undefined,
+    customerAddress: form.customerAddress || undefined,
+    description: form.description || undefined,
+  }
+
+  return (
+    <CreatePanel
+      title="Edit billing"
+      kicker="Rejected request"
+      description="Update the rejected billing request before sending it back through workflow."
+      error={error}
+      onSubmit={() => onSubmit(billingPayload)}
+      submitLabel={isPending ? 'Resubmitting...' : 'Resubmit billing'}
+    >
+      <FormSection index="01" title="Billing details">
+        <div className="grid gap-3 md:grid-cols-2">
+          <FormField label="Title" htmlFor="billing-title">
+            <FormInput id="billing-title" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
+          </FormField>
+          <FormField label="Customer name" htmlFor="billing-customer-name">
+            <FormInput id="billing-customer-name" value={form.customerName} onChange={(event) => setForm({ ...form, customerName: event.target.value })} />
+          </FormField>
+          <FormField label="Amount" htmlFor="billing-amount">
+            <FormInput id="billing-amount" type="number" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
+          </FormField>
+          <FormField label="Currency" htmlFor="billing-currency">
+            <FormInput id="billing-currency" value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value })} />
+          </FormField>
+          <FormField label="Category" htmlFor="billing-category">
+            <FormSelect id="billing-category" value={form.billingCategory} onChange={(event) => setForm({ ...form, billingCategory: event.target.value })}>
+              {billingCategoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </FormSelect>
+          </FormField>
+          <FormField label="Customer email" htmlFor="billing-customer-email">
+            <FormInput id="billing-customer-email" type="email" value={form.customerEmail} onChange={(event) => setForm({ ...form, customerEmail: event.target.value })} />
+          </FormField>
+        </div>
+      </FormSection>
+      <FormSection index="02" title="Customer context">
+        <FormField label="Customer address" htmlFor="billing-customer-address">
+          <FormTextarea id="billing-customer-address" value={form.customerAddress} onChange={(event) => setForm({ ...form, customerAddress: event.target.value })} />
+        </FormField>
+        <FormField label="Description" htmlFor="billing-description">
+          <FormTextarea id="billing-description" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
+        </FormField>
+      </FormSection>
+    </CreatePanel>
+  )
+}
+
+export function BillingDetailPage() {
+  const { billingId } = useParams({ strict: false }) as { billingId: string }
+  const query = useBillingControllerFindOne({ id: billingId })
+  const billing = unwrapData(query.data) as BillingRequestResponseDto | undefined
+  const workflowId = billing ? workflowIdFromBilling(billing) : undefined
+  const workflowQuery = useWorkflowRuntimeControllerFindOne({ id: workflowId })
+  const workflow = workflowId
+    ? (unwrapData(workflowQuery.data) as WorkflowInstanceResponseDto | undefined)
+    : undefined
+  const canEditAndResubmit = billing?.status === 'REJECTED' && billing.canResubmit === true
+
+  return (
+    <>
+      <PageHeader
+        title={billing?.title ?? `Billing ${billingId}`}
+        kicker="Billing detail"
+        action={
+          billing && (canEditAndResubmit || workflowId || billing.invoiceId) ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {canEditAndResubmit ? (
+                <Button className="border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700" type="button">
+                  <Link className="inline-flex items-center gap-2" to="/billing/$billingId/edit" params={{ billingId }}>
+                    <Pencil className="h-4 w-4" />
+                    Edit and resubmit
+                  </Link>
+                </Button>
+              ) : null}
+              {workflowId ? (
+                <Button className="border-sky-700 bg-sky-600 text-white shadow-sm hover:bg-sky-700" type="button">
+                  <Link to="/workflow-instances/$instanceId" params={{ instanceId: workflowId }}>
+                    Full workflow detail
+                  </Link>
+                </Button>
+              ) : null}
+              {billing.invoiceId ? (
+                <Button type="button" variant="secondary">
+                  <Link to="/invoices/$invoiceId" params={{ invoiceId: billing.invoiceId }}>
+                    Open invoice
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+          ) : null
+        }
+      />
+      <ErrorNotice error={query.error ?? workflowQuery.error} />
+      {billing ? (
+        <div className="space-y-5">
+          <BillingSummary billing={billing} />
+          {workflowId ? (
+            workflow ? (
+              <WorkflowProgressSection instance={workflow} showActions />
+            ) : (
+              <EmptyState message="Workflow detail is not available yet." />
+            )
+          ) : (
+            <EmptyState message="No workflow has been started for this billing request." />
+          )}
+          <BillingTechnicalReference billing={billing} />
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+function BillingSummary({ billing }: { billing: BillingRequestResponseDto }) {
+  const requester = describeUserReference([], billing.requester ?? billing.requesterId)
+
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge>{billing.status}</Badge>
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Requester" value={formatValue(requester)} />
+        <SummaryValue label="Customer" value={billing.customerName} />
+        <SummaryValue label="Customer email" value={formatValue(billing.customerEmail)} />
+        <SummaryValue label="Amount" value={moneyLabel(billing.amount, billing.currency)} />
+        <SummaryValue label="Category" value={billing.billingCategory} />
+        <SummaryValue label="Submitted" value={formatOptionalDate(billing.submittedAt)} />
+        <SummaryValue label="Approved" value={formatOptionalDate(billing.approvedAt)} />
+        <SummaryValue label="Rejected" value={formatOptionalDate(billing.rejectedAt)} />
+        <SummaryValue label="Created" value={formatDate(billing.createdAt)} />
+        <SummaryValue label="Updated" value={formatDate(billing.updatedAt)} />
+      </div>
+      {billing.customerAddress ? (
+        <div className="mt-4 rounded-md border border-[var(--border)] bg-white p-3 text-sm leading-6 text-black">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+            Customer address
+          </p>
+          <p className="mt-1 text-black">{billing.customerAddress}</p>
+        </div>
+      ) : null}
+      {billing.description ? (
+        <div className="mt-4 rounded-md border border-[var(--border)] bg-white p-3 text-sm leading-6 text-black">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+            Description
+          </p>
+          <p className="mt-1 text-black">{billing.description}</p>
+        </div>
+      ) : null}
+      {billing.rejectionReason ? (
+        <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-800">
+          Rejection reason: {billing.rejectionReason}
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
+function BillingTechnicalReference({ billing }: { billing: BillingRequestResponseDto }) {
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <SectionHeading label="Technical metadata" title="Reference" />
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Billing request ID" value={billing.id} />
+        <SummaryValue label="Department" value={formatValue(billing.departmentId)} />
+        <SummaryValue label="Workflow ID" value={formatValue(workflowIdFromBilling(billing))} />
+        <SummaryValue label="Invoice ID" value={formatValue(billing.invoiceId)} />
+      </div>
+    </section>
+  )
+}
+
+export function InvoicesPage() {
+  const user = useAuthStore((state) => state.user)
+  const query = useInvoicesControllerList({ params: { page: 1, limit: 50 } })
+  const markPaid = useInvoicesControllerMarkPaid({ mutation: { onSuccess: () => void query.refetch() } })
+  const cancel = useInvoicesControllerCancel({ mutation: { onSuccess: () => void query.refetch() } })
+  const rows = (unwrapData(query.data) as Row[] | undefined) ?? []
+  const canWriteInvoices = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'invoices.write',
+  )
+  const columns: ColumnDef<Row>[] = [
+    { header: 'Invoice', accessorKey: 'invoiceNumber' },
+    { header: 'Title', accessorKey: 'title' },
+    { header: 'Customer', accessorKey: 'customerName' },
+    { header: 'Amount', cell: ({ row }) => moneyLabel(row.original.amount, row.original.currency) },
+    { header: 'Due date', accessorKey: 'dueDate' },
+    { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
+    {
+      header: 'Actions',
+      cell: ({ row }) => {
+        const id = String(row.original.id)
+        const status = String(row.original.status)
+
+        return (
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+              to="/invoices/$invoiceId"
+              params={{ invoiceId: id }}
+            >
+              <Eye className="h-4 w-4" />
+              Open
+            </Link>
+            {canWriteInvoices && status === 'ISSUED' ? (
+              <>
+                <Button size="sm" type="button" onClick={() => markPaid.mutate({ id })}>
+                  <CheckCircle2 className="h-4 w-4" />
+                  Mark paid
+                </Button>
+                <Button size="sm" type="button" variant="destructive" onClick={() => cancel.mutate({ id })}>
+                  <XCircle className="h-4 w-4" />
+                  Cancel
+                </Button>
+              </>
+            ) : null}
+          </div>
+        )
+      },
+    },
+  ]
+
+  return (
+    <>
+      <PageHeader title="Invoices" kicker="Finance" />
+      <ErrorNotice error={query.error ?? markPaid.error ?? cancel.error} />
+      <DataTable data={rows} columns={columns} />
+    </>
+  )
+}
+
+export function InvoiceDetailPage() {
+  const { invoiceId } = useParams({ strict: false }) as { invoiceId: string }
+  const query = useInvoicesControllerFindOne({ id: invoiceId })
+  const invoice = unwrapData(query.data) as InvoiceResponseDto | undefined
+
+  return (
+    <>
+      <PageHeader title={invoice?.invoiceNumber ?? `Invoice ${invoiceId}`} kicker="Invoice detail" />
+      <ErrorNotice error={query.error} />
+      {invoice ? (
+        <div className="space-y-5">
+          <InvoiceSummary invoice={invoice} />
+          <InvoiceTechnicalReference invoice={invoice} />
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+function InvoiceSummary({ invoice }: { invoice: InvoiceResponseDto }) {
+  const requester = describeUserReference([], invoice.requester ?? invoice.requesterId)
+
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge>{invoice.status}</Badge>
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Requester" value={formatValue(requester)} />
+        <SummaryValue label="Title" value={invoice.title} />
+        <SummaryValue label="Customer" value={invoice.customerName} />
+        <SummaryValue label="Customer email" value={formatValue(invoice.customerEmail)} />
+        <SummaryValue label="Amount" value={moneyLabel(invoice.amount, invoice.currency)} />
+        <SummaryValue label="Due date" value={invoice.dueDate} />
+        <SummaryValue label="Issued" value={formatDate(invoice.issuedAt)} />
+        <SummaryValue label="Paid" value={formatOptionalDate(invoice.paidAt)} />
+        <SummaryValue label="Cancelled" value={formatOptionalDate(invoice.cancelledAt)} />
+      </div>
+      {invoice.customerAddress ? (
+        <div className="mt-4 rounded-md border border-[var(--border)] bg-white p-3 text-sm leading-6 text-black">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+            Customer address
+          </p>
+          <p className="mt-1 text-black">{invoice.customerAddress}</p>
+        </div>
+      ) : null}
+      {invoice.description ? (
+        <div className="mt-4 rounded-md border border-[var(--border)] bg-white p-3 text-sm leading-6 text-black">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+            Description
+          </p>
+          <p className="mt-1 text-black">{invoice.description}</p>
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
+function InvoiceTechnicalReference({ invoice }: { invoice: InvoiceResponseDto }) {
+  return (
+    <section className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+      <SectionHeading label="Technical metadata" title="Reference" />
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryValue label="Invoice ID" value={invoice.id} />
+        <SummaryValue label="Billing request ID" value={invoice.billingRequestId} />
+        <SummaryValue label="Department" value={formatValue(invoice.departmentId)} />
+        <SummaryValue label="Created" value={formatDate(invoice.createdAt)} />
+        <SummaryValue label="Updated" value={formatDate(invoice.updatedAt)} />
       </div>
     </section>
   )

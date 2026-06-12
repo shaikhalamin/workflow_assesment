@@ -19,6 +19,51 @@
       "required": ["approved", "underReview"],
       "x-readme-ref-name": "EmployeeLeaveSummaryDto"
     },
+    "billing": {
+      "type": "object",
+      "properties": {
+        "draft": { "type": "number", "example": 2 },
+        "underReview": { "type": "number", "example": 3 },
+        "rejected": { "type": "number", "example": 1 },
+        "invoiced": { "type": "number", "example": 5 }
+      },
+      "required": ["draft", "underReview", "rejected", "invoiced"],
+      "x-readme-ref-name": "BillingSummaryDto"
+    },
+    "recentInvoices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "d1813f59-2289-4a01-9ddd-a93c6cf4fd14"
+          },
+          "invoiceNumber": { "type": "string", "example": "INV-20260610-0001" },
+          "title": {
+            "type": "string",
+            "example": "Enterprise internet installation"
+          },
+          "amount": { "type": "string", "example": "125000.00" },
+          "currency": { "type": "string", "example": "BDT" },
+          "status": { "type": "string", "example": "ISSUED" },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-10T09:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "invoiceNumber",
+          "title",
+          "amount",
+          "currency",
+          "status",
+          "createdAt"
+        ],
+        "x-readme-ref-name": "DashboardRecentInvoiceDto"
+      }
+    },
     "recentItems": {
       "type": "array",
       "items": {
@@ -40,6 +85,12 @@
       }
     }
   },
-  "required": ["expenses", "leaves", "recentItems"],
+  "required": [
+    "expenses",
+    "leaves",
+    "billing",
+    "recentInvoices",
+    "recentItems"
+  ],
   "x-readme-ref-name": "EmployeeDashboardResponseDto"
 }

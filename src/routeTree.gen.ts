@@ -19,22 +19,29 @@ import { Route as PrivateWorkflowInstancesRouteImport } from './routes/_private/
 import { Route as PrivateTasksRouteImport } from './routes/_private/tasks'
 import { Route as PrivatePaymentsRouteImport } from './routes/_private/payments'
 import { Route as PrivateLeavesRouteImport } from './routes/_private/leaves'
+import { Route as PrivateInvoicesRouteImport } from './routes/_private/invoices'
 import { Route as PrivateExpensesRouteImport } from './routes/_private/expenses'
 import { Route as PrivateEventSchemasRouteImport } from './routes/_private/event-schemas'
+import { Route as PrivateBillingRouteImport } from './routes/_private/billing'
 import { Route as PrivateAuditLogsRouteImport } from './routes/_private/audit-logs'
 import { Route as PrivateWorkflowTemplatesIndexRouteImport } from './routes/_private/workflow-templates.index'
 import { Route as PrivateWorkflowInstancesIndexRouteImport } from './routes/_private/workflow-instances.index'
 import { Route as PrivateLeavesIndexRouteImport } from './routes/_private/leaves.index'
 import { Route as PrivateExpensesIndexRouteImport } from './routes/_private/expenses.index'
+import { Route as PrivateBillingIndexRouteImport } from './routes/_private/billing.index'
 import { Route as PrivateWorkflowTemplatesNewRouteImport } from './routes/_private/workflow-templates.new'
 import { Route as PrivateWorkflowTemplatesTemplateIdRouteImport } from './routes/_private/workflow-templates.$templateId'
 import { Route as PrivateWorkflowInstancesInstanceIdRouteImport } from './routes/_private/workflow-instances.$instanceId'
 import { Route as PrivateLeavesNewRouteImport } from './routes/_private/leaves.new'
 import { Route as PrivateLeavesLeaveIdRouteImport } from './routes/_private/leaves.$leaveId'
+import { Route as PrivateInvoicesInvoiceIdRouteImport } from './routes/_private/invoices.$invoiceId'
 import { Route as PrivateExpensesNewRouteImport } from './routes/_private/expenses.new'
 import { Route as PrivateExpensesExpenseIdRouteImport } from './routes/_private/expenses.$expenseId'
+import { Route as PrivateBillingNewRouteImport } from './routes/_private/billing.new'
+import { Route as PrivateBillingBillingIdRouteImport } from './routes/_private/billing.$billingId'
 import { Route as PrivateLeavesLeaveIdEditRouteImport } from './routes/_private/leaves_.$leaveId.edit'
 import { Route as PrivateExpensesExpenseIdEditRouteImport } from './routes/_private/expenses_.$expenseId.edit'
+import { Route as PrivateBillingBillingIdEditRouteImport } from './routes/_private/billing_.$billingId.edit'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -86,6 +93,11 @@ const PrivateLeavesRoute = PrivateLeavesRouteImport.update({
   path: '/leaves',
   getParentRoute: () => PrivateRoute,
 } as any)
+const PrivateInvoicesRoute = PrivateInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => PrivateRoute,
+} as any)
 const PrivateExpensesRoute = PrivateExpensesRouteImport.update({
   id: '/expenses',
   path: '/expenses',
@@ -94,6 +106,11 @@ const PrivateExpensesRoute = PrivateExpensesRouteImport.update({
 const PrivateEventSchemasRoute = PrivateEventSchemasRouteImport.update({
   id: '/event-schemas',
   path: '/event-schemas',
+  getParentRoute: () => PrivateRoute,
+} as any)
+const PrivateBillingRoute = PrivateBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => PrivateRoute,
 } as any)
 const PrivateAuditLogsRoute = PrivateAuditLogsRouteImport.update({
@@ -123,6 +140,11 @@ const PrivateExpensesIndexRoute = PrivateExpensesIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PrivateExpensesRoute,
 } as any)
+const PrivateBillingIndexRoute = PrivateBillingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PrivateBillingRoute,
+} as any)
 const PrivateWorkflowTemplatesNewRoute =
   PrivateWorkflowTemplatesNewRouteImport.update({
     id: '/new',
@@ -151,6 +173,12 @@ const PrivateLeavesLeaveIdRoute = PrivateLeavesLeaveIdRouteImport.update({
   path: '/$leaveId',
   getParentRoute: () => PrivateLeavesRoute,
 } as any)
+const PrivateInvoicesInvoiceIdRoute =
+  PrivateInvoicesInvoiceIdRouteImport.update({
+    id: '/$invoiceId',
+    path: '/$invoiceId',
+    getParentRoute: () => PrivateInvoicesRoute,
+  } as any)
 const PrivateExpensesNewRoute = PrivateExpensesNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -162,6 +190,16 @@ const PrivateExpensesExpenseIdRoute =
     path: '/$expenseId',
     getParentRoute: () => PrivateExpensesRoute,
   } as any)
+const PrivateBillingNewRoute = PrivateBillingNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => PrivateBillingRoute,
+} as any)
+const PrivateBillingBillingIdRoute = PrivateBillingBillingIdRouteImport.update({
+  id: '/$billingId',
+  path: '/$billingId',
+  getParentRoute: () => PrivateBillingRoute,
+} as any)
 const PrivateLeavesLeaveIdEditRoute =
   PrivateLeavesLeaveIdEditRouteImport.update({
     id: '/leaves_/$leaveId/edit',
@@ -174,12 +212,20 @@ const PrivateExpensesExpenseIdEditRoute =
     path: '/expenses/$expenseId/edit',
     getParentRoute: () => PrivateRoute,
   } as any)
+const PrivateBillingBillingIdEditRoute =
+  PrivateBillingBillingIdEditRouteImport.update({
+    id: '/billing_/$billingId/edit',
+    path: '/billing/$billingId/edit',
+    getParentRoute: () => PrivateRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PrivateIndexRoute
   '/audit-logs': typeof PrivateAuditLogsRoute
+  '/billing': typeof PrivateBillingRouteWithChildren
   '/event-schemas': typeof PrivateEventSchemasRoute
   '/expenses': typeof PrivateExpensesRouteWithChildren
+  '/invoices': typeof PrivateInvoicesRouteWithChildren
   '/leaves': typeof PrivateLeavesRouteWithChildren
   '/payments': typeof PrivatePaymentsRoute
   '/tasks': typeof PrivateTasksRoute
@@ -187,17 +233,22 @@ export interface FileRoutesByFullPath {
   '/workflow-templates': typeof PrivateWorkflowTemplatesRouteWithChildren
   '/sign-in': typeof PublicSignInRoute
   '/sign-up': typeof PublicSignUpRoute
+  '/billing/$billingId': typeof PrivateBillingBillingIdRoute
+  '/billing/new': typeof PrivateBillingNewRoute
   '/expenses/$expenseId': typeof PrivateExpensesExpenseIdRoute
   '/expenses/new': typeof PrivateExpensesNewRoute
+  '/invoices/$invoiceId': typeof PrivateInvoicesInvoiceIdRoute
   '/leaves/$leaveId': typeof PrivateLeavesLeaveIdRoute
   '/leaves/new': typeof PrivateLeavesNewRoute
   '/workflow-instances/$instanceId': typeof PrivateWorkflowInstancesInstanceIdRoute
   '/workflow-templates/$templateId': typeof PrivateWorkflowTemplatesTemplateIdRoute
   '/workflow-templates/new': typeof PrivateWorkflowTemplatesNewRoute
+  '/billing/': typeof PrivateBillingIndexRoute
   '/expenses/': typeof PrivateExpensesIndexRoute
   '/leaves/': typeof PrivateLeavesIndexRoute
   '/workflow-instances/': typeof PrivateWorkflowInstancesIndexRoute
   '/workflow-templates/': typeof PrivateWorkflowTemplatesIndexRoute
+  '/billing/$billingId/edit': typeof PrivateBillingBillingIdEditRoute
   '/expenses/$expenseId/edit': typeof PrivateExpensesExpenseIdEditRoute
   '/leaves/$leaveId/edit': typeof PrivateLeavesLeaveIdEditRoute
 }
@@ -205,21 +256,27 @@ export interface FileRoutesByTo {
   '/': typeof PrivateIndexRoute
   '/audit-logs': typeof PrivateAuditLogsRoute
   '/event-schemas': typeof PrivateEventSchemasRoute
+  '/invoices': typeof PrivateInvoicesRouteWithChildren
   '/payments': typeof PrivatePaymentsRoute
   '/tasks': typeof PrivateTasksRoute
   '/sign-in': typeof PublicSignInRoute
   '/sign-up': typeof PublicSignUpRoute
+  '/billing/$billingId': typeof PrivateBillingBillingIdRoute
+  '/billing/new': typeof PrivateBillingNewRoute
   '/expenses/$expenseId': typeof PrivateExpensesExpenseIdRoute
   '/expenses/new': typeof PrivateExpensesNewRoute
+  '/invoices/$invoiceId': typeof PrivateInvoicesInvoiceIdRoute
   '/leaves/$leaveId': typeof PrivateLeavesLeaveIdRoute
   '/leaves/new': typeof PrivateLeavesNewRoute
   '/workflow-instances/$instanceId': typeof PrivateWorkflowInstancesInstanceIdRoute
   '/workflow-templates/$templateId': typeof PrivateWorkflowTemplatesTemplateIdRoute
   '/workflow-templates/new': typeof PrivateWorkflowTemplatesNewRoute
+  '/billing': typeof PrivateBillingIndexRoute
   '/expenses': typeof PrivateExpensesIndexRoute
   '/leaves': typeof PrivateLeavesIndexRoute
   '/workflow-instances': typeof PrivateWorkflowInstancesIndexRoute
   '/workflow-templates': typeof PrivateWorkflowTemplatesIndexRoute
+  '/billing/$billingId/edit': typeof PrivateBillingBillingIdEditRoute
   '/expenses/$expenseId/edit': typeof PrivateExpensesExpenseIdEditRoute
   '/leaves/$leaveId/edit': typeof PrivateLeavesLeaveIdEditRoute
 }
@@ -228,8 +285,10 @@ export interface FileRoutesById {
   '/_private': typeof PrivateRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
   '/_private/audit-logs': typeof PrivateAuditLogsRoute
+  '/_private/billing': typeof PrivateBillingRouteWithChildren
   '/_private/event-schemas': typeof PrivateEventSchemasRoute
   '/_private/expenses': typeof PrivateExpensesRouteWithChildren
+  '/_private/invoices': typeof PrivateInvoicesRouteWithChildren
   '/_private/leaves': typeof PrivateLeavesRouteWithChildren
   '/_private/payments': typeof PrivatePaymentsRoute
   '/_private/tasks': typeof PrivateTasksRoute
@@ -238,17 +297,22 @@ export interface FileRoutesById {
   '/_public/sign-in': typeof PublicSignInRoute
   '/_public/sign-up': typeof PublicSignUpRoute
   '/_private/': typeof PrivateIndexRoute
+  '/_private/billing/$billingId': typeof PrivateBillingBillingIdRoute
+  '/_private/billing/new': typeof PrivateBillingNewRoute
   '/_private/expenses/$expenseId': typeof PrivateExpensesExpenseIdRoute
   '/_private/expenses/new': typeof PrivateExpensesNewRoute
+  '/_private/invoices/$invoiceId': typeof PrivateInvoicesInvoiceIdRoute
   '/_private/leaves/$leaveId': typeof PrivateLeavesLeaveIdRoute
   '/_private/leaves/new': typeof PrivateLeavesNewRoute
   '/_private/workflow-instances/$instanceId': typeof PrivateWorkflowInstancesInstanceIdRoute
   '/_private/workflow-templates/$templateId': typeof PrivateWorkflowTemplatesTemplateIdRoute
   '/_private/workflow-templates/new': typeof PrivateWorkflowTemplatesNewRoute
+  '/_private/billing/': typeof PrivateBillingIndexRoute
   '/_private/expenses/': typeof PrivateExpensesIndexRoute
   '/_private/leaves/': typeof PrivateLeavesIndexRoute
   '/_private/workflow-instances/': typeof PrivateWorkflowInstancesIndexRoute
   '/_private/workflow-templates/': typeof PrivateWorkflowTemplatesIndexRoute
+  '/_private/billing_/$billingId/edit': typeof PrivateBillingBillingIdEditRoute
   '/_private/expenses_/$expenseId/edit': typeof PrivateExpensesExpenseIdEditRoute
   '/_private/leaves_/$leaveId/edit': typeof PrivateLeavesLeaveIdEditRoute
 }
@@ -257,8 +321,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/audit-logs'
+    | '/billing'
     | '/event-schemas'
     | '/expenses'
+    | '/invoices'
     | '/leaves'
     | '/payments'
     | '/tasks'
@@ -266,17 +332,22 @@ export interface FileRouteTypes {
     | '/workflow-templates'
     | '/sign-in'
     | '/sign-up'
+    | '/billing/$billingId'
+    | '/billing/new'
     | '/expenses/$expenseId'
     | '/expenses/new'
+    | '/invoices/$invoiceId'
     | '/leaves/$leaveId'
     | '/leaves/new'
     | '/workflow-instances/$instanceId'
     | '/workflow-templates/$templateId'
     | '/workflow-templates/new'
+    | '/billing/'
     | '/expenses/'
     | '/leaves/'
     | '/workflow-instances/'
     | '/workflow-templates/'
+    | '/billing/$billingId/edit'
     | '/expenses/$expenseId/edit'
     | '/leaves/$leaveId/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -284,21 +355,27 @@ export interface FileRouteTypes {
     | '/'
     | '/audit-logs'
     | '/event-schemas'
+    | '/invoices'
     | '/payments'
     | '/tasks'
     | '/sign-in'
     | '/sign-up'
+    | '/billing/$billingId'
+    | '/billing/new'
     | '/expenses/$expenseId'
     | '/expenses/new'
+    | '/invoices/$invoiceId'
     | '/leaves/$leaveId'
     | '/leaves/new'
     | '/workflow-instances/$instanceId'
     | '/workflow-templates/$templateId'
     | '/workflow-templates/new'
+    | '/billing'
     | '/expenses'
     | '/leaves'
     | '/workflow-instances'
     | '/workflow-templates'
+    | '/billing/$billingId/edit'
     | '/expenses/$expenseId/edit'
     | '/leaves/$leaveId/edit'
   id:
@@ -306,8 +383,10 @@ export interface FileRouteTypes {
     | '/_private'
     | '/_public'
     | '/_private/audit-logs'
+    | '/_private/billing'
     | '/_private/event-schemas'
     | '/_private/expenses'
+    | '/_private/invoices'
     | '/_private/leaves'
     | '/_private/payments'
     | '/_private/tasks'
@@ -316,17 +395,22 @@ export interface FileRouteTypes {
     | '/_public/sign-in'
     | '/_public/sign-up'
     | '/_private/'
+    | '/_private/billing/$billingId'
+    | '/_private/billing/new'
     | '/_private/expenses/$expenseId'
     | '/_private/expenses/new'
+    | '/_private/invoices/$invoiceId'
     | '/_private/leaves/$leaveId'
     | '/_private/leaves/new'
     | '/_private/workflow-instances/$instanceId'
     | '/_private/workflow-templates/$templateId'
     | '/_private/workflow-templates/new'
+    | '/_private/billing/'
     | '/_private/expenses/'
     | '/_private/leaves/'
     | '/_private/workflow-instances/'
     | '/_private/workflow-templates/'
+    | '/_private/billing_/$billingId/edit'
     | '/_private/expenses_/$expenseId/edit'
     | '/_private/leaves_/$leaveId/edit'
   fileRoutesById: FileRoutesById
@@ -408,6 +492,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateLeavesRouteImport
       parentRoute: typeof PrivateRoute
     }
+    '/_private/invoices': {
+      id: '/_private/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof PrivateInvoicesRouteImport
+      parentRoute: typeof PrivateRoute
+    }
     '/_private/expenses': {
       id: '/_private/expenses'
       path: '/expenses'
@@ -420,6 +511,13 @@ declare module '@tanstack/react-router' {
       path: '/event-schemas'
       fullPath: '/event-schemas'
       preLoaderRoute: typeof PrivateEventSchemasRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/_private/billing': {
+      id: '/_private/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof PrivateBillingRouteImport
       parentRoute: typeof PrivateRoute
     }
     '/_private/audit-logs': {
@@ -457,6 +555,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateExpensesIndexRouteImport
       parentRoute: typeof PrivateExpensesRoute
     }
+    '/_private/billing/': {
+      id: '/_private/billing/'
+      path: '/'
+      fullPath: '/billing/'
+      preLoaderRoute: typeof PrivateBillingIndexRouteImport
+      parentRoute: typeof PrivateBillingRoute
+    }
     '/_private/workflow-templates/new': {
       id: '/_private/workflow-templates/new'
       path: '/new'
@@ -492,6 +597,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateLeavesLeaveIdRouteImport
       parentRoute: typeof PrivateLeavesRoute
     }
+    '/_private/invoices/$invoiceId': {
+      id: '/_private/invoices/$invoiceId'
+      path: '/$invoiceId'
+      fullPath: '/invoices/$invoiceId'
+      preLoaderRoute: typeof PrivateInvoicesInvoiceIdRouteImport
+      parentRoute: typeof PrivateInvoicesRoute
+    }
     '/_private/expenses/new': {
       id: '/_private/expenses/new'
       path: '/new'
@@ -505,6 +617,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/expenses/$expenseId'
       preLoaderRoute: typeof PrivateExpensesExpenseIdRouteImport
       parentRoute: typeof PrivateExpensesRoute
+    }
+    '/_private/billing/new': {
+      id: '/_private/billing/new'
+      path: '/new'
+      fullPath: '/billing/new'
+      preLoaderRoute: typeof PrivateBillingNewRouteImport
+      parentRoute: typeof PrivateBillingRoute
+    }
+    '/_private/billing/$billingId': {
+      id: '/_private/billing/$billingId'
+      path: '/$billingId'
+      fullPath: '/billing/$billingId'
+      preLoaderRoute: typeof PrivateBillingBillingIdRouteImport
+      parentRoute: typeof PrivateBillingRoute
     }
     '/_private/leaves_/$leaveId/edit': {
       id: '/_private/leaves_/$leaveId/edit'
@@ -520,8 +646,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateExpensesExpenseIdEditRouteImport
       parentRoute: typeof PrivateRoute
     }
+    '/_private/billing_/$billingId/edit': {
+      id: '/_private/billing_/$billingId/edit'
+      path: '/billing/$billingId/edit'
+      fullPath: '/billing/$billingId/edit'
+      preLoaderRoute: typeof PrivateBillingBillingIdEditRouteImport
+      parentRoute: typeof PrivateRoute
+    }
   }
 }
+
+interface PrivateBillingRouteChildren {
+  PrivateBillingBillingIdRoute: typeof PrivateBillingBillingIdRoute
+  PrivateBillingNewRoute: typeof PrivateBillingNewRoute
+  PrivateBillingIndexRoute: typeof PrivateBillingIndexRoute
+}
+
+const PrivateBillingRouteChildren: PrivateBillingRouteChildren = {
+  PrivateBillingBillingIdRoute: PrivateBillingBillingIdRoute,
+  PrivateBillingNewRoute: PrivateBillingNewRoute,
+  PrivateBillingIndexRoute: PrivateBillingIndexRoute,
+}
+
+const PrivateBillingRouteWithChildren = PrivateBillingRoute._addFileChildren(
+  PrivateBillingRouteChildren,
+)
 
 interface PrivateExpensesRouteChildren {
   PrivateExpensesExpenseIdRoute: typeof PrivateExpensesExpenseIdRoute
@@ -537,6 +686,18 @@ const PrivateExpensesRouteChildren: PrivateExpensesRouteChildren = {
 
 const PrivateExpensesRouteWithChildren = PrivateExpensesRoute._addFileChildren(
   PrivateExpensesRouteChildren,
+)
+
+interface PrivateInvoicesRouteChildren {
+  PrivateInvoicesInvoiceIdRoute: typeof PrivateInvoicesInvoiceIdRoute
+}
+
+const PrivateInvoicesRouteChildren: PrivateInvoicesRouteChildren = {
+  PrivateInvoicesInvoiceIdRoute: PrivateInvoicesInvoiceIdRoute,
+}
+
+const PrivateInvoicesRouteWithChildren = PrivateInvoicesRoute._addFileChildren(
+  PrivateInvoicesRouteChildren,
 )
 
 interface PrivateLeavesRouteChildren {
@@ -593,28 +754,34 @@ const PrivateWorkflowTemplatesRouteWithChildren =
 
 interface PrivateRouteChildren {
   PrivateAuditLogsRoute: typeof PrivateAuditLogsRoute
+  PrivateBillingRoute: typeof PrivateBillingRouteWithChildren
   PrivateEventSchemasRoute: typeof PrivateEventSchemasRoute
   PrivateExpensesRoute: typeof PrivateExpensesRouteWithChildren
+  PrivateInvoicesRoute: typeof PrivateInvoicesRouteWithChildren
   PrivateLeavesRoute: typeof PrivateLeavesRouteWithChildren
   PrivatePaymentsRoute: typeof PrivatePaymentsRoute
   PrivateTasksRoute: typeof PrivateTasksRoute
   PrivateWorkflowInstancesRoute: typeof PrivateWorkflowInstancesRouteWithChildren
   PrivateWorkflowTemplatesRoute: typeof PrivateWorkflowTemplatesRouteWithChildren
   PrivateIndexRoute: typeof PrivateIndexRoute
+  PrivateBillingBillingIdEditRoute: typeof PrivateBillingBillingIdEditRoute
   PrivateExpensesExpenseIdEditRoute: typeof PrivateExpensesExpenseIdEditRoute
   PrivateLeavesLeaveIdEditRoute: typeof PrivateLeavesLeaveIdEditRoute
 }
 
 const PrivateRouteChildren: PrivateRouteChildren = {
   PrivateAuditLogsRoute: PrivateAuditLogsRoute,
+  PrivateBillingRoute: PrivateBillingRouteWithChildren,
   PrivateEventSchemasRoute: PrivateEventSchemasRoute,
   PrivateExpensesRoute: PrivateExpensesRouteWithChildren,
+  PrivateInvoicesRoute: PrivateInvoicesRouteWithChildren,
   PrivateLeavesRoute: PrivateLeavesRouteWithChildren,
   PrivatePaymentsRoute: PrivatePaymentsRoute,
   PrivateTasksRoute: PrivateTasksRoute,
   PrivateWorkflowInstancesRoute: PrivateWorkflowInstancesRouteWithChildren,
   PrivateWorkflowTemplatesRoute: PrivateWorkflowTemplatesRouteWithChildren,
   PrivateIndexRoute: PrivateIndexRoute,
+  PrivateBillingBillingIdEditRoute: PrivateBillingBillingIdEditRoute,
   PrivateExpensesExpenseIdEditRoute: PrivateExpensesExpenseIdEditRoute,
   PrivateLeavesLeaveIdEditRoute: PrivateLeavesLeaveIdEditRoute,
 }

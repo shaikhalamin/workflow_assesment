@@ -9,4 +9,5 @@ export const accountsDashboardResponseDtoSchema = z.object({
   accountsReviewTasks: z.number(),
   pendingPayments: z.number(),
   paidAmountThisMonth: z.number(),
+  issuedInvoices: z.number(),
 });

@@ -10,6 +10,10 @@ export type PermissionSlug =
   | 'expenses.write'
   | 'leaves.read'
   | 'leaves.write'
+  | 'billing.read'
+  | 'billing.write'
+  | 'invoices.read'
+  | 'invoices.write'
   | 'payments.read'
   | 'payments.write'
   | 'dashboard.read'
@@ -27,6 +31,9 @@ const privatePathPermissions: Array<{
   { path: '/expenses', permission: 'expenses.read' },
   { path: '/leaves/new', permission: 'leaves.write' },
   { path: '/leaves', permission: 'leaves.read' },
+  { path: '/billing/new', permission: 'billing.write' },
+  { path: '/billing', permission: 'billing.read' },
+  { path: '/invoices', permission: 'invoices.read' },
   { path: '/payments', permission: 'payments.read' },
   { path: '/audit-logs', permission: 'audit.read' },
   { path: '/', permission: 'dashboard.read' },

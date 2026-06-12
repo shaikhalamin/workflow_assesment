@@ -23,6 +23,12 @@ export {
   dashboardControllerEmployeeQueryResponseSchema,
 } from "./dashboardControllerEmployeeSchema.ts";
 export {
+  dashboardControllerFinance200Schema,
+  dashboardControllerFinance401Schema,
+  dashboardControllerFinance403Schema,
+  dashboardControllerFinanceQueryResponseSchema,
+} from "./dashboardControllerFinanceSchema.ts";
+export {
   dashboardControllerHr200Schema,
   dashboardControllerHr401Schema,
   dashboardControllerHr403Schema,

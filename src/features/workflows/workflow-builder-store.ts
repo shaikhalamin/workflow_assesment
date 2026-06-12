@@ -190,6 +190,26 @@ export const workflowModules: WorkflowModuleOption[] = [
     ],
   },
   {
+    label: 'Billing',
+    moduleName: 'billing',
+    eventName: 'billing.submitted',
+    entityType: 'BillingRequest',
+    description: 'Triggered when a billing request is submitted for invoice approval.',
+    fields: [
+      { key: 'amount', type: 'number', sampleValue: 125000 },
+      { key: 'currency', type: 'string', sampleValue: 'BDT' },
+      { key: 'billingCategory', type: 'string', sampleValue: 'Installation' },
+      { key: 'customerName', type: 'string', sampleValue: 'ACME Bangladesh Ltd.' },
+      { key: 'departmentId', type: 'string', sampleValue: 'sales' },
+      { key: 'customFields.projectCode', type: 'string', sampleValue: 'PRJ-2026-001' },
+      {
+        key: 'customFields.accountOwnerId',
+        type: 'user',
+        sampleValue: '71cb34da-1809-4c72-b132-2b9860be8936',
+      },
+    ],
+  },
+  {
     label: 'Attendance',
     moduleName: 'attendance',
     eventName: 'attendance.adjustment_submitted',
@@ -358,6 +378,7 @@ export function createDefaultWorkflowDraft(): WorkflowDraft {
     approvedActionsJson: {
       setStatus: 'APPROVED',
       createPaymentRequest: false,
+      createInvoice: false,
       notifyRequester: true,
     },
     rejectedActionsJson: {
@@ -374,6 +395,9 @@ export function toWorkflowWizardPayload(
   const approvedActionsJson = { ...draft.approvedActionsJson }
   if (draft.template.moduleName !== 'expenses') {
     delete approvedActionsJson.createPaymentRequest
+  }
+  if (draft.template.moduleName !== 'billing') {
+    delete approvedActionsJson.createInvoice
   }
 
   return ({

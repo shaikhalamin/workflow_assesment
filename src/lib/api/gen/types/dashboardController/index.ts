@@ -27,6 +27,13 @@ export type {
   DashboardControllerEmployeeQueryResponse,
 } from "./DashboardControllerEmployee.ts";
 export type {
+  DashboardControllerFinance200,
+  DashboardControllerFinance401,
+  DashboardControllerFinance403,
+  DashboardControllerFinanceQuery,
+  DashboardControllerFinanceQueryResponse,
+} from "./DashboardControllerFinance.ts";
+export type {
   DashboardControllerHr200,
   DashboardControllerHr401,
   DashboardControllerHr403,

@@ -2,6 +2,7 @@ export type { DashboardControllerAccountsQueryKey } from "./useDashboardControll
 export type { DashboardControllerAdminQueryKey } from "./useDashboardControllerAdmin.ts";
 export type { DashboardControllerApproverQueryKey } from "./useDashboardControllerApprover.ts";
 export type { DashboardControllerEmployeeQueryKey } from "./useDashboardControllerEmployee.ts";
+export type { DashboardControllerFinanceQueryKey } from "./useDashboardControllerFinance.ts";
 export type { DashboardControllerHrQueryKey } from "./useDashboardControllerHr.ts";
 export { dashboardControllerAccountsQueryKey } from "./useDashboardControllerAccounts.ts";
 export { dashboardControllerAccountsQueryOptions } from "./useDashboardControllerAccounts.ts";
@@ -15,6 +16,9 @@ export { useDashboardControllerApprover } from "./useDashboardControllerApprover
 export { dashboardControllerEmployeeQueryKey } from "./useDashboardControllerEmployee.ts";
 export { dashboardControllerEmployeeQueryOptions } from "./useDashboardControllerEmployee.ts";
 export { useDashboardControllerEmployee } from "./useDashboardControllerEmployee.ts";
+export { dashboardControllerFinanceQueryKey } from "./useDashboardControllerFinance.ts";
+export { dashboardControllerFinanceQueryOptions } from "./useDashboardControllerFinance.ts";
+export { useDashboardControllerFinance } from "./useDashboardControllerFinance.ts";
 export { dashboardControllerHrQueryKey } from "./useDashboardControllerHr.ts";
 export { dashboardControllerHrQueryOptions } from "./useDashboardControllerHr.ts";
 export { useDashboardControllerHr } from "./useDashboardControllerHr.ts";

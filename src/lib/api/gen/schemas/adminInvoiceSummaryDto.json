@@ -1,0 +1,6 @@
+{
+  "type": "object",
+  "properties": { "issued": { "type": "number", "example": 7 } },
+  "required": ["issued"],
+  "x-readme-ref-name": "AdminInvoiceSummaryDto"
+}

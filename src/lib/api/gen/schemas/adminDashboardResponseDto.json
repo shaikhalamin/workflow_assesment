@@ -11,6 +11,23 @@
       "required": ["active", "approved", "rejected"],
       "x-readme-ref-name": "AdminWorkflowSummaryDto"
     },
+    "billing": {
+      "type": "object",
+      "properties": {
+        "draft": { "type": "number", "example": 2 },
+        "underReview": { "type": "number", "example": 3 },
+        "rejected": { "type": "number", "example": 1 },
+        "invoiced": { "type": "number", "example": 5 }
+      },
+      "required": ["draft", "underReview", "rejected", "invoiced"],
+      "x-readme-ref-name": "BillingSummaryDto"
+    },
+    "invoices": {
+      "type": "object",
+      "properties": { "issued": { "type": "number", "example": 7 } },
+      "required": ["issued"],
+      "x-readme-ref-name": "AdminInvoiceSummaryDto"
+    },
     "recentWorkflowChanges": {
       "type": "array",
       "items": {
@@ -33,6 +50,12 @@
     },
     "failedTriggers": { "type": "number", "example": 1 }
   },
-  "required": ["workflows", "recentWorkflowChanges", "failedTriggers"],
+  "required": [
+    "workflows",
+    "billing",
+    "invoices",
+    "recentWorkflowChanges",
+    "failedTriggers"
+  ],
   "x-readme-ref-name": "AdminDashboardResponseDto"
 }

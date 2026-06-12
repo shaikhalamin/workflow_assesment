@@ -3,13 +3,21 @@
  * Do not edit manually.
  */
 
+import { adminInvoiceSummaryDtoSchema } from "./adminInvoiceSummaryDtoSchema.ts";
 import { adminWorkflowSummaryDtoSchema } from "./adminWorkflowSummaryDtoSchema.ts";
+import { billingSummaryDtoSchema } from "./billingSummaryDtoSchema.ts";
 import { dashboardRecentItemDtoSchema } from "./dashboardRecentItemDtoSchema.ts";
 import { z } from "zod/v4";
 
 export const adminDashboardResponseDtoSchema = z.object({
   get workflows() {
     return adminWorkflowSummaryDtoSchema;
+  },
+  get billing() {
+    return billingSummaryDtoSchema;
+  },
+  get invoices() {
+    return adminInvoiceSummaryDtoSchema;
   },
   get recentWorkflowChanges() {
     return z.array(dashboardRecentItemDtoSchema);

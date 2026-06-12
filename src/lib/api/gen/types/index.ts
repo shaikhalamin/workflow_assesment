@@ -1,5 +1,6 @@
 export type { AccountsDashboardResponseDto } from "./AccountsDashboardResponseDto.ts";
 export type { AdminDashboardResponseDto } from "./AdminDashboardResponseDto.ts";
+export type { AdminInvoiceSummaryDto } from "./AdminInvoiceSummaryDto.ts";
 export type { AdminWorkflowSummaryDto } from "./AdminWorkflowSummaryDto.ts";
 export type { ApiErrorDto } from "./ApiErrorDto.ts";
 export type { ApiResponseDto } from "./ApiResponseDto.ts";
@@ -8,6 +9,12 @@ export type { ApproverDashboardResponseDto } from "./ApproverDashboardResponseDt
 export type { AuditLogResponseDto } from "./AuditLogResponseDto.ts";
 export type { AuthResponseDto } from "./AuthResponseDto.ts";
 export type { AuthUserDto } from "./AuthUserDto.ts";
+export type {
+  BillingRequestResponseDto,
+  BillingRequestResponseDtoStatusEnum,
+} from "./BillingRequestResponseDto.ts";
+export type { BillingSummaryDto } from "./BillingSummaryDto.ts";
+export type { CreateBillingRequestDto } from "./CreateBillingRequestDto.ts";
 export type { CreateExpenseDto } from "./CreateExpenseDto.ts";
 export type { CreateLeaveDto } from "./CreateLeaveDto.ts";
 export type { CreateWorkflowEventSchemaDto } from "./CreateWorkflowEventSchemaDto.ts";
@@ -22,6 +29,7 @@ export type {
   CreateWorkflowTemplateDto,
   CreateWorkflowTemplateDtoStatusEnum,
 } from "./CreateWorkflowTemplateDto.ts";
+export type { DashboardRecentInvoiceDto } from "./DashboardRecentInvoiceDto.ts";
 export type { DashboardRecentItemDto } from "./DashboardRecentItemDto.ts";
 export type { EmployeeDashboardResponseDto } from "./EmployeeDashboardResponseDto.ts";
 export type { EmployeeExpenseSummaryDto } from "./EmployeeExpenseSummaryDto.ts";
@@ -30,8 +38,14 @@ export type {
   ExpenseResponseDto,
   ExpenseResponseDtoStatusEnum,
 } from "./ExpenseResponseDto.ts";
+export type { FinanceDashboardResponseDto } from "./FinanceDashboardResponseDto.ts";
+export type { FinanceInvoiceSummaryDto } from "./FinanceInvoiceSummaryDto.ts";
 export type { HrDashboardResponseDto } from "./HrDashboardResponseDto.ts";
 export type { HrLeaveCountsDto } from "./HrLeaveCountsDto.ts";
+export type {
+  InvoiceResponseDto,
+  InvoiceResponseDtoStatusEnum,
+} from "./InvoiceResponseDto.ts";
 export type {
   LeaveResponseDto,
   LeaveResponseDtoStatusEnum,
@@ -44,11 +58,13 @@ export type {
   PaymentRequestResponseDto,
   PaymentRequestResponseDtoStatusEnum,
 } from "./PaymentRequestResponseDto.ts";
+export type { ResubmitBillingRequestDto } from "./ResubmitBillingRequestDto.ts";
 export type { ResubmitExpenseDto } from "./ResubmitExpenseDto.ts";
 export type { ResubmitLeaveDto } from "./ResubmitLeaveDto.ts";
 export type { SignupDto } from "./SignupDto.ts";
 export type { SuccessResponseDto } from "./SuccessResponseDto.ts";
 export type { TriggerWorkflowDto } from "./TriggerWorkflowDto.ts";
+export type { UpdateBillingRequestDto } from "./UpdateBillingRequestDto.ts";
 export type { UpdateExpenseDto } from "./UpdateExpenseDto.ts";
 export type { UpdateLeaveDto } from "./UpdateLeaveDto.ts";
 export type { UpdateWorkflowEventSchemaDto } from "./UpdateWorkflowEventSchemaDto.ts";
@@ -171,6 +187,77 @@ export type {
   AuthControllerSignupMutationResponse,
 } from "./authController/AuthControllerSignup.ts";
 export type {
+  BillingControllerCancel201,
+  BillingControllerCancel400,
+  BillingControllerCancel401,
+  BillingControllerCancel403,
+  BillingControllerCancel404,
+  BillingControllerCancelMutation,
+  BillingControllerCancelMutationResponse,
+  BillingControllerCancelPathParams,
+} from "./billingRequestsController/BillingControllerCancel.ts";
+export type {
+  BillingControllerCreate201,
+  BillingControllerCreate400,
+  BillingControllerCreate401,
+  BillingControllerCreate403,
+  BillingControllerCreateMutation,
+  BillingControllerCreateMutationRequest,
+  BillingControllerCreateMutationResponse,
+} from "./billingRequestsController/BillingControllerCreate.ts";
+export type {
+  BillingControllerFindOne200,
+  BillingControllerFindOne400,
+  BillingControllerFindOne401,
+  BillingControllerFindOne403,
+  BillingControllerFindOne404,
+  BillingControllerFindOnePathParams,
+  BillingControllerFindOneQuery,
+  BillingControllerFindOneQueryResponse,
+} from "./billingRequestsController/BillingControllerFindOne.ts";
+export type {
+  BillingControllerList200,
+  BillingControllerList400,
+  BillingControllerList401,
+  BillingControllerList403,
+  BillingControllerListQuery,
+  BillingControllerListQueryParams,
+  BillingControllerListQueryParamsStatusEnum,
+  BillingControllerListQueryResponse,
+} from "./billingRequestsController/BillingControllerList.ts";
+export type {
+  BillingControllerResubmit201,
+  BillingControllerResubmit400,
+  BillingControllerResubmit401,
+  BillingControllerResubmit403,
+  BillingControllerResubmit404,
+  BillingControllerResubmitMutation,
+  BillingControllerResubmitMutationRequest,
+  BillingControllerResubmitMutationResponse,
+  BillingControllerResubmitPathParams,
+} from "./billingRequestsController/BillingControllerResubmit.ts";
+export type {
+  BillingControllerSubmit201,
+  BillingControllerSubmit400,
+  BillingControllerSubmit401,
+  BillingControllerSubmit403,
+  BillingControllerSubmit404,
+  BillingControllerSubmitMutation,
+  BillingControllerSubmitMutationResponse,
+  BillingControllerSubmitPathParams,
+} from "./billingRequestsController/BillingControllerSubmit.ts";
+export type {
+  BillingControllerUpdate200,
+  BillingControllerUpdate400,
+  BillingControllerUpdate401,
+  BillingControllerUpdate403,
+  BillingControllerUpdate404,
+  BillingControllerUpdateMutation,
+  BillingControllerUpdateMutationRequest,
+  BillingControllerUpdateMutationResponse,
+  BillingControllerUpdatePathParams,
+} from "./billingRequestsController/BillingControllerUpdate.ts";
+export type {
   DashboardControllerAccounts200,
   DashboardControllerAccounts401,
   DashboardControllerAccounts403,
@@ -198,6 +285,13 @@ export type {
   DashboardControllerEmployeeQuery,
   DashboardControllerEmployeeQueryResponse,
 } from "./dashboardController/DashboardControllerEmployee.ts";
+export type {
+  DashboardControllerFinance200,
+  DashboardControllerFinance401,
+  DashboardControllerFinance403,
+  DashboardControllerFinanceQuery,
+  DashboardControllerFinanceQueryResponse,
+} from "./dashboardController/DashboardControllerFinance.ts";
 export type {
   DashboardControllerHr200,
   DashboardControllerHr401,
@@ -276,6 +370,46 @@ export type {
   ExpensesControllerUpdateMutationResponse,
   ExpensesControllerUpdatePathParams,
 } from "./expensesController/ExpensesControllerUpdate.ts";
+export type {
+  InvoicesControllerCancel201,
+  InvoicesControllerCancel400,
+  InvoicesControllerCancel401,
+  InvoicesControllerCancel403,
+  InvoicesControllerCancel404,
+  InvoicesControllerCancelMutation,
+  InvoicesControllerCancelMutationResponse,
+  InvoicesControllerCancelPathParams,
+} from "./invoicesController/InvoicesControllerCancel.ts";
+export type {
+  InvoicesControllerFindOne200,
+  InvoicesControllerFindOne400,
+  InvoicesControllerFindOne401,
+  InvoicesControllerFindOne403,
+  InvoicesControllerFindOne404,
+  InvoicesControllerFindOnePathParams,
+  InvoicesControllerFindOneQuery,
+  InvoicesControllerFindOneQueryResponse,
+} from "./invoicesController/InvoicesControllerFindOne.ts";
+export type {
+  InvoicesControllerList200,
+  InvoicesControllerList400,
+  InvoicesControllerList401,
+  InvoicesControllerList403,
+  InvoicesControllerListQuery,
+  InvoicesControllerListQueryParams,
+  InvoicesControllerListQueryParamsStatusEnum,
+  InvoicesControllerListQueryResponse,
+} from "./invoicesController/InvoicesControllerList.ts";
+export type {
+  InvoicesControllerMarkPaid201,
+  InvoicesControllerMarkPaid400,
+  InvoicesControllerMarkPaid401,
+  InvoicesControllerMarkPaid403,
+  InvoicesControllerMarkPaid404,
+  InvoicesControllerMarkPaidMutation,
+  InvoicesControllerMarkPaidMutationResponse,
+  InvoicesControllerMarkPaidPathParams,
+} from "./invoicesController/InvoicesControllerMarkPaid.ts";
 export type {
   LeavesControllerCreate201,
   LeavesControllerCreate400,

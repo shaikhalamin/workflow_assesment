@@ -39,6 +39,8 @@ const navGroups = [
     items: [
       { to: '/expenses', label: 'Expenses', icon: Receipt, color: 'text-orange-700' },
       { to: '/leaves', label: 'Leaves', icon: FileText, color: 'text-lime-700' },
+      { to: '/billing', label: 'Billing', icon: ScrollText, color: 'text-rose-700' },
+      { to: '/invoices', label: 'Invoices', icon: FileText, color: 'text-blue-700' },
       { to: '/payments', label: 'Payments', icon: WalletCards, color: 'text-cyan-700' },
       { to: '/event-schemas', label: 'Event Schemas', icon: ScrollText, color: 'text-indigo-700' },
       { to: '/audit-logs', label: 'Audit Logs', icon: ScrollText, color: 'text-violet-700' },

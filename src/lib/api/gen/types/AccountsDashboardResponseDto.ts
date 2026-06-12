@@ -16,4 +16,8 @@ export type AccountsDashboardResponseDto = {
    * @type number
    */
   paidAmountThisMonth: number;
+  /**
+   * @type number
+   */
+  issuedInvoices: number;
 };
