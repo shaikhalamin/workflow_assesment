@@ -30,6 +30,14 @@ export type BillingRequestResponseDto = {
   /**
    * @type string
    */
+  createdById: string | null;
+  /**
+   * @type object
+   */
+  createdBy: WorkflowUserResponseDto | null;
+  /**
+   * @type string
+   */
   departmentId: string | null;
   /**
    * @type string

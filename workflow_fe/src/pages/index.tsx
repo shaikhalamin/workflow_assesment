@@ -3735,6 +3735,16 @@ export function ExpensesPage() {
         }
         columns={[
           { header: 'Title', accessorKey: 'title' },
+          {
+            header: 'Request created by',
+            cell: ({ row }) =>
+              formatValue(
+                describeUserReference(
+                  [],
+                  row.original.createdBy ?? row.original.createdById,
+                ),
+              ),
+          },
           { header: 'Amount', cell: ({ row }) => `${formatValue(row.original.amount)} ${formatValue(row.original.currency)}` },
           { header: 'Category', accessorKey: 'category' },
           { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
@@ -4217,6 +4227,16 @@ export function LeavesPage() {
         }
         columns={[
           { header: 'Type', accessorKey: 'leaveType' },
+          {
+            header: 'Request created by',
+            cell: ({ row }) =>
+              formatValue(
+                describeUserReference(
+                  [],
+                  row.original.createdBy ?? row.original.createdById,
+                ),
+              ),
+          },
           { header: 'Days', accessorKey: 'leaveDays' },
           { header: 'Period', cell: ({ row }) => `${formatValue(row.original.startDate)} - ${formatValue(row.original.endDate)}` },
           { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },
@@ -4661,6 +4681,16 @@ export function BillingRequestsPage() {
         columns={[
           { header: 'Title', accessorKey: 'title' },
           { header: 'Customer', accessorKey: 'customerName' },
+          {
+            header: 'Request created by',
+            cell: ({ row }) =>
+              formatValue(
+                describeUserReference(
+                  [],
+                  row.original.createdBy ?? row.original.createdById,
+                ),
+              ),
+          },
           { header: 'Amount', cell: ({ row }) => moneyLabel(row.original.amount, row.original.currency) },
           { header: 'Category', accessorKey: 'billingCategory' },
           { header: 'Status', cell: ({ row }) => <Badge>{String(row.original.status)}</Badge> },

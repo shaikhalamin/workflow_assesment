@@ -1,9 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { ExpenseCreatePage } from './index'
+import { ExpenseCreatePage, ExpensesPage } from './index'
 
 const createExpense = vi.fn()
+const expenseRowsState = vi.hoisted((): { rows: unknown[] } => ({
+  rows: [],
+}))
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -33,9 +36,14 @@ vi.mock('@/lib/api/gen', () => ({
     isPending: false,
     mutate: createExpense,
   }),
+  useExpensesControllerDelete: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+  }),
   useExpensesControllerFindOne: () => ({ data: undefined, error: null }),
   useExpensesControllerList: () => ({
-    data: { data: [] },
+    data: { data: expenseRowsState.rows },
     error: null,
     refetch: vi.fn(),
   }),
@@ -131,5 +139,34 @@ describe('ExpenseCreatePage', () => {
         vendor: 'Pathao',
       }),
     })
+  })
+})
+
+describe('ExpensesPage', () => {
+  it('shows who created each request with name and email', () => {
+    expenseRowsState.rows = [
+      {
+        id: 'expense-1',
+        title: 'Laptop reimbursement',
+        amount: '4500.00',
+        currency: 'BDT',
+        category: 'Software',
+        status: 'DRAFT',
+        canResubmit: false,
+        createdById: 'creator-1',
+        createdBy: {
+          id: 'creator-1',
+          name: 'Expense Creator',
+          email: 'expense.creator@example.com',
+        },
+      },
+    ]
+
+    render(<ExpensesPage />)
+
+    expect(screen.getByText('Request created by')).toBeInTheDocument()
+    expect(
+      screen.getByText('Expense Creator (expense.creator@example.com)'),
+    ).toBeInTheDocument()
   })
 })

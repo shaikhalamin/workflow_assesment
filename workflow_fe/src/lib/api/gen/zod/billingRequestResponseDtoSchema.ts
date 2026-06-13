@@ -12,6 +12,10 @@ export const billingRequestResponseDtoSchema = z.object({
   get requester() {
     return workflowUserResponseDtoSchema.nullable();
   },
+  createdById: z.nullable(z.string()),
+  get createdBy() {
+    return workflowUserResponseDtoSchema.nullable();
+  },
   departmentId: z.nullable(z.string()),
   customerName: z.string(),
   customerEmail: z.nullable(z.string()),

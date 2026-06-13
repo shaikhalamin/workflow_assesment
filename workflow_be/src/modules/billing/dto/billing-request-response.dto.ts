@@ -14,6 +14,16 @@ export class BillingRequestResponseDto {
 
   @ApiProperty({
     type: String,
+    example: 'f33b2ef8-0c6d-4d22-b9c7-8592cb4e5037',
+    nullable: true,
+  })
+  createdById!: string | null;
+
+  @ApiProperty({ type: WorkflowUserResponseDto, nullable: true })
+  createdBy!: WorkflowUserResponseDto | null;
+
+  @ApiProperty({
+    type: String,
     example: '61f1d2de-5733-4830-a97c-cb1899482850',
     nullable: true,
   })

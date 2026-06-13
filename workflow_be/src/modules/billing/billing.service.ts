@@ -44,6 +44,7 @@ export class BillingService {
     const billingRequest = await this.billingRequestsRepository.save(
       this.billingRequestsRepository.create({
         requesterId: actor.userId,
+        createdById: actor.userId,
         departmentId: dto.departmentId ?? null,
         customerName: dto.customerName,
         customerEmail: dto.customerEmail ?? null,
@@ -76,6 +77,7 @@ export class BillingService {
     const qb = this.billingRequestsRepository
       .createQueryBuilder('billingRequest')
       .leftJoinAndSelect('billingRequest.requester', 'requester')
+      .leftJoinAndSelect('billingRequest.createdBy', 'createdBy')
       .orderBy('billingRequest.createdAt', 'DESC');
 
     if (query.status) {
@@ -319,7 +321,7 @@ export class BillingService {
     const billingRequest = withUsers
       ? await this.billingRequestsRepository.findOne({
           where: { id },
-          relations: { requester: true },
+          relations: { createdBy: true, requester: true },
         })
       : await this.billingRequestsRepository.findOneBy({ id });
     if (!billingRequest)
@@ -394,6 +396,8 @@ export class BillingService {
       id: billingRequest.id,
       requesterId: billingRequest.requesterId,
       requester: toWorkflowUserResponse(billingRequest.requester),
+      createdById: billingRequest.createdById,
+      createdBy: toWorkflowUserResponse(billingRequest.createdBy),
       departmentId: billingRequest.departmentId,
       customerName: billingRequest.customerName,
       customerEmail: billingRequest.customerEmail,

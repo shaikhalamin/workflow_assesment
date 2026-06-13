@@ -33,6 +33,35 @@
         }
       ]
     },
+    "createdById": {
+      "type": "string",
+      "example": "f33b2ef8-0c6d-4d22-b9c7-8592cb4e5037",
+      "nullable": true
+    },
+    "createdBy": {
+      "nullable": true,
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+            },
+            "name": { "type": "string", "example": "Finance Approver" },
+            "email": { "type": "string", "example": "finance@example.com" },
+            "designation": {
+              "type": "string",
+              "example": "Finance Approver",
+              "nullable": true
+            }
+          },
+          "required": ["id", "name", "email", "designation"],
+          "x-readme-ref-name": "WorkflowUserResponseDto"
+        }
+      ]
+    },
     "departmentId": {
       "type": "string",
       "example": "61f1d2de-5733-4830-a97c-cb1899482850",
@@ -123,6 +152,8 @@
     "id",
     "requesterId",
     "requester",
+    "createdById",
+    "createdBy",
     "departmentId",
     "customerName",
     "customerEmail",

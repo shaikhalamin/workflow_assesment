@@ -1,9 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { LeaveCreatePage } from './index'
+import { LeaveCreatePage, LeavesPage } from './index'
 
 const createLeave = vi.fn()
+const leaveRowsState = vi.hoisted((): { rows: unknown[] } => ({
+  rows: [],
+}))
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -45,8 +48,17 @@ vi.mock('@/lib/api/gen', () => ({
     isPending: false,
     mutate: createLeave,
   }),
+  useLeavesControllerDelete: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+  }),
   useLeavesControllerFindOne: () => ({ data: undefined, error: null }),
-  useLeavesControllerList: () => ({ data: { data: [] }, error: null }),
+  useLeavesControllerList: () => ({
+    data: { data: leaveRowsState.rows },
+    error: null,
+    refetch: vi.fn(),
+  }),
   useLeavesControllerSubmit: () => ({ mutate: vi.fn() }),
   usePaymentsControllerList: () => ({
     data: { data: [] },
@@ -119,5 +131,34 @@ describe('LeaveCreatePage', () => {
         reason: 'Family event',
       }),
     })
+  })
+})
+
+describe('LeavesPage', () => {
+  it('shows who created each request with name and email', () => {
+    leaveRowsState.rows = [
+      {
+        id: 'leave-1',
+        leaveType: 'ANNUAL',
+        leaveDays: 2,
+        startDate: '2026-06-10',
+        endDate: '2026-06-11',
+        status: 'DRAFT',
+        canResubmit: false,
+        createdById: 'creator-1',
+        createdBy: {
+          id: 'creator-1',
+          name: 'Leave Creator',
+          email: 'leave.creator@example.com',
+        },
+      },
+    ]
+
+    render(<LeavesPage />)
+
+    expect(screen.getByText('Request created by')).toBeInTheDocument()
+    expect(
+      screen.getByText('Leave Creator (leave.creator@example.com)'),
+    ).toBeInTheDocument()
   })
 })

@@ -19,6 +19,12 @@ const billingRowsState = vi.hoisted((): { rows: unknown[] } => ({
       id: 'billing-1',
       title: 'Enterprise installation',
       customerName: 'ACME Bangladesh Ltd.',
+      createdById: 'creator-1',
+      createdBy: {
+        id: 'creator-1',
+        name: 'Billing Creator',
+        email: 'billing.creator@example.com',
+      },
       amount: '125000.00',
       currency: 'BDT',
       billingCategory: 'Installation',
@@ -260,6 +266,10 @@ describe('billing and invoice pages', () => {
     expect(screen.getByText('Enterprise installation')).toBeInTheDocument()
     expect(screen.getByText('ACME Bangladesh Ltd.')).toBeInTheDocument()
     expect(screen.getByText('125000.00 BDT')).toBeInTheDocument()
+    expect(screen.getByText('Request created by')).toBeInTheDocument()
+    expect(
+      screen.getByText('Billing Creator (billing.creator@example.com)'),
+    ).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))

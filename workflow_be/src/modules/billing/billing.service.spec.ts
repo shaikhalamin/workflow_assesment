@@ -200,6 +200,91 @@ describe('BillingService', () => {
     ).resolves.toEqual(expect.objectContaining({ id: 'billing-1' }));
   });
 
+  it('returns the billing request creator on list and detail responses', async () => {
+    const createdAt = new Date('2026-06-10T08:00:00.000Z');
+    const creator = {
+      id: 'creator-1',
+      name: 'Billing Creator',
+      email: 'billing.creator@example.com',
+      designation: null,
+    };
+    const billingRequest = {
+      id: 'billing-1',
+      requesterId: 'requester-1',
+      requester: null,
+      createdById: 'creator-1',
+      createdBy: creator,
+      departmentId: 'dept-1',
+      customerName: 'ACME Bangladesh Ltd.',
+      customerEmail: 'billing@acme.example',
+      customerAddress: 'Dhaka',
+      title: 'Enterprise installation',
+      description: null,
+      amount: '125000',
+      currency: 'BDT',
+      billingCategory: 'Installation',
+      status: BillingRequestStatus.DRAFT,
+      workflowInstanceId: null,
+      invoiceId: null,
+      rejectionReason: null,
+      customFieldsJson: null,
+      submittedAt: null,
+      approvedAt: null,
+      rejectedAt: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const getManyAndCount = jest.fn().mockResolvedValue([[billingRequest], 1]);
+    const queryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount,
+    };
+    const billingRequestsRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+      findOne: jest.fn().mockResolvedValue(billingRequest),
+    };
+    const service = new BillingService(
+      billingRequestsRepository as never,
+      { allowsResubmission: jest.fn<Promise<boolean>, [string]>() } as never,
+      {} as never,
+    );
+
+    const actor = {
+      userId: 'requester-1',
+      roles: ['sales-officer'],
+      permissions: [],
+    } as never;
+
+    const listResponse = await service.list({ page: 1, limit: 10 }, actor);
+    const detailResponse = await service.findOne('billing-1', actor);
+
+    expect(queryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+      'billingRequest.createdBy',
+      'createdBy',
+    );
+    expect(billingRequestsRepository.findOne).toHaveBeenCalledWith({
+      where: { id: 'billing-1' },
+      relations: { createdBy: true, requester: true },
+    });
+    expect(listResponse.items[0]).toEqual(
+      expect.objectContaining({
+        createdById: 'creator-1',
+        createdBy: creator,
+      }),
+    );
+    expect(detailResponse).toEqual(
+      expect.objectContaining({
+        createdById: 'creator-1',
+        createdBy: creator,
+      }),
+    );
+  });
+
   it('cancels the active workflow when an under-review billing request is cancelled', async () => {
     const billingRequest = {
       id: 'billing-1',

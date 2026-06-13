@@ -32,6 +32,13 @@ export class BillingRequest {
   requester!: User;
 
   @Column({ type: 'uuid', nullable: true })
+  createdById!: string | null;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'createdById' })
+  createdBy!: User | null;
+
+  @Column({ type: 'uuid', nullable: true })
   departmentId!: string | null;
 
   @Column()
