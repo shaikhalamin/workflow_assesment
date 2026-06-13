@@ -40,6 +40,7 @@ import { Route as PrivateExpensesNewRouteImport } from './routes/_private/expens
 import { Route as PrivateExpensesExpenseIdRouteImport } from './routes/_private/expenses.$expenseId'
 import { Route as PrivateBillingNewRouteImport } from './routes/_private/billing.new'
 import { Route as PrivateBillingBillingIdRouteImport } from './routes/_private/billing.$billingId'
+import { Route as PrivateWorkflowTemplatesTemplateIdEditRouteImport } from './routes/_private/workflow-templates_.$templateId.edit'
 import { Route as PrivateLeavesLeaveIdEditRouteImport } from './routes/_private/leaves_.$leaveId.edit'
 import { Route as PrivateExpensesExpenseIdEditRouteImport } from './routes/_private/expenses_.$expenseId.edit'
 import { Route as PrivateBillingBillingIdEditRouteImport } from './routes/_private/billing_.$billingId.edit'
@@ -206,6 +207,12 @@ const PrivateBillingBillingIdRoute = PrivateBillingBillingIdRouteImport.update({
   path: '/$billingId',
   getParentRoute: () => PrivateBillingRoute,
 } as any)
+const PrivateWorkflowTemplatesTemplateIdEditRoute =
+  PrivateWorkflowTemplatesTemplateIdEditRouteImport.update({
+    id: '/workflow-templates_/$templateId/edit',
+    path: '/workflow-templates/$templateId/edit',
+    getParentRoute: () => PrivateRoute,
+  } as any)
 const PrivateLeavesLeaveIdEditRoute =
   PrivateLeavesLeaveIdEditRouteImport.update({
     id: '/leaves_/$leaveId/edit',
@@ -258,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/billing/$billingId/edit': typeof PrivateBillingBillingIdEditRoute
   '/expenses/$expenseId/edit': typeof PrivateExpensesExpenseIdEditRoute
   '/leaves/$leaveId/edit': typeof PrivateLeavesLeaveIdEditRoute
+  '/workflow-templates/$templateId/edit': typeof PrivateWorkflowTemplatesTemplateIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof PrivateIndexRoute
@@ -287,6 +295,7 @@ export interface FileRoutesByTo {
   '/billing/$billingId/edit': typeof PrivateBillingBillingIdEditRoute
   '/expenses/$expenseId/edit': typeof PrivateExpensesExpenseIdEditRoute
   '/leaves/$leaveId/edit': typeof PrivateLeavesLeaveIdEditRoute
+  '/workflow-templates/$templateId/edit': typeof PrivateWorkflowTemplatesTemplateIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -324,6 +333,7 @@ export interface FileRoutesById {
   '/_private/billing_/$billingId/edit': typeof PrivateBillingBillingIdEditRoute
   '/_private/expenses_/$expenseId/edit': typeof PrivateExpensesExpenseIdEditRoute
   '/_private/leaves_/$leaveId/edit': typeof PrivateLeavesLeaveIdEditRoute
+  '/_private/workflow-templates_/$templateId/edit': typeof PrivateWorkflowTemplatesTemplateIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -360,6 +370,7 @@ export interface FileRouteTypes {
     | '/billing/$billingId/edit'
     | '/expenses/$expenseId/edit'
     | '/leaves/$leaveId/edit'
+    | '/workflow-templates/$templateId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -389,6 +400,7 @@ export interface FileRouteTypes {
     | '/billing/$billingId/edit'
     | '/expenses/$expenseId/edit'
     | '/leaves/$leaveId/edit'
+    | '/workflow-templates/$templateId/edit'
   id:
     | '__root__'
     | '/_private'
@@ -425,6 +437,7 @@ export interface FileRouteTypes {
     | '/_private/billing_/$billingId/edit'
     | '/_private/expenses_/$expenseId/edit'
     | '/_private/leaves_/$leaveId/edit'
+    | '/_private/workflow-templates_/$templateId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -651,6 +664,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateBillingBillingIdRouteImport
       parentRoute: typeof PrivateBillingRoute
     }
+    '/_private/workflow-templates_/$templateId/edit': {
+      id: '/_private/workflow-templates_/$templateId/edit'
+      path: '/workflow-templates/$templateId/edit'
+      fullPath: '/workflow-templates/$templateId/edit'
+      preLoaderRoute: typeof PrivateWorkflowTemplatesTemplateIdEditRouteImport
+      parentRoute: typeof PrivateRoute
+    }
     '/_private/leaves_/$leaveId/edit': {
       id: '/_private/leaves_/$leaveId/edit'
       path: '/leaves/$leaveId/edit'
@@ -787,6 +807,7 @@ interface PrivateRouteChildren {
   PrivateBillingBillingIdEditRoute: typeof PrivateBillingBillingIdEditRoute
   PrivateExpensesExpenseIdEditRoute: typeof PrivateExpensesExpenseIdEditRoute
   PrivateLeavesLeaveIdEditRoute: typeof PrivateLeavesLeaveIdEditRoute
+  PrivateWorkflowTemplatesTemplateIdEditRoute: typeof PrivateWorkflowTemplatesTemplateIdEditRoute
 }
 
 const PrivateRouteChildren: PrivateRouteChildren = {
@@ -805,6 +826,8 @@ const PrivateRouteChildren: PrivateRouteChildren = {
   PrivateBillingBillingIdEditRoute: PrivateBillingBillingIdEditRoute,
   PrivateExpensesExpenseIdEditRoute: PrivateExpensesExpenseIdEditRoute,
   PrivateLeavesLeaveIdEditRoute: PrivateLeavesLeaveIdEditRoute,
+  PrivateWorkflowTemplatesTemplateIdEditRoute:
+    PrivateWorkflowTemplatesTemplateIdEditRoute,
 }
 
 const PrivateRouteWithChildren =

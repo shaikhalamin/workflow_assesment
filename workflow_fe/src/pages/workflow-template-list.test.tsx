@@ -17,13 +17,18 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
     className,
+    params,
     to,
   }: {
     children: ReactNode
     className?: string
+    params?: Record<string, string>
     to?: string
   }) => (
-    <a href={to ?? '#'} className={className}>
+    <a
+      href={to && params ? to.replace('$templateId', params.templateId) : (to ?? '#')}
+      className={className}
+    >
       {children}
     </a>
   ),
@@ -161,7 +166,7 @@ describe('WorkflowTemplatesPage actions', () => {
     expect(screen.queryByText('DRAFT')).not.toBeInTheDocument()
   })
 
-  it('renders list actions with detail label and without duplicate action', () => {
+  it('renders list actions with draft edit and without duplicate action', () => {
     workflowTemplateRows = [
       {
         id: 'template-1',
@@ -179,6 +184,10 @@ describe('WorkflowTemplatesPage actions', () => {
     const row = screen.getByRole('row', { name: /expense workflow/i })
 
     expect(within(row).getByRole('link', { name: /view details/i })).toBeInTheDocument()
+    expect(within(row).getByRole('link', { name: /edit/i })).toHaveAttribute(
+      'href',
+      '/workflow-templates/template-1/edit',
+    )
     expect(within(row).queryByRole('button', { name: /duplicate/i })).not.toBeInTheDocument()
     expect(within(row).getByRole('button', { name: /publish/i })).toBeInTheDocument()
     expect(within(row).getByRole('button', { name: /deactivate/i })).toHaveClass(
@@ -203,6 +212,7 @@ describe('WorkflowTemplatesPage actions', () => {
 
     const row = screen.getByRole('row', { name: /leave workflow/i })
 
+    expect(within(row).queryByRole('link', { name: /edit/i })).not.toBeInTheDocument()
     expect(within(row).queryByRole('button', { name: /publish/i })).not.toBeInTheDocument()
     expect(within(row).getByRole('button', { name: /deactivate/i })).toBeDisabled()
     expect(

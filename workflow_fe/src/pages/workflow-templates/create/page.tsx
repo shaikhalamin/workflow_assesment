@@ -1,13 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useForm } from '@tanstack/react-form'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate,useParams } from '@tanstack/react-router'
 import {
 ChevronDown,
 ChevronRight,
 Plus,
 Trash2
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect,useRef,useState } from 'react'
 
 import {
 FormCheckbox,
@@ -26,29 +26,34 @@ describeWorkflowAssignee,
 formatRoleLabel,
 getConditionFieldExample,
 getDefaultConditionOperator,
-getWorkflowBuilderStepState,
-getWorkflowModule,
-parseConditionValue,
-roleOptions,
-toWorkflowWizardPayload,
-useWorkflowBuilderStore,
-workflowBuilderSteps,
-workflowModules,
-type WorkflowDraft,
-type WorkflowRuleDraft,
-type WorkflowStepDraft,
+  getWorkflowBuilderStepState,
+  getWorkflowModule,
+  parseConditionValue,
+  roleOptions,
+  saveWorkflowDraftEdit,
+  toWorkflowWizardPayload,
+  useWorkflowBuilderStore,
+  workflowTemplateToDraft,
+  workflowBuilderSteps,
+  workflowModules,
+  type WorkflowDraft,
+  type WorkflowRuleDraft,
+  type WorkflowStepDraft,
 } from '@/features/workflows/workflow-builder-store'
 import type {
-UserResponseDto
+UserResponseDto,
+WorkflowTemplateResponseDto
 } from '@/lib/api/gen'
-import { useUsersControllerGetUsers,useWorkflowTemplateControllerCreateWizard } from '@/lib/api/gen'
+import { useUsersControllerGetUsers,useWorkflowTemplateControllerCreateWizard,useWorkflowTemplateControllerFindOne } from '@/lib/api/gen'
 import {
 formatValue,
 rowsFrom,
 unwrapData
 } from '@/lib/format'
 import {
-ErrorNotice
+EmptyState,
+ErrorNotice,
+PageHeader
 } from '@/pages/utils/page-components'
 import {
 fieldError,
@@ -62,11 +67,29 @@ type WorkflowNameFieldProps = {
   onChange: (value: string) => void
 }
 
-export function WorkflowBuilderPage() {
+type WorkflowBuilderPageProps = {
+  mode?: 'create' | 'edit'
+  templateId?: string
+}
+
+export function WorkflowBuilderPage({
+  mode = 'create',
+  templateId,
+}: WorkflowBuilderPageProps) {
+  const isEditMode = mode === 'edit'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { step, setStep, draft, setDraft, reset } = useWorkflowBuilderStore()
+  const loadedTemplateIdRef = useRef<string | null>(null)
+  const [saveError, setSaveError] = useState<unknown>(null)
+  const [isSavingEdit, setIsSavingEdit] = useState(false)
   const usersQuery = useUsersControllerGetUsers({ params: { page: 1, limit: 100 } })
+  const templateQuery = useWorkflowTemplateControllerFindOne({
+    id: isEditMode ? templateId : undefined,
+  })
+  const template = unwrapData(templateQuery.data) as
+    | WorkflowTemplateResponseDto
+    | undefined
   const users = rowsFrom(usersQuery.data)
   const currentStep = workflowBuilderSteps.find((item) => item.id === step)
   const createWizard = useWorkflowTemplateControllerCreateWizard({
@@ -89,23 +112,86 @@ export function WorkflowBuilderPage() {
     validators: {
       onSubmit: workflowBuilderSaveSchema,
     },
-    onSubmit: ({ value }) => {
-      createWizard.mutate({
-        data: toWorkflowWizardPayload({
-          ...draft,
-          template: {
-            ...draft.template,
-            name: value.templateName.trim(),
-          },
-        }),
-      })
+    onSubmit: async ({ value }) => {
+      const nextDraft = {
+        ...draft,
+        template: {
+          ...draft.template,
+          name: value.templateName.trim(),
+        },
+      }
+
+      if (!isEditMode) {
+        createWizard.mutate({
+          data: toWorkflowWizardPayload(nextDraft),
+        })
+        return
+      }
+
+      if (!templateId || !template || template.status !== 'DRAFT') return
+
+      setSaveError(null)
+      setIsSavingEdit(true)
+      try {
+        await saveWorkflowDraftEdit({
+          templateId,
+          draft: nextDraft,
+          existingRules: template.rules,
+        })
+        await queryClient.invalidateQueries()
+        await navigate({
+          to: '/workflow-templates/$templateId',
+          params: { templateId },
+        })
+      } catch (error) {
+        setSaveError(error)
+      } finally {
+        setIsSavingEdit(false)
+      }
     },
   })
+
+  useEffect(() => {
+    if (!isEditMode || !template || loadedTemplateIdRef.current === template.id) return
+
+    const nextDraft = workflowTemplateToDraft(template)
+    setDraft(nextDraft)
+    setStep(1)
+    form.setFieldValue('templateName', nextDraft.template.name)
+    loadedTemplateIdRef.current = template.id
+  }, [form, isEditMode, setDraft, setStep, template])
+
+  if (isEditMode && !template) {
+    return (
+      <>
+        <PageHeader
+          title="Edit workflow template"
+          kicker="Workflow templates"
+          description="Loading the selected workflow draft."
+        />
+        <ErrorNotice error={templateQuery.error} />
+        <EmptyState message="Loading workflow template..." />
+      </>
+    )
+  }
+
+  if (isEditMode && template && template.status !== 'DRAFT') {
+    return (
+      <>
+        <PageHeader
+          title={`Edit ${template.name}`}
+          kicker="Workflow templates"
+          description="Only draft workflow templates can be edited."
+        />
+        <EmptyState message="This workflow template is not a draft and cannot be edited." />
+      </>
+    )
+  }
 
   return (
     <FormShell
       kicker="Workflow templates"
-      title="Create workflow template"
+      title={isEditMode ? 'Edit workflow template' : 'Create workflow template'}
       description={
         currentStep
           ? currentStep.description
@@ -122,7 +208,7 @@ export function WorkflowBuilderPage() {
         <WorkflowPreview draft={draft} users={users} />
       }
     >
-      <ErrorNotice error={createWizard.error} />
+      <ErrorNotice error={templateQuery.error ?? createWizard.error ?? saveError} />
       <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
         {workflowBuilderSteps.map((item) => {
           const state = getWorkflowBuilderStepState(step, item.id)
@@ -216,16 +302,22 @@ export function WorkflowBuilderPage() {
           ) : (
             <Button
               type="button"
-              disabled={createWizard.isPending}
+              disabled={createWizard.isPending || isSavingEdit}
               onClick={() => void form.handleSubmit()}
             >
-              Save workflow
+              {isSavingEdit ? 'Saving workflow...' : 'Save workflow'}
             </Button>
           )}
         </div>
       </div>
     </FormShell>
   )
+}
+
+export function WorkflowTemplateEditPage() {
+  const { templateId } = useParams({ strict: false }) as { templateId: string }
+
+  return <WorkflowBuilderPage mode="edit" templateId={templateId} />
 }
 
 function BasicInfo({

@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import type { ColumnDef } from '@tanstack/react-table'
 import {
 Eye,
+Pencil,
 PlayCircle,
 Plus,
 XCircle
@@ -60,6 +61,17 @@ export function WorkflowTemplatesPage() {
                     <Eye className="h-4 w-4" /> View Details
                   </Link>
                 </Button>
+                {status === 'DRAFT' ? (
+                  <Button size="sm" variant="secondary" type="button">
+                    <Link
+                      to="/workflow-templates/$templateId/edit"
+                      params={{ templateId: id }}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <Pencil className="h-4 w-4" /> Edit
+                    </Link>
+                  </Button>
+                ) : null}
                 {status !== 'PUBLISHED' ? (
                   <Button size="sm" type="button" onClick={() => publish.mutate({ id })}>
                     <PlayCircle className="h-4 w-4" /> Publish

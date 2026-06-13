@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useWorkflowBuilderStore } from '@/features/workflows/workflow-builder-store'
@@ -6,6 +6,10 @@ import { useWorkflowBuilderStore } from '@/features/workflows/workflow-builder-s
 import { WorkflowBuilderPage } from './index'
 
 const createWorkflowWizard = vi.hoisted(() => vi.fn())
+const updateWorkflowTemplate = vi.hoisted(() => vi.fn())
+const deleteWorkflowRule = vi.hoisted(() => vi.fn())
+const createWorkflowRule = vi.hoisted(() => vi.fn())
+let templateResponse: unknown | undefined
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -24,6 +28,9 @@ vi.mock('@tanstack/react-query', () => ({
 }))
 
 vi.mock('@/lib/api/gen', () => ({
+  workflowRuleControllerDelete: deleteWorkflowRule,
+  workflowTemplateControllerCreateRule: createWorkflowRule,
+  workflowTemplateControllerUpdate: updateWorkflowTemplate,
   useUsersControllerGetUsers: () => ({
     data: { data: [] },
     isLoading: false,
@@ -33,12 +40,24 @@ vi.mock('@/lib/api/gen', () => ({
     isPending: false,
     mutate: createWorkflowWizard,
   }),
+  useWorkflowTemplateControllerFindOne: () => ({
+    data: templateResponse ? { data: templateResponse } : undefined,
+    error: null,
+    isLoading: false,
+  }),
 }))
 
 describe('WorkflowBuilderPage trigger setup', () => {
   beforeEach(() => {
+    templateResponse = undefined
     useWorkflowBuilderStore.getState().reset()
     createWorkflowWizard.mockClear()
+    updateWorkflowTemplate.mockReset()
+    deleteWorkflowRule.mockReset()
+    createWorkflowRule.mockReset()
+    updateWorkflowTemplate.mockResolvedValue({ data: { id: 'template-1' } })
+    deleteWorkflowRule.mockResolvedValue({ data: { success: true } })
+    createWorkflowRule.mockResolvedValue({ data: { id: 'new-rule-1' } })
   })
 
   it('hides condition fields until trigger mode uses conditions', () => {
@@ -226,5 +245,97 @@ describe('WorkflowBuilderPage trigger setup', () => {
     fireEvent.click(screen.getByRole('button', { name: /save workflow/i }))
 
     expect(createWorkflowWizard).not.toHaveBeenCalled()
+  })
+
+  it('preloads a draft workflow and replaces its rules when saving edits', async () => {
+    templateResponse = {
+      id: 'template-1',
+      name: 'Existing draft workflow',
+      description: 'Routes travel expenses',
+      moduleName: 'expenses',
+      eventName: 'expense.submitted',
+      entityType: 'Expense',
+      status: 'DRAFT',
+      priority: 8,
+      effectiveFrom: '2026-06-01T00:00:00.000Z',
+      effectiveTo: null,
+      allowResubmission: true,
+      triggerCondition: {
+        conditionJson: {
+          mode: 'all',
+          conditions: [{ field: 'amount', operator: 'gte', value: 3000 }],
+        },
+      },
+      rules: [
+        {
+          id: 'rule-1',
+          name: 'Travel approval',
+          priority: 1,
+          conditionJson: {
+            mode: 'all',
+            conditions: [{ field: 'category', operator: 'eq', value: 'travel' }],
+          },
+          isFallback: false,
+          isActive: true,
+          steps: [
+            {
+              stepOrder: 1,
+              stepName: 'Finance review',
+              stepType: 'REVIEW',
+              assigneeType: 'ROLE',
+              assigneeRoleSlug: 'finance-admin',
+              assigneeUserId: null,
+              assigneeFieldPath: null,
+              isRequired: true,
+              requiresComment: true,
+              canReject: true,
+              canReassign: false,
+              slaHours: 48,
+            },
+          ],
+        },
+      ],
+      outcomeConfig: {
+        approvedActionsJson: { setStatus: 'APPROVED', notifyRequester: true },
+        rejectedActionsJson: { setStatus: 'REJECTED', requireReason: true },
+      },
+    }
+
+    render(<WorkflowBuilderPage mode="edit" templateId="template-1" />)
+
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('Existing draft workflow')).toBeInTheDocument(),
+    )
+    expect(screen.getByText('Edit workflow template')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Run When Conditions Match')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /05review/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save workflow/i }))
+
+    await waitFor(() => expect(updateWorkflowTemplate).toHaveBeenCalled())
+
+    expect(updateWorkflowTemplate).toHaveBeenCalledWith({
+      id: 'template-1',
+      data: expect.objectContaining({
+        name: 'Existing draft workflow',
+        triggerConditionJson: {
+          mode: 'all',
+          conditions: [{ field: 'amount', operator: 'gte', value: 3000 }],
+        },
+      }),
+    })
+    expect(deleteWorkflowRule).toHaveBeenCalledWith({ id: 'rule-1' })
+    expect(createWorkflowRule).toHaveBeenCalledWith({
+      id: 'template-1',
+      data: expect.objectContaining({
+        name: 'Travel approval',
+        steps: [
+          expect.objectContaining({
+            stepName: 'Finance review',
+            assigneeRoleSlug: 'finance-admin',
+          }),
+        ],
+      }),
+    })
   })
 })

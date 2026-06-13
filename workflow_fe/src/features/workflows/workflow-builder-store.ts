@@ -1,6 +1,13 @@
 import { create } from 'zustand'
 
-import type { WorkflowTemplateControllerCreateWizardMutationRequest } from '@/lib/api/gen'
+import {
+  workflowRuleControllerDelete,
+  workflowTemplateControllerCreateRule,
+  workflowTemplateControllerUpdate,
+  type WorkflowApprovalRuleResponseDto,
+  type WorkflowTemplateControllerCreateWizardMutationRequest,
+  type WorkflowTemplateResponseDto,
+} from '@/lib/api/gen'
 
 export type ConditionOperator =
   | 'eq'
@@ -119,6 +126,12 @@ type WorkflowBuilderStore = {
   patchDraft: (patch: Partial<WorkflowDraft>) => void
   setDraft: (draft: WorkflowDraft) => void
   reset: () => void
+}
+
+type WorkflowTemplateSaveInput = {
+  templateId: string
+  draft: WorkflowDraft
+  existingRules: WorkflowApprovalRuleResponseDto[]
 }
 
 export const workflowBuilderSteps: WorkflowBuilderStep[] = [
@@ -373,6 +386,118 @@ export function createDefaultWorkflowDraft(): WorkflowDraft {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function isConditionOperator(value: unknown): value is ConditionOperator {
+  return (
+    value === 'eq' ||
+    value === 'neq' ||
+    value === 'gt' ||
+    value === 'gte' ||
+    value === 'lt' ||
+    value === 'lte' ||
+    value === 'between' ||
+    value === 'in' ||
+    value === 'not_in' ||
+    value === 'contains' ||
+    value === 'is_empty' ||
+    value === 'is_not_empty'
+  )
+}
+
+function isConditionValue(value: unknown): value is Condition['value'] {
+  return (
+    value === undefined ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    (Array.isArray(value) &&
+      value.every((item) => typeof item === 'string' || typeof item === 'number'))
+  )
+}
+
+function isCondition(value: unknown): value is Condition {
+  if (!isRecord(value)) return false
+
+  return (
+    typeof value.field === 'string' &&
+    isConditionOperator(value.operator) &&
+    isConditionValue(value.value)
+  )
+}
+
+function isConditionGroup(value: unknown): value is ConditionGroup {
+  if (!isRecord(value)) return false
+
+  return (
+    (value.mode === 'all' || value.mode === 'any') &&
+    Array.isArray(value.conditions) &&
+    value.conditions.every(isCondition)
+  )
+}
+
+function dateInputValue(value: string | null | undefined) {
+  return value ? value.slice(0, 10) : undefined
+}
+
+function recordOrEmpty(value: object | null | undefined): Record<string, unknown> {
+  return isRecord(value) ? value : {}
+}
+
+export function workflowTemplateToDraft(
+  template: WorkflowTemplateResponseDto,
+): WorkflowDraft {
+  const triggerConditions = isConditionGroup(
+    template.triggerCondition?.conditionJson,
+  )
+    ? template.triggerCondition.conditionJson
+    : { mode: 'all' as const, conditions: [] }
+
+  return {
+    template: {
+      name: template.name,
+      description: template.description ?? '',
+      moduleName: template.moduleName,
+      eventName: template.eventName,
+      entityType: template.entityType,
+      status: template.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT',
+      priority: template.priority,
+      effectiveFrom: dateInputValue(template.effectiveFrom),
+      effectiveTo: dateInputValue(template.effectiveTo),
+      allowResubmission: template.allowResubmission,
+    },
+    triggerMode: triggerConditions.conditions.length ? 'conditions' : 'always',
+    triggerConditions,
+    rules: template.rules.map((rule) => ({
+      name: rule.name,
+      priority: rule.priority,
+      conditionJson: isConditionGroup(rule.conditionJson)
+        ? rule.conditionJson
+        : undefined,
+      isFallback: rule.isFallback,
+      isActive: rule.isActive,
+      steps: rule.steps.map((step, index) => ({
+        stepOrder: index + 1,
+        stepName: step.stepName,
+        stepType: step.stepType,
+        assigneeType: step.assigneeType,
+        assigneeRoleSlug: step.assigneeRoleSlug ?? undefined,
+        assigneeUserId: step.assigneeUserId ?? undefined,
+        assigneeFieldPath: step.assigneeFieldPath ?? undefined,
+        isRequired: step.isRequired,
+        requiresComment: step.requiresComment,
+        canReject: step.canReject,
+        canReassign: step.canReassign,
+        slaHours: step.slaHours ?? undefined,
+      })),
+    })),
+    approvedActionsJson: recordOrEmpty(template.outcomeConfig?.approvedActionsJson),
+    rejectedActionsJson: recordOrEmpty(template.outcomeConfig?.rejectedActionsJson),
+  }
+}
+
 export function toWorkflowWizardPayload(
   draft: WorkflowDraft,
 ): WorkflowTemplateControllerCreateWizardMutationRequest {
@@ -424,6 +549,31 @@ export function toWorkflowWizardPayload(
     approvedActionsJson,
     rejectedActionsJson: draft.rejectedActionsJson,
   } as unknown) as WorkflowTemplateControllerCreateWizardMutationRequest
+}
+
+export async function saveWorkflowDraftEdit({
+  templateId,
+  draft,
+  existingRules,
+}: WorkflowTemplateSaveInput): Promise<void> {
+  const payload = toWorkflowWizardPayload(draft)
+
+  await workflowTemplateControllerUpdate({
+    id: templateId,
+    data: {
+      ...payload.template,
+      approvedActionsJson: payload.approvedActionsJson,
+      rejectedActionsJson: payload.rejectedActionsJson,
+    },
+  })
+
+  for (const rule of existingRules) {
+    await workflowRuleControllerDelete({ id: rule.id })
+  }
+
+  for (const rule of payload.rules ?? []) {
+    await workflowTemplateControllerCreateRule({ id: templateId, data: rule })
+  }
 }
 
 export const useWorkflowBuilderStore = create<WorkflowBuilderStore>((set) => ({
