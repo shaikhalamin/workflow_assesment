@@ -3,15 +3,15 @@ import type { ReactNode } from 'react'
 
 const authPanels = {
   signIn: {
-    kicker: 'Runtime control',
-    title: 'Approve work with a clear audit trail.',
-    copy: 'Sign in to review tasks, route approvals, and keep expense, leave, payment, and event-schema activity visible.',
+    kicker: 'Workflow operations',
+    title: 'Review approvals with the full audit trail in view.',
+    copy: 'Sign in to act on runtime tasks, track expense, leave, and payment workflows, and keep role-based approvals moving across teams.',
     className: 'from-[var(--brand-soft)] to-white',
   },
   signUp: {
-    kicker: 'Configurable workflow',
-    title: 'Model approval paths once, run them across ERP events.',
-    copy: 'Create workflows for runtime tasks, audit history, expenses, leave, payments, and event schemas without changing backend behavior.',
+    kicker: 'Configurable approvals',
+    title: 'Create an account for ERP workflow execution.',
+    copy: 'Join the workflow workspace to submit business requests, participate in approval paths, and keep audit-ready activity tied to the right roles.',
     className: 'from-[var(--accent-soft)] to-white',
   },
 } as const
