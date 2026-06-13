@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ExpenseCreatePage, ExpensesPage } from './index'
@@ -101,7 +101,7 @@ describe('ExpenseCreatePage', () => {
     )
   })
 
-  it('lets users select known expense categories and vendors', () => {
+  it('lets users select known expense categories and vendors', async () => {
     createExpense.mockClear()
 
     render(<ExpenseCreatePage />)
@@ -130,15 +130,33 @@ describe('ExpenseCreatePage', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: /save expense/i }))
 
-    expect(createExpense).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        title: 'Lunch with client',
-        amount: 1500,
-        category: 'Meal',
-        description: 'Client lunch approval note',
-        vendor: 'Pathao',
-      }),
+    await waitFor(() => {
+      expect(createExpense).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          title: 'Lunch with client',
+          amount: 1500,
+          category: 'Meal',
+          description: 'Client lunch approval note',
+          vendor: 'Pathao',
+        }),
+      })
     })
+  })
+
+  it('blocks invalid expense amounts before calling the API', () => {
+    createExpense.mockClear()
+
+    render(<ExpenseCreatePage />)
+
+    fireEvent.change(screen.getByRole('textbox', { name: /title/i }), {
+      target: { value: 'Invalid reimbursement' },
+    })
+    fireEvent.change(screen.getByRole('spinbutton', { name: /amount/i }), {
+      target: { value: '-1' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /save expense/i }))
+
+    expect(createExpense).not.toHaveBeenCalled()
   })
 })
 

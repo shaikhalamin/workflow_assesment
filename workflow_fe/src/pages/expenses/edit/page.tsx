@@ -1,5 +1,5 @@
 import { useNavigate,useParams } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useForm } from '@tanstack/react-form'
 
 import {
 FormField,
@@ -22,6 +22,11 @@ EmptyState,
 ErrorNotice,
 PageHeader
 } from '@/pages/utils/page-components'
+import {
+expenseFormSchema,
+fieldError,
+toResubmitExpensePayload
+} from '@/pages/utils/form-validation'
 import {
 expenseCategoryOptions,
 expenseVendorOptions,
@@ -73,22 +78,22 @@ function ExpenseEditForm({
   isPending: boolean
   onSubmit: (data: ResubmitExpenseDto) => void
 }) {
-  const [form, setForm] = useState({
-    title: expense.title,
-    amount: String(expense.amount),
-    category: expense.category,
-    description: readableValue(expense.description) ?? '',
-    currency: expense.currency,
-    vendor: readableValue(expense.vendor) ?? expenseVendorOptions[0],
+  const form = useForm({
+    defaultValues: {
+      title: expense.title,
+      amount: String(expense.amount),
+      category: expense.category,
+      description: readableValue(expense.description) ?? '',
+      currency: expense.currency,
+      vendor: readableValue(expense.vendor) ?? expenseVendorOptions[0],
+    },
+    validators: {
+      onSubmit: expenseFormSchema,
+    },
+    onSubmit: ({ value }) => {
+      onSubmit(toResubmitExpensePayload(value))
+    },
   })
-  const expensePayload: ResubmitExpenseDto = {
-    title: form.title,
-    amount: Number(form.amount),
-    category: form.category,
-    currency: form.currency,
-    description: form.description || undefined,
-    vendor: form.vendor || undefined,
-  }
 
   return (
     <CreatePanel
@@ -96,73 +101,103 @@ function ExpenseEditForm({
       kicker="Rejected request"
       description="Update the rejected request details before sending it back through workflow."
       error={error}
-      onSubmit={() => onSubmit(expensePayload)}
+      onSubmit={() => void form.handleSubmit()}
       submitLabel={isPending ? 'Resubmitting...' : 'Resubmit expense'}
     >
       <FormSection index="01" title="Expense details" hint="Required for approval routing.">
         <div className="grid gap-3 md:grid-cols-2">
-          <FormField label="Title" htmlFor="expense-title">
-            <FormInput
-              id="expense-title"
-              value={form.title}
-              onChange={(event) => setForm({ ...form, title: event.target.value })}
-            />
-          </FormField>
-          <FormField label="Amount" htmlFor="expense-amount">
-            <FormInput
-              id="expense-amount"
-              type="number"
-              value={form.amount}
-              onChange={(event) => setForm({ ...form, amount: event.target.value })}
-            />
-          </FormField>
-          <FormField label="Currency" htmlFor="expense-currency">
-            <FormInput
-              id="expense-currency"
-              value={form.currency}
-              onChange={(event) => setForm({ ...form, currency: event.target.value })}
-            />
-          </FormField>
+          <form.Field name="title">
+            {(field) => (
+              <FormField label="Title" htmlFor="expense-title" error={fieldError(field.state.meta.errors)}>
+                <FormInput
+                  id="expense-title"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                />
+              </FormField>
+            )}
+          </form.Field>
+          <form.Field name="amount">
+            {(field) => (
+              <FormField label="Amount" htmlFor="expense-amount" error={fieldError(field.state.meta.errors)}>
+                <FormInput
+                  id="expense-amount"
+                  type="number"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                />
+              </FormField>
+            )}
+          </form.Field>
+          <form.Field name="currency">
+            {(field) => (
+              <FormField label="Currency" htmlFor="expense-currency" error={fieldError(field.state.meta.errors)}>
+                <FormInput
+                  id="expense-currency"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                />
+              </FormField>
+            )}
+          </form.Field>
         </div>
       </FormSection>
       <FormSection index="02" title="Vendor and category">
         <div className="grid gap-3 md:grid-cols-2">
-          <FormField label="Category" htmlFor="expense-category">
-            <FormSelect
-              id="expense-category"
-              value={form.category}
-              onChange={(event) => setForm({ ...form, category: event.target.value })}
-            >
-              {expenseCategoryOptions.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </FormSelect>
-          </FormField>
-          <FormField label="Vendor" htmlFor="expense-vendor">
-            <FormSelect
-              id="expense-vendor"
-              value={form.vendor}
-              onChange={(event) => setForm({ ...form, vendor: event.target.value })}
-            >
-              {expenseVendorOptions.map((vendor) => (
-                <option key={vendor} value={vendor}>
-                  {vendor}
-                </option>
-              ))}
-            </FormSelect>
-          </FormField>
+          <form.Field name="category">
+            {(field) => (
+              <FormField label="Category" htmlFor="expense-category" error={fieldError(field.state.meta.errors)}>
+                <FormSelect
+                  id="expense-category"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                >
+                  {expenseCategoryOptions.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </FormSelect>
+              </FormField>
+            )}
+          </form.Field>
+          <form.Field name="vendor">
+            {(field) => (
+              <FormField label="Vendor" htmlFor="expense-vendor" error={fieldError(field.state.meta.errors)}>
+                <FormSelect
+                  id="expense-vendor"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                >
+                  {expenseVendorOptions.map((vendor) => (
+                    <option key={vendor} value={vendor}>
+                      {vendor}
+                    </option>
+                  ))}
+                </FormSelect>
+              </FormField>
+            )}
+          </form.Field>
         </div>
       </FormSection>
       <FormSection index="03" title="Notes">
-        <FormField label="Description" htmlFor="expense-description">
-          <FormTextarea
-            id="expense-description"
-            value={form.description}
-            onChange={(event) => setForm({ ...form, description: event.target.value })}
-          />
-        </FormField>
+        <form.Field name="description">
+          {(field) => (
+            <FormField label="Description" htmlFor="expense-description" error={fieldError(field.state.meta.errors)}>
+              <FormTextarea
+                id="expense-description"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(event) => field.handleChange(event.target.value)}
+              />
+            </FormField>
+          )}
+        </form.Field>
       </FormSection>
     </CreatePanel>
   )

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -108,7 +108,7 @@ describe('ExpenseEditPage', () => {
     resubmitExpense.mockClear()
   })
 
-  it('prefills rejected expense fields and resubmits edited data', () => {
+  it('prefills rejected expense fields and resubmits edited data', async () => {
     render(<ExpenseEditPage />)
 
     expect(screen.getByRole('textbox', { name: /title/i })).toHaveDisplayValue(
@@ -133,17 +133,30 @@ describe('ExpenseEditPage', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: /resubmit expense/i }))
 
-    expect(resubmitExpense).toHaveBeenCalledWith({
-      id: 'expense-1',
-      data: expect.objectContaining({
-        title: 'Corrected laptop claim',
-        amount: 4700,
-        currency: 'BDT',
-        category: 'Software',
-        vendor: 'Ryans Computers',
-        description: 'Original receipt note',
-      }),
+    await waitFor(() => {
+      expect(resubmitExpense).toHaveBeenCalledWith({
+        id: 'expense-1',
+        data: expect.objectContaining({
+          title: 'Corrected laptop claim',
+          amount: 4700,
+          currency: 'BDT',
+          category: 'Software',
+          vendor: 'Ryans Computers',
+          description: 'Original receipt note',
+        }),
+      })
     })
+  })
+
+  it('blocks invalid edited expense amounts before resubmitting', () => {
+    render(<ExpenseEditPage />)
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: /amount/i }), {
+      target: { value: '-1' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /resubmit expense/i }))
+
+    expect(resubmitExpense).not.toHaveBeenCalled()
   })
 
   it('blocks editing when the expense is not resubmittable', () => {

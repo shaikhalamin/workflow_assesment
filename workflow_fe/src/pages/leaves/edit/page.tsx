@@ -1,5 +1,5 @@
 import { useNavigate,useParams } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useForm } from '@tanstack/react-form'
 
 import {
 FormField,
@@ -22,6 +22,11 @@ EmptyState,
 ErrorNotice,
 PageHeader
 } from '@/pages/utils/page-components'
+import {
+fieldError,
+leaveFormSchema,
+toResubmitLeavePayload
+} from '@/pages/utils/form-validation'
 
 export function LeaveEditPage() {
   const { leaveId } = useParams({ strict: false }) as { leaveId: string }
@@ -68,20 +73,21 @@ function LeaveEditForm({
   leave: LeaveResponseDto
   onSubmit: (data: ResubmitLeaveDto) => void
 }) {
-  const [form, setForm] = useState({
-    leaveType: leave.leaveType,
-    leaveDays: leave.leaveDays,
-    startDate: leave.startDate,
-    endDate: leave.endDate,
-    reason: leave.reason ?? '',
+  const form = useForm({
+    defaultValues: {
+      leaveType: leave.leaveType,
+      leaveDays: String(leave.leaveDays),
+      startDate: leave.startDate,
+      endDate: leave.endDate,
+      reason: leave.reason ?? '',
+    },
+    validators: {
+      onSubmit: leaveFormSchema,
+    },
+    onSubmit: ({ value }) => {
+      onSubmit(toResubmitLeavePayload(value))
+    },
   })
-  const leavePayload: ResubmitLeaveDto = {
-    leaveType: form.leaveType,
-    leaveDays: form.leaveDays,
-    startDate: form.startDate,
-    endDate: form.endDate,
-    reason: form.reason || undefined,
-  }
 
   return (
     <CreatePanel
@@ -89,59 +95,84 @@ function LeaveEditForm({
       kicker="Rejected request"
       description="Update leave type, dates, duration, and reason before sending it back through workflow."
       error={error}
-      onSubmit={() => onSubmit(leavePayload)}
+      onSubmit={() => void form.handleSubmit()}
       submitLabel={isPending ? 'Resubmitting...' : 'Resubmit leave'}
     >
       <FormSection index="01" title="Leave type">
-        <FormField label="Type" htmlFor="leave-type">
-          <FormSelect
-            id="leave-type"
-            value={form.leaveType}
-            onChange={(event) => setForm({ ...form, leaveType: event.target.value })}
-          >
-            <option value="ANNUAL">Annual</option>
-            <option value="SICK">Sick</option>
-            <option value="CASUAL">Casual</option>
-            <option value="UNPAID">Unpaid</option>
-          </FormSelect>
-        </FormField>
+        <form.Field name="leaveType">
+          {(field) => (
+            <FormField label="Type" htmlFor="leave-type" error={fieldError(field.state.meta.errors)}>
+              <FormSelect
+                id="leave-type"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(event) => field.handleChange(event.target.value)}
+              >
+                <option value="ANNUAL">Annual</option>
+                <option value="SICK">Sick</option>
+                <option value="CASUAL">Casual</option>
+                <option value="UNPAID">Unpaid</option>
+              </FormSelect>
+            </FormField>
+          )}
+        </form.Field>
       </FormSection>
       <FormSection index="02" title="Dates and duration">
         <div className="grid gap-3 md:grid-cols-3">
-          <FormField label="Start date" htmlFor="leave-start-date">
-            <FormInput
-              id="leave-start-date"
-              type="date"
-              value={form.startDate}
-              onChange={(event) => setForm({ ...form, startDate: event.target.value })}
-            />
-          </FormField>
-          <FormField label="End date" htmlFor="leave-end-date">
-            <FormInput
-              id="leave-end-date"
-              type="date"
-              value={form.endDate}
-              onChange={(event) => setForm({ ...form, endDate: event.target.value })}
-            />
-          </FormField>
-          <FormField label="Leave days" htmlFor="leave-days">
-            <FormInput
-              id="leave-days"
-              type="number"
-              value={form.leaveDays}
-              onChange={(event) => setForm({ ...form, leaveDays: Number(event.target.value) })}
-            />
-          </FormField>
+          <form.Field name="startDate">
+            {(field) => (
+              <FormField label="Start date" htmlFor="leave-start-date" error={fieldError(field.state.meta.errors)}>
+                <FormInput
+                  id="leave-start-date"
+                  type="date"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                />
+              </FormField>
+            )}
+          </form.Field>
+          <form.Field name="endDate">
+            {(field) => (
+              <FormField label="End date" htmlFor="leave-end-date" error={fieldError(field.state.meta.errors)}>
+                <FormInput
+                  id="leave-end-date"
+                  type="date"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                />
+              </FormField>
+            )}
+          </form.Field>
+          <form.Field name="leaveDays">
+            {(field) => (
+              <FormField label="Leave days" htmlFor="leave-days" error={fieldError(field.state.meta.errors)}>
+                <FormInput
+                  id="leave-days"
+                  type="number"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                />
+              </FormField>
+            )}
+          </form.Field>
         </div>
       </FormSection>
       <FormSection index="03" title="Reason">
-        <FormField label="Reason" htmlFor="leave-reason">
-          <FormTextarea
-            id="leave-reason"
-            value={form.reason}
-            onChange={(event) => setForm({ ...form, reason: event.target.value })}
-          />
-        </FormField>
+        <form.Field name="reason">
+          {(field) => (
+            <FormField label="Reason" htmlFor="leave-reason" error={fieldError(field.state.meta.errors)}>
+              <FormTextarea
+                id="leave-reason"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(event) => field.handleChange(event.target.value)}
+              />
+            </FormField>
+          )}
+        </form.Field>
       </FormSection>
     </CreatePanel>
   )

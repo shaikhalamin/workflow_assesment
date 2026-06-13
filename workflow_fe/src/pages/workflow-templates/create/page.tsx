@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { useForm } from '@tanstack/react-form'
 import { useNavigate } from '@tanstack/react-router'
 import {
 ChevronDown,
@@ -49,6 +50,17 @@ unwrapData
 import {
 ErrorNotice
 } from '@/pages/utils/page-components'
+import {
+fieldError,
+workflowBuilderSaveSchema
+} from '@/pages/utils/form-validation'
+
+type WorkflowNameFieldProps = {
+  value: string
+  error: string
+  onBlur: () => void
+  onChange: (value: string) => void
+}
 
 export function WorkflowBuilderPage() {
   const navigate = useNavigate()
@@ -68,6 +80,25 @@ export function WorkflowBuilderPage() {
           params: id ? { templateId: id } : undefined,
         })
       },
+    },
+  })
+  const form = useForm({
+    defaultValues: {
+      templateName: draft.template.name,
+    },
+    validators: {
+      onSubmit: workflowBuilderSaveSchema,
+    },
+    onSubmit: ({ value }) => {
+      createWizard.mutate({
+        data: toWorkflowWizardPayload({
+          ...draft,
+          template: {
+            ...draft.template,
+            name: value.templateName.trim(),
+          },
+        }),
+      })
     },
   })
 
@@ -138,7 +169,31 @@ export function WorkflowBuilderPage() {
         })}
       </div>
       <div className="rounded-md border border-[var(--border)] bg-white p-4">
-        {step === 1 ? <WorkflowSetup draft={draft} setDraft={setDraft} /> : null}
+        {step === 1 ? (
+          <form.Field name="templateName">
+            {(field) => (
+              <WorkflowSetup
+                draft={draft}
+                setDraft={setDraft}
+                workflowNameField={{
+                  value: field.state.value,
+                  error: fieldError(field.state.meta.errors),
+                  onBlur: field.handleBlur,
+                  onChange: (value) => {
+                    field.handleChange(value)
+                    setDraft({
+                      ...draft,
+                      template: {
+                        ...draft.template,
+                        name: value,
+                      },
+                    })
+                  },
+                }}
+              />
+            )}
+          </form.Field>
+        ) : null}
         {step === 2 ? <ApprovalRules draft={draft} setDraft={setDraft} /> : null}
         {step === 3 ? (
           <ApprovalSteps
@@ -161,10 +216,8 @@ export function WorkflowBuilderPage() {
           ) : (
             <Button
               type="button"
-              disabled={!draft.template.name || createWizard.isPending}
-              onClick={() =>
-                createWizard.mutate({ data: toWorkflowWizardPayload(draft) })
-              }
+              disabled={createWizard.isPending}
+              onClick={() => void form.handleSubmit()}
             >
               Save workflow
             </Button>
@@ -178,15 +231,22 @@ export function WorkflowBuilderPage() {
 function BasicInfo({
   draft,
   setDraft,
+  workflowNameField,
 }: {
   draft: WorkflowDraft
   setDraft: (draft: WorkflowDraft) => void
+  workflowNameField: WorkflowNameFieldProps
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <Field label="Workflow Name">
-        <FormInput value={draft.template.name} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, name: event.target.value } })} />
-      </Field>
+      <FormField label="Workflow Name" htmlFor="workflow-name" error={workflowNameField.error}>
+        <FormInput
+          id="workflow-name"
+          value={workflowNameField.value}
+          onBlur={workflowNameField.onBlur}
+          onChange={(event) => workflowNameField.onChange(event.target.value)}
+        />
+      </FormField>
       <Field label="Status">
         <FormSelect value={draft.template.status} onChange={(event) => setDraft({ ...draft, template: { ...draft.template, status: event.target.value as 'DRAFT' | 'PUBLISHED' } })}>
           <option value="DRAFT">Draft</option>
@@ -219,9 +279,11 @@ function BasicInfo({
 function WorkflowSetup({
   draft,
   setDraft,
+  workflowNameField,
 }: {
   draft: WorkflowDraft
   setDraft: (draft: WorkflowDraft) => void
+  workflowNameField: WorkflowNameFieldProps
 }) {
   return (
     <div className="space-y-5">
@@ -230,7 +292,7 @@ function WorkflowSetup({
         title="Basics"
         hint="Name, status, priority, dates, and resubmission policy."
       >
-        <BasicInfo draft={draft} setDraft={setDraft} />
+        <BasicInfo draft={draft} setDraft={setDraft} workflowNameField={workflowNameField} />
       </FormSection>
       <FormSection
         index="02"

@@ -5,6 +5,8 @@ import { useWorkflowBuilderStore } from '@/features/workflows/workflow-builder-s
 
 import { WorkflowBuilderPage } from './index'
 
+const createWorkflowWizard = vi.hoisted(() => vi.fn())
+
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
@@ -29,13 +31,14 @@ vi.mock('@/lib/api/gen', () => ({
   useWorkflowTemplateControllerCreateWizard: () => ({
     error: null,
     isPending: false,
-    mutate: vi.fn(),
+    mutate: createWorkflowWizard,
   }),
 }))
 
 describe('WorkflowBuilderPage trigger setup', () => {
   beforeEach(() => {
     useWorkflowBuilderStore.getState().reset()
+    createWorkflowWizard.mockClear()
   })
 
   it('hides condition fields until trigger mode uses conditions', () => {
@@ -205,5 +208,23 @@ describe('WorkflowBuilderPage trigger setup', () => {
     expect(
       screen.queryByLabelText('Allow resubmission after rejection'),
     ).not.toBeInTheDocument()
+  })
+
+  it('blocks workflow saves when the template name is blank after trimming', () => {
+    render(<WorkflowBuilderPage />)
+
+    const [workflowNameInput] = screen.getAllByRole('textbox')
+
+    if (!workflowNameInput) {
+      throw new Error('Workflow name input was not found')
+    }
+
+    fireEvent.change(workflowNameInput, {
+      target: { value: '   ' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /05review/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save workflow/i }))
+
+    expect(createWorkflowWizard).not.toHaveBeenCalled()
   })
 })

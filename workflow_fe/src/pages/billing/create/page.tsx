@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useForm } from '@tanstack/react-form'
 
 import {
 FormField,
@@ -8,13 +8,15 @@ FormSection,
 FormSelect,
 FormTextarea
 } from '@/components/form'
-import type {
-CreateBillingRequestDto
-} from '@/lib/api/gen'
 import { useBillingControllerCreate } from '@/lib/api/gen'
 import {
 CreatePanel
 } from '@/pages/utils/page-components'
+import {
+billingFormSchema,
+fieldError,
+toCreateBillingPayload
+} from '@/pages/utils/form-validation'
 import {
 billingCategoryOptions
 } from '@/pages/utils/page-helpers'
@@ -22,26 +24,24 @@ billingCategoryOptions
 export function BillingCreatePage() {
   const navigate = useNavigate()
   const createBilling = useBillingControllerCreate({ mutation: { onSuccess: async () => navigate({ to: '/billing' }) } })
-  const [form, setForm] = useState({
-    title: '',
-    customerName: '',
-    customerEmail: '',
-    customerAddress: '',
-    amount: '',
-    currency: 'BDT',
-    billingCategory: billingCategoryOptions[0],
-    description: '',
+  const form = useForm({
+    defaultValues: {
+      title: '',
+      customerName: '',
+      customerEmail: '',
+      customerAddress: '',
+      amount: '',
+      currency: 'BDT',
+      billingCategory: billingCategoryOptions[0],
+      description: '',
+    },
+    validators: {
+      onSubmit: billingFormSchema,
+    },
+    onSubmit: ({ value }) => {
+      createBilling.mutate({ data: toCreateBillingPayload(value) })
+    },
   })
-  const billingPayload: CreateBillingRequestDto = {
-    title: form.title,
-    customerName: form.customerName,
-    amount: Number(form.amount),
-    currency: form.currency,
-    billingCategory: form.billingCategory,
-    customerEmail: form.customerEmail || undefined,
-    customerAddress: form.customerAddress || undefined,
-    description: form.description || undefined,
-  }
 
   return (
     <div className="max-w-3xl">
@@ -50,44 +50,76 @@ export function BillingCreatePage() {
         kicker="Billing request"
         description="Capture customer, billing category, and amount before sending through workflow."
         error={createBilling.error}
-        onSubmit={() => createBilling.mutate({ data: billingPayload })}
+        onSubmit={() => void form.handleSubmit()}
         submitLabel={createBilling.isPending ? 'Saving...' : 'Save billing request'}
       >
         <FormSection index="01" title="Billing details" hint="Required for approval routing.">
           <div className="grid gap-3 md:grid-cols-2">
-            <FormField label="Title" htmlFor="billing-title">
-              <FormInput id="billing-title" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
-            </FormField>
-            <FormField label="Customer name" htmlFor="billing-customer-name">
-              <FormInput id="billing-customer-name" value={form.customerName} onChange={(event) => setForm({ ...form, customerName: event.target.value })} />
-            </FormField>
-            <FormField label="Amount" htmlFor="billing-amount">
-              <FormInput id="billing-amount" type="number" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
-            </FormField>
-            <FormField label="Currency" htmlFor="billing-currency">
-              <FormInput id="billing-currency" value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value })} />
-            </FormField>
-            <FormField label="Category" htmlFor="billing-category">
-              <FormSelect id="billing-category" value={form.billingCategory} onChange={(event) => setForm({ ...form, billingCategory: event.target.value })}>
-                {billingCategoryOptions.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </FormSelect>
-            </FormField>
-            <FormField label="Customer email" htmlFor="billing-customer-email">
-              <FormInput id="billing-customer-email" type="email" value={form.customerEmail} onChange={(event) => setForm({ ...form, customerEmail: event.target.value })} />
-            </FormField>
+            <form.Field name="title">
+              {(field) => (
+                <FormField label="Title" htmlFor="billing-title" error={fieldError(field.state.meta.errors)}>
+                  <FormInput id="billing-title" value={field.state.value} onBlur={field.handleBlur} onChange={(event) => field.handleChange(event.target.value)} />
+                </FormField>
+              )}
+            </form.Field>
+            <form.Field name="customerName">
+              {(field) => (
+                <FormField label="Customer name" htmlFor="billing-customer-name" error={fieldError(field.state.meta.errors)}>
+                  <FormInput id="billing-customer-name" value={field.state.value} onBlur={field.handleBlur} onChange={(event) => field.handleChange(event.target.value)} />
+                </FormField>
+              )}
+            </form.Field>
+            <form.Field name="amount">
+              {(field) => (
+                <FormField label="Amount" htmlFor="billing-amount" error={fieldError(field.state.meta.errors)}>
+                  <FormInput id="billing-amount" type="number" value={field.state.value} onBlur={field.handleBlur} onChange={(event) => field.handleChange(event.target.value)} />
+                </FormField>
+              )}
+            </form.Field>
+            <form.Field name="currency">
+              {(field) => (
+                <FormField label="Currency" htmlFor="billing-currency" error={fieldError(field.state.meta.errors)}>
+                  <FormInput id="billing-currency" value={field.state.value} onBlur={field.handleBlur} onChange={(event) => field.handleChange(event.target.value)} />
+                </FormField>
+              )}
+            </form.Field>
+            <form.Field name="billingCategory">
+              {(field) => (
+                <FormField label="Category" htmlFor="billing-category" error={fieldError(field.state.meta.errors)}>
+                  <FormSelect id="billing-category" value={field.state.value} onBlur={field.handleBlur} onChange={(event) => field.handleChange(event.target.value)}>
+                    {billingCategoryOptions.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </FormField>
+              )}
+            </form.Field>
+            <form.Field name="customerEmail">
+              {(field) => (
+                <FormField label="Customer email" htmlFor="billing-customer-email" error={fieldError(field.state.meta.errors)}>
+                  <FormInput id="billing-customer-email" type="email" value={field.state.value} onBlur={field.handleBlur} onChange={(event) => field.handleChange(event.target.value)} />
+                </FormField>
+              )}
+            </form.Field>
           </div>
         </FormSection>
         <FormSection index="02" title="Customer context">
-          <FormField label="Customer address" htmlFor="billing-customer-address">
-            <FormTextarea id="billing-customer-address" value={form.customerAddress} onChange={(event) => setForm({ ...form, customerAddress: event.target.value })} />
-          </FormField>
-          <FormField label="Description" htmlFor="billing-description">
-            <FormTextarea id="billing-description" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} />
-          </FormField>
+          <form.Field name="customerAddress">
+            {(field) => (
+              <FormField label="Customer address" htmlFor="billing-customer-address" error={fieldError(field.state.meta.errors)}>
+                <FormTextarea id="billing-customer-address" value={field.state.value} onBlur={field.handleBlur} onChange={(event) => field.handleChange(event.target.value)} />
+              </FormField>
+            )}
+          </form.Field>
+          <form.Field name="description">
+            {(field) => (
+              <FormField label="Description" htmlFor="billing-description" error={fieldError(field.state.meta.errors)}>
+                <FormTextarea id="billing-description" value={field.state.value} onBlur={field.handleBlur} onChange={(event) => field.handleChange(event.target.value)} />
+              </FormField>
+            )}
+          </form.Field>
         </FormSection>
       </CreatePanel>
     </div>

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { LeaveCreatePage, LeavesPage } from './index'
@@ -97,7 +97,7 @@ vi.mock('@/lib/api/gen', () => ({
 }))
 
 describe('LeaveCreatePage', () => {
-  it('saves the reason as a string for backend validation', () => {
+  it('saves the reason as a string for backend validation', async () => {
     createLeave.mockClear()
 
     const { container } = render(<LeaveCreatePage />)
@@ -122,15 +122,30 @@ describe('LeaveCreatePage', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: /save leave/i }))
 
-    expect(createLeave).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        leaveType: 'ANNUAL',
-        leaveDays: 1,
-        startDate: '2026-06-10',
-        endDate: '2026-06-11',
-        reason: 'Family event',
-      }),
+    await waitFor(() => {
+      expect(createLeave).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          leaveType: 'ANNUAL',
+          leaveDays: 1,
+          startDate: '2026-06-10',
+          endDate: '2026-06-11',
+          reason: 'Family event',
+        }),
+      })
     })
+  })
+
+  it('blocks invalid leave days before calling the API', () => {
+    createLeave.mockClear()
+
+    render(<LeaveCreatePage />)
+
+    fireEvent.change(screen.getByRole('spinbutton'), {
+      target: { value: '0' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /save leave/i }))
+
+    expect(createLeave).not.toHaveBeenCalled()
   })
 })
 

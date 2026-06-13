@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import {
   BillingCreatePage,
   BillingDetailPage,
+  BillingEditPage,
   BillingRequestsPage,
   InvoiceDetailPage,
   InvoicesPage,
@@ -278,7 +279,7 @@ describe('billing and invoice pages', () => {
     expect(cancelBilling).toHaveBeenCalledWith({ id: 'billing-1' })
   })
 
-  it('creates billing requests with customer and amount details', () => {
+  it('creates billing requests with customer and amount details', async () => {
     render(<BillingCreatePage />)
 
     fireEvent.change(screen.getByRole('textbox', { name: /title/i }), {
@@ -292,15 +293,56 @@ describe('billing and invoice pages', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: /save billing request/i }))
 
-    expect(createBilling).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        title: 'Monthly enterprise bill',
-        customerName: 'ACME Bangladesh Ltd.',
-        amount: 125000,
-        currency: 'BDT',
-        billingCategory: 'Installation',
-      }),
+    await waitFor(() => {
+      expect(createBilling).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          title: 'Monthly enterprise bill',
+          customerName: 'ACME Bangladesh Ltd.',
+          amount: 125000,
+          currency: 'BDT',
+          billingCategory: 'Installation',
+        }),
+      })
     })
+  })
+
+  it('blocks invalid billing amounts before calling the API', () => {
+    render(<BillingCreatePage />)
+
+    fireEvent.change(screen.getByRole('textbox', { name: /title/i }), {
+      target: { value: 'Invalid billing request' },
+    })
+    fireEvent.change(screen.getByRole('textbox', { name: /customer name/i }), {
+      target: { value: 'ACME Bangladesh Ltd.' },
+    })
+    fireEvent.change(screen.getByRole('spinbutton', { name: /amount/i }), {
+      target: { value: '-1' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /save billing request/i }))
+
+    expect(createBilling).not.toHaveBeenCalled()
+  })
+
+  it('blocks invalid edited billing amounts before resubmitting', () => {
+    const billingDetail = billingDetailState.value
+    if (!billingDetail || typeof billingDetail !== 'object') {
+      throw new Error('Expected billing detail fixture')
+    }
+
+    billingDetailState.value = {
+      ...billingDetail,
+      status: 'REJECTED',
+      canResubmit: true,
+    }
+
+    render(<BillingEditPage />)
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: /amount/i }), {
+      target: { value: '-1' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /resubmit billing/i }))
+
+    expect(resubmitBilling).not.toHaveBeenCalled()
   })
 
   it('shows billing details with workflow and invoice links', () => {

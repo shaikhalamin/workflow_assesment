@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -107,7 +107,7 @@ describe('LeaveEditPage', () => {
     resubmitLeave.mockClear()
   })
 
-  it('prefills rejected leave fields and resubmits edited data', () => {
+  it('prefills rejected leave fields and resubmits edited data', async () => {
     const { container } = render(<LeaveEditPage />)
     const dateInputs = [
       ...container.querySelectorAll<HTMLInputElement>('input[type="date"]'),
@@ -135,16 +135,29 @@ describe('LeaveEditPage', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: /resubmit leave/i }))
 
-    expect(resubmitLeave).toHaveBeenCalledWith({
-      id: 'leave-1',
-      data: expect.objectContaining({
-        leaveType: 'CASUAL',
-        leaveDays: 1,
-        startDate: '2026-06-10',
-        endDate: '2026-06-11',
-        reason: 'Updated family event',
-      }),
+    await waitFor(() => {
+      expect(resubmitLeave).toHaveBeenCalledWith({
+        id: 'leave-1',
+        data: expect.objectContaining({
+          leaveType: 'CASUAL',
+          leaveDays: 1,
+          startDate: '2026-06-10',
+          endDate: '2026-06-11',
+          reason: 'Updated family event',
+        }),
+      })
     })
+  })
+
+  it('blocks invalid edited leave days before resubmitting', () => {
+    render(<LeaveEditPage />)
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: /leave days/i }), {
+      target: { value: '0' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /resubmit leave/i }))
+
+    expect(resubmitLeave).not.toHaveBeenCalled()
   })
 
   it('blocks editing when the leave request is not resubmittable', () => {
