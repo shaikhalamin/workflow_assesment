@@ -30,7 +30,7 @@ const presetUsers = [
   { label: 'Admin', email: 'admin@example.com' },
   { label: 'Employee', email: 'employee@example.com' },
   { label: 'Manager', email: 'manager@example.com' },
-  { label: 'Accounts', email: 'accounts@example.com' },
+  { label: 'Accounts Officer', email: 'accounts@example.com' },
   { label: 'Finance', email: 'finance@example.com' },
   { label: 'HR Officer', email: 'hr.officer@example.com' },
   { label: 'HR Manager', email: 'hr.manager@example.com' },
@@ -341,7 +341,7 @@ function AuthPanel({
   error?: string
 }) {
   return (
-    <div className="w-full max-w-[440px] min-w-0">
+    <div className="w-full max-w-[520px] min-w-0">
       <p className="mb-3 inline-flex rounded-sm border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-3)]">
         ERP Workflow
       </p>

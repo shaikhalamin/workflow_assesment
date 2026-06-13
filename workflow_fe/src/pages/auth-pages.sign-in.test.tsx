@@ -69,6 +69,19 @@ describe('SignInPage', () => {
     useAuthStore.getState().logout()
   })
 
+  it('uses a wider auth panel so long quick login labels have room', () => {
+    render(<SignInPage />)
+
+    const heading = screen.getByRole('heading', { name: 'Sign in' })
+    const authPanel = heading.closest('.w-full')
+
+    if (!authPanel) {
+      throw new Error('Expected sign-in heading to be inside the auth panel')
+    }
+
+    expect(authPanel).toHaveClass('max-w-[520px]')
+  })
+
   it('submits email and password to the login mutation', async () => {
     const pointer = userEvent.setup()
 
