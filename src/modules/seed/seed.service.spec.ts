@@ -148,6 +148,16 @@ describe('SeedService', () => {
     ]);
   });
 
+  it('gives the cfo role billing approval visibility and workflow action access', () => {
+    const cfoPermissions = SeedService.rolePermissionSeeds.find(
+      (seed) => seed.roleSlug === 'cfo',
+    )?.permissionSlugs;
+
+    expect(cfoPermissions).toEqual(
+      expect.arrayContaining(['billing.read', 'workflow.runtime.act']),
+    );
+  });
+
   it('assigns sample employee metadata and a default manager', () => {
     for (const user of SeedService.userSeeds) {
       expect(user.employeeGrade).toEqual(expect.any(String));
@@ -170,6 +180,40 @@ describe('SeedService', () => {
     expect(nonAdminUsers.length).toBeGreaterThan(0);
     for (const user of nonAdminUsers) {
       expect(user.roles).toContain('employee');
+    }
+  });
+
+  it('gives every seeded non-admin user workflow approval action access', () => {
+    const permissionsByRole = new Map(
+      SeedService.rolePermissionSeeds.map((seed) => [
+        seed.roleSlug,
+        seed.permissionSlugs,
+      ]),
+    );
+    const nonAdminUsers = SeedService.userSeeds.filter(
+      (user) => !user.roles.includes('admin'),
+    );
+
+    for (const user of nonAdminUsers) {
+      const permissionSlugs = new Set(
+        user.roles.flatMap((roleSlug) => permissionsByRole.get(roleSlug) ?? []),
+      );
+      expect(permissionSlugs).toContain('workflow.runtime.act');
+    }
+  });
+
+  it('gives every seeded non-admin role default request approval access', () => {
+    const defaultApprovalPermissions = [
+      'expenses.read',
+      'leaves.read',
+      'billing.read',
+      'workflow.runtime.act',
+    ];
+
+    for (const rolePermission of SeedService.rolePermissionSeeds) {
+      expect(rolePermission.permissionSlugs).toEqual(
+        expect.arrayContaining(defaultApprovalPermissions),
+      );
     }
   });
 

@@ -213,6 +213,8 @@ export class SeedService implements OnApplicationBootstrap {
       roleSlug: 'sales-officer',
       permissionSlugs: [
         'auth.profile.read',
+        'expenses.read',
+        'leaves.read',
         'billing.read',
         'billing.write',
         'dashboard.read',
@@ -242,6 +244,7 @@ export class SeedService implements OnApplicationBootstrap {
         'auth.profile.read',
         'expenses.read',
         'leaves.read',
+        'billing.read',
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
@@ -253,6 +256,7 @@ export class SeedService implements OnApplicationBootstrap {
       permissionSlugs: [
         'auth.profile.read',
         'expenses.read',
+        'leaves.read',
         'payments.read',
         'payments.write',
         'billing.read',
@@ -269,6 +273,7 @@ export class SeedService implements OnApplicationBootstrap {
         'auth.profile.read',
         'users.read',
         'expenses.read',
+        'leaves.read',
         'payments.read',
         'payments.write',
         'billing.read',
@@ -284,7 +289,9 @@ export class SeedService implements OnApplicationBootstrap {
       roleSlug: 'hr-officer',
       permissionSlugs: [
         'auth.profile.read',
+        'expenses.read',
         'leaves.read',
+        'billing.read',
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
@@ -296,7 +303,9 @@ export class SeedService implements OnApplicationBootstrap {
       permissionSlugs: [
         'auth.profile.read',
         'users.read',
+        'expenses.read',
         'leaves.read',
+        'billing.read',
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
@@ -308,6 +317,8 @@ export class SeedService implements OnApplicationBootstrap {
       permissionSlugs: [
         'auth.profile.read',
         'expenses.read',
+        'leaves.read',
+        'billing.read',
         'payments.read',
         'payments.write',
         'dashboard.read',
@@ -320,6 +331,9 @@ export class SeedService implements OnApplicationBootstrap {
       roleSlug: 'payroll-officer',
       permissionSlugs: [
         'auth.profile.read',
+        'expenses.read',
+        'leaves.read',
+        'billing.read',
         'payments.read',
         'payments.write',
         'dashboard.read',
