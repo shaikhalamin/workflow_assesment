@@ -19,6 +19,7 @@ import { WorkflowEventSchema } from '../workflow-builder/entities/workflow-event
 import { WorkflowOutcomeConfig } from '../workflow-builder/entities/workflow-outcome-config.entity';
 import { WorkflowTemplate } from '../workflow-builder/entities/workflow-template.entity';
 import { WorkflowTriggerCondition } from '../workflow-builder/entities/workflow-trigger-condition.entity';
+import { WorkflowTemplateStatus } from '../workflow-builder/enums/workflow-builder.enums';
 import { WorkflowAction } from '../workflow-runtime/entities/workflow-action.entity';
 import { WorkflowInstance } from '../workflow-runtime/entities/workflow-instance.entity';
 import { WorkflowStep } from '../workflow-runtime/entities/workflow-step.entity';
@@ -299,7 +300,7 @@ describe('SeedService', () => {
     });
   });
 
-  it('does not delete existing data on development startup', async () => {
+  it('seeds baseline workflow definitions without deleting existing data on development startup', async () => {
     process.env.NODE_ENV = 'development';
     const departmentsRepository = createMockRepository<Department>('dept');
     const rolesRepository = createMockRepository<Role>('role');
@@ -387,6 +388,36 @@ describe('SeedService', () => {
     );
 
     await service.onApplicationBootstrap();
+
+    expect(workflowTemplatesRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Expense Approval Workflow',
+        moduleName: 'expenses',
+        eventName: 'expense.submitted',
+        entityType: 'Expense',
+        status: WorkflowTemplateStatus.PUBLISHED,
+      }),
+    );
+    expect(workflowTriggerConditionsRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conditionJson: {
+          mode: 'all',
+          conditions: [{ field: 'amount', operator: 'gte', value: 1 }],
+        },
+      }),
+    );
+    expect(workflowApprovalRulesRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'High value expense',
+        isActive: true,
+      }),
+    );
+    expect(workflowApprovalStepConfigsRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stepName: 'Department review',
+        assigneeRoleSlug: 'department-reviewer',
+      }),
+    );
 
     for (const repository of repositories) {
       expect(repository.delete).not.toHaveBeenCalled();

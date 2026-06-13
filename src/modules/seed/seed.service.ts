@@ -519,9 +519,9 @@ export class SeedService implements OnApplicationBootstrap {
     await this.seedDepartments();
     await this.seedRolesAndPermissions();
     await this.seedUsers();
-    // await this.seedBillingWorkflowDefinitions();
+    await this.seedBillingWorkflowDefinitions();
     // await this.seedBillingDemoRecords();
-    // await this.seedWorkflowDefinitions();
+    await this.seedWorkflowDefinitions();
     // Demo transaction seeds are paused so development starts from scratch.
     // await this.seedDemoRecords();
   }
