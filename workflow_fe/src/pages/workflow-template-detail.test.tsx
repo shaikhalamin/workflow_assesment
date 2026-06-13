@@ -212,6 +212,16 @@ const baseTemplate = {
 }
 
 describe('WorkflowTemplateDetailPage', () => {
+  it('links back to the workflow templates list', () => {
+    templateResponse = baseTemplate
+
+    render(<WorkflowTemplateDetailPage />)
+
+    expect(
+      screen.getByRole('link', { name: /back to workflow templates/i }),
+    ).toHaveAttribute('href', '/workflow-templates')
+  })
+
   it('keeps the page header and groups trigger, rules, steps, and outcomes in workflow logic', () => {
     templateResponse = baseTemplate
 

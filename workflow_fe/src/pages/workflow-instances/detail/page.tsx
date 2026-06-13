@@ -1,4 +1,7 @@
-import { useParams } from '@tanstack/react-router'
+import { Link,useParams } from '@tanstack/react-router'
+import {
+ArrowLeft
+} from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import type {
@@ -47,7 +50,19 @@ export function WorkflowInstanceDetailPage() {
 
   return (
     <>
-      <PageHeader title={headerTitle} kicker="Runtime detail" />
+      <PageHeader
+        title={headerTitle}
+        kicker="Runtime detail"
+        navigation={
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+            to="/workflow-instances"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to workflow runtime
+          </Link>
+        }
+      />
       <ErrorNotice error={query.error} />
       {instance ? (
         <div className="space-y-5">

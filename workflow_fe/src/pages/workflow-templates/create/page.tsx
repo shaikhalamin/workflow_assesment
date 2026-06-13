@@ -1,7 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useForm } from '@tanstack/react-form'
-import { useNavigate,useParams } from '@tanstack/react-router'
+import { Link,useNavigate,useParams } from '@tanstack/react-router'
 import {
+ArrowLeft,
 ChevronDown,
 ChevronRight,
 Plus,
@@ -168,6 +169,15 @@ export function WorkflowBuilderPage({
           title="Edit workflow template"
           kicker="Workflow templates"
           description="Loading the selected workflow draft."
+          navigation={
+            <Link
+              className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+              to="/workflow-templates"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to workflow templates
+            </Link>
+          }
         />
         <ErrorNotice error={templateQuery.error} />
         <EmptyState message="Loading workflow template..." />
@@ -182,6 +192,15 @@ export function WorkflowBuilderPage({
           title={`Edit ${template.name}`}
           kicker="Workflow templates"
           description="Only draft workflow templates can be edited."
+          navigation={
+            <Link
+              className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+              to="/workflow-templates"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to workflow templates
+            </Link>
+          }
         />
         <EmptyState message="This workflow template is not a draft and cannot be edited." />
       </>
@@ -196,6 +215,17 @@ export function WorkflowBuilderPage({
         currentStep
           ? currentStep.description
           : 'Configure the business event, approval chain, and final outcomes.'
+      }
+      navigation={
+        isEditMode ? (
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+            to="/workflow-templates"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to workflow templates
+          </Link>
+        ) : undefined
       }
       actions={
         <div className="flex flex-wrap items-center gap-2">

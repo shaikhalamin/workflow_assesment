@@ -1,5 +1,8 @@
-import { useNavigate,useParams } from '@tanstack/react-router'
+import { Link,useNavigate,useParams } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
+import {
+ArrowLeft
+} from 'lucide-react'
 
 import {
 FormField,
@@ -8,11 +11,12 @@ FormSection,
 FormSelect,
 FormTextarea
 } from '@/components/form'
+import { hasPermission } from '@/features/auth/auth-routing'
 import type {
 LeaveResponseDto,
 ResubmitLeaveDto
 } from '@/lib/api/gen'
-import { useLeavesControllerFindOne,useLeavesControllerResubmit } from '@/lib/api/gen'
+import { useLeavesControllerFindOne,useLeavesControllerResubmit,useLeavesControllerUpdate } from '@/lib/api/gen'
 import {
 unwrapData
 } from '@/lib/format'
@@ -25,10 +29,13 @@ PageHeader
 import {
 fieldError,
 leaveFormSchema,
-toResubmitLeavePayload
+toResubmitLeavePayload,
+toUpdateLeavePayload
 } from '@/pages/utils/form-validation'
+import { useAuthStore } from '@/stores/auth-store'
 
 export function LeaveEditPage() {
+  const user = useAuthStore((state) => state.user)
   const { leaveId } = useParams({ strict: false }) as { leaveId: string }
   const navigate = useNavigate()
   const query = useLeavesControllerFindOne({ id: leaveId })
@@ -38,24 +45,54 @@ export function LeaveEditPage() {
       onSuccess: async () => navigate({ to: '/leaves/$leaveId', params: { leaveId } }),
     },
   })
-  const isEditable = leave?.status === 'REJECTED' && leave.canResubmit === true
+  const updateLeave = useLeavesControllerUpdate({
+    mutation: {
+      onSuccess: async () => navigate({ to: '/leaves/$leaveId', params: { leaveId } }),
+    },
+  })
+  const isRequester = leave?.requesterId === user?.id
+  const canWriteLeaves = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'leaves.write',
+  )
+  const isDraftEditable = canWriteLeaves && isRequester && leave?.status === 'DRAFT'
+  const isRejectedEditable =
+    canWriteLeaves && isRequester && leave?.status === 'REJECTED' && leave.canResubmit === true
+  const isEditable = isDraftEditable || isRejectedEditable
 
   return (
     <div className="max-w-3xl">
       <PageHeader
         title={leave ? `Edit ${leave.leaveType} leave` : `Edit leave ${leaveId}`}
         kicker="Leave request"
+        navigation={
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+            to="/leaves"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to leaves
+          </Link>
+        }
       />
-      <ErrorNotice error={query.error ?? resubmitLeave.error} />
+      <ErrorNotice error={query.error} />
       {leave && !isEditable ? (
-        <EmptyState message="This leave request cannot be edited and resubmitted." />
+        <EmptyState message="This leave request cannot be edited." />
       ) : null}
       {leave && isEditable ? (
         <LeaveEditForm
-          error={resubmitLeave.error}
-          isPending={resubmitLeave.isPending}
+          error={updateLeave.error ?? resubmitLeave.error}
+          isPending={updateLeave.isPending || resubmitLeave.isPending}
           leave={leave}
-          onSubmit={(data) => resubmitLeave.mutate({ id: leaveId, data })}
+          mode={isDraftEditable ? 'draft' : 'rejected'}
+          onSubmit={(data) => {
+            if (isDraftEditable) {
+              updateLeave.mutate({ id: leaveId, data })
+              return
+            }
+            resubmitLeave.mutate({ id: leaveId, data })
+          }}
         />
       ) : null}
     </div>
@@ -66,11 +103,13 @@ function LeaveEditForm({
   error,
   isPending,
   leave,
+  mode,
   onSubmit,
 }: {
   error: unknown
   isPending: boolean
   leave: LeaveResponseDto
+  mode: 'draft' | 'rejected'
   onSubmit: (data: ResubmitLeaveDto) => void
 }) {
   const form = useForm({
@@ -85,18 +124,22 @@ function LeaveEditForm({
       onSubmit: leaveFormSchema,
     },
     onSubmit: ({ value }) => {
-      onSubmit(toResubmitLeavePayload(value))
+      onSubmit(mode === 'draft' ? toUpdateLeavePayload(value) : toResubmitLeavePayload(value))
     },
   })
 
   return (
     <CreatePanel
       title="Edit leave"
-      kicker="Rejected request"
-      description="Update leave type, dates, duration, and reason before sending it back through workflow."
+      kicker={mode === 'draft' ? 'Draft request' : 'Rejected request'}
+      description={
+        mode === 'draft'
+          ? 'Update leave type, dates, duration, and reason before submitting it for approval.'
+          : 'Update leave type, dates, duration, and reason before sending it back through workflow.'
+      }
       error={error}
       onSubmit={() => void form.handleSubmit()}
-      submitLabel={isPending ? 'Resubmitting...' : 'Resubmit leave'}
+      submitLabel={mode === 'draft' ? (isPending ? 'Saving...' : 'Save leave') : (isPending ? 'Resubmitting...' : 'Resubmit leave')}
     >
       <FormSection index="01" title="Leave type">
         <form.Field name="leaveType">

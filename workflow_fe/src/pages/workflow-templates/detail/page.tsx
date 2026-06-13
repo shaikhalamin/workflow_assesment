@@ -1,5 +1,6 @@
-import { useParams } from '@tanstack/react-router'
+import { Link,useParams } from '@tanstack/react-router'
 import {
+ArrowLeft,
 PlayCircle
 } from 'lucide-react'
 
@@ -46,6 +47,15 @@ export function WorkflowTemplateDetailPage() {
         title={template?.name ?? 'Workflow detail'}
         kicker="Template detail"
         description="Read-only workflow execution summary."
+        navigation={
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+            to="/workflow-templates"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to workflow templates
+          </Link>
+        }
       />
       <ErrorNotice error={query.error} />
       {template ? <WorkflowTemplateDetail template={template} /> : null}

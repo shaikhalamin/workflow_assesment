@@ -7,6 +7,9 @@ import {
   type ResubmitBillingRequestDto,
   type ResubmitExpenseDto,
   type ResubmitLeaveDto,
+  type UpdateBillingRequestDto,
+  type UpdateExpenseDto,
+  type UpdateLeaveDto,
 } from '@/lib/api/gen'
 import { createBillingRequestDtoSchema } from '@/lib/api/gen/zod/createBillingRequestDtoSchema'
 import { createExpenseDtoSchema } from '@/lib/api/gen/zod/createExpenseDtoSchema'
@@ -14,6 +17,9 @@ import { createLeaveDtoSchema } from '@/lib/api/gen/zod/createLeaveDtoSchema'
 import { resubmitBillingRequestDtoSchema } from '@/lib/api/gen/zod/resubmitBillingRequestDtoSchema'
 import { resubmitExpenseDtoSchema } from '@/lib/api/gen/zod/resubmitExpenseDtoSchema'
 import { resubmitLeaveDtoSchema } from '@/lib/api/gen/zod/resubmitLeaveDtoSchema'
+import { updateBillingRequestDtoSchema } from '@/lib/api/gen/zod/updateBillingRequestDtoSchema'
+import { updateExpenseDtoSchema } from '@/lib/api/gen/zod/updateExpenseDtoSchema'
+import { updateLeaveDtoSchema } from '@/lib/api/gen/zod/updateLeaveDtoSchema'
 
 const requiredText = (label: string) => z.string().trim().min(1, `${label} is required`)
 
@@ -108,6 +114,19 @@ export function toResubmitExpensePayload(value: ExpenseFormValues): ResubmitExpe
   })
 }
 
+export function toUpdateExpensePayload(value: ExpenseFormValues): UpdateExpenseDto {
+  const parsed = expenseFormSchema.parse(value)
+
+  return updateExpenseDtoSchema.parse({
+    title: parsed.title,
+    amount: Number(parsed.amount),
+    category: parsed.category,
+    currency: parsed.currency,
+    description: parsed.description || undefined,
+    vendor: parsed.vendor || undefined,
+  })
+}
+
 export function toCreateLeavePayload(value: LeaveFormValues): CreateLeaveDto {
   const parsed = leaveFormSchema.parse(value)
 
@@ -124,6 +143,18 @@ export function toResubmitLeavePayload(value: LeaveFormValues): ResubmitLeaveDto
   const parsed = leaveFormSchema.parse(value)
 
   return resubmitLeaveDtoSchema.parse({
+    leaveType: parsed.leaveType,
+    leaveDays: Number(parsed.leaveDays),
+    startDate: parsed.startDate,
+    endDate: parsed.endDate,
+    reason: parsed.reason || undefined,
+  })
+}
+
+export function toUpdateLeavePayload(value: LeaveFormValues): UpdateLeaveDto {
+  const parsed = leaveFormSchema.parse(value)
+
+  return updateLeaveDtoSchema.parse({
     leaveType: parsed.leaveType,
     leaveDays: Number(parsed.leaveDays),
     startDate: parsed.startDate,
@@ -153,6 +184,21 @@ export function toResubmitBillingPayload(
   const parsed = billingFormSchema.parse(value)
 
   return resubmitBillingRequestDtoSchema.parse({
+    title: parsed.title,
+    customerName: parsed.customerName,
+    amount: Number(parsed.amount),
+    currency: parsed.currency,
+    billingCategory: parsed.billingCategory,
+    customerEmail: parsed.customerEmail || undefined,
+    customerAddress: parsed.customerAddress || undefined,
+    description: parsed.description || undefined,
+  })
+}
+
+export function toUpdateBillingPayload(value: BillingFormValues): UpdateBillingRequestDto {
+  const parsed = billingFormSchema.parse(value)
+
+  return updateBillingRequestDtoSchema.parse({
     title: parsed.title,
     customerName: parsed.customerName,
     amount: Number(parsed.amount),

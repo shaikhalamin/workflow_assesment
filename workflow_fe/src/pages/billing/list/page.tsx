@@ -104,6 +104,16 @@ export function BillingRequestsPage() {
                     Open
                   </Link>
                   {canWriteBilling && isRequester && status === 'DRAFT' ? (
+                    <Link
+                      className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+                      to="/billing/$billingId/edit"
+                      params={{ billingId: id }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Edit
+                    </Link>
+                  ) : null}
+                  {canWriteBilling && isRequester && status === 'DRAFT' ? (
                     <Button
                       className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
                       disabled={submit.isPending}

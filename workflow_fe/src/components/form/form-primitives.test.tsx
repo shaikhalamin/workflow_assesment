@@ -18,6 +18,7 @@ describe('form primitives', () => {
         title="New request"
         kicker="Operations"
         description="Create a workflow request."
+        navigation={<a href="/requests">Back to requests</a>}
         actions={<button type="button">Action</button>}
       >
         <FormSection index="01" title="Details" hint="Required">
@@ -43,5 +44,11 @@ describe('form primitives', () => {
     expect(screen.getByText('Title is required')).toBeInTheDocument()
     expect(screen.getByText('Pick one type.')).toBeInTheDocument()
     expect(screen.getByLabelText('Allow resubmission')).toBeChecked()
+    expect(
+      screen
+        .getByRole('link', { name: /back to requests/i })
+        .compareDocumentPosition(screen.getByRole('heading', { name: 'New request' })) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 })

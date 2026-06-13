@@ -35,27 +35,32 @@ export function PageHeader({
   title,
   description,
   action,
+  navigation,
   kicker = 'Workspace',
 }: {
   title: string
   description?: string
   action?: React.ReactNode
+  navigation?: React.ReactNode
   kicker?: string
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
-        <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
-          {kicker}
-        </p>
-        <h1 className="text-[22px] font-semibold tracking-tight text-[var(--foreground)] sm:text-[26px]">
-          {title}
-        </h1>
-        {description ? (
-          <p className="mt-1 max-w-3xl text-sm text-[var(--muted-foreground)]">
-            {description}
+        {navigation ? <div className="mb-3">{navigation}</div> : null}
+        <div className="min-w-0">
+          <p className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+            {kicker}
           </p>
-        ) : null}
+          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--foreground)] sm:text-[26px]">
+            {title}
+          </h1>
+          {description ? (
+            <p className="mt-1 max-w-3xl text-sm text-[var(--muted-foreground)]">
+              {description}
+            </p>
+          ) : null}
+        </div>
       </div>
       {action}
     </div>

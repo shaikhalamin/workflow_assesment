@@ -2,6 +2,9 @@ import { render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { AuthUserDto } from '@/lib/api/gen'
+import { useAuthStore } from '@/stores/auth-store'
+
 import { LeaveDetailPage } from './index'
 
 let leaveResponse: unknown | undefined
@@ -193,10 +196,37 @@ const baseWorkflow = {
   updatedAt: '2026-06-11T08:00:00.000Z',
 }
 
+const requesterUser: AuthUserDto = {
+  id: 'requester-1',
+  name: 'Leave Requester',
+  email: 'requester@example.com',
+  roles: ['employee'],
+  permissions: ['leaves.read', 'leaves.write'],
+}
+
+const otherWriterUser: AuthUserDto = {
+  id: 'other-user',
+  name: 'Other Writer',
+  email: 'other@example.com',
+  roles: ['admin'],
+  permissions: ['leaves.read', 'leaves.write'],
+}
+
 describe('LeaveDetailPage', () => {
   beforeEach(() => {
+    localStorage.clear()
+    useAuthStore.setState({ isAuthenticated: true, user: requesterUser })
     leaveResponse = baseLeave
     workflowResponse = baseWorkflow
+  })
+
+  it('links back to the leaves list', () => {
+    render(<LeaveDetailPage />)
+
+    expect(screen.getByRole('link', { name: /back to leaves/i })).toHaveAttribute(
+      'href',
+      '/leaves',
+    )
   })
 
   it('shows leave requester, creator, and embedded workflow progress', () => {
@@ -307,6 +337,24 @@ describe('LeaveDetailPage', () => {
       screen.getByRole('link', { name: /edit and resubmit/i }),
     ).toHaveAttribute('href', '/leaves/$leaveId/edit')
     expect(screen.getByText(/rejection reason: insufficient balance/i)).toBeInTheDocument()
+  })
+
+  it('hides edit and resubmit for rejected leave requests when the current user is not the requester', () => {
+    leaveResponse = {
+      ...baseLeave,
+      status: 'REJECTED',
+      canResubmit: true,
+      rejectionReason: 'Insufficient balance',
+      rejectedAt: '2026-06-12T08:00:00.000Z',
+    }
+    workflowResponse = undefined
+    useAuthStore.setState({ isAuthenticated: true, user: otherWriterUser })
+
+    render(<LeaveDetailPage />)
+
+    expect(
+      screen.queryByRole('link', { name: /edit and resubmit/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('does not show edit and resubmit for rejected non-resubmittable leave requests', () => {

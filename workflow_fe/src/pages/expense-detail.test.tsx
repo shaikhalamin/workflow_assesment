@@ -2,6 +2,9 @@ import { render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { AuthUserDto } from '@/lib/api/gen'
+import { useAuthStore } from '@/stores/auth-store'
+
 import { ExpenseDetailPage } from './index'
 
 let expenseResponse: unknown | undefined
@@ -219,8 +222,26 @@ const baseWorkflow = {
   updatedAt: '2026-06-11T08:21:00.000Z',
 }
 
+const requesterUser: AuthUserDto = {
+  id: 'requester-1',
+  name: 'Expense Requester',
+  email: 'requester@example.com',
+  roles: ['employee'],
+  permissions: ['expenses.read', 'expenses.write'],
+}
+
+const otherWriterUser: AuthUserDto = {
+  id: 'other-user',
+  name: 'Other Writer',
+  email: 'other@example.com',
+  roles: ['admin'],
+  permissions: ['expenses.read', 'expenses.write'],
+}
+
 describe('ExpenseDetailPage', () => {
   beforeEach(() => {
+    localStorage.clear()
+    useAuthStore.setState({ isAuthenticated: true, user: requesterUser })
     expenseResponse = baseExpense
     workflowResponse = baseWorkflow
     usersResponse = [
@@ -253,6 +274,15 @@ describe('ExpenseDetailPage', () => {
         updatedAt: '2026-06-01T08:00:00.000Z',
       },
     ]
+  })
+
+  it('links back to the expenses list', () => {
+    render(<ExpenseDetailPage />)
+
+    expect(screen.getByRole('link', { name: /back to expenses/i })).toHaveAttribute(
+      'href',
+      '/expenses',
+    )
   })
 
   it('renders only the requested business expense fields with a labeled note', () => {
@@ -411,6 +441,24 @@ describe('ExpenseDetailPage', () => {
       screen.getByRole('link', { name: /edit and resubmit/i }),
     ).toHaveAttribute('href', '/expenses/$expenseId/edit')
     expect(screen.getByText(/rejection reason: receipt missing/i)).toBeInTheDocument()
+  })
+
+  it('hides edit and resubmit for rejected expenses when the current user is not the requester', () => {
+    expenseResponse = {
+      ...baseExpense,
+      status: 'REJECTED',
+      canResubmit: true,
+      rejectionReason: 'Receipt missing',
+      rejectedAt: '2026-06-12T08:00:00.000Z',
+    }
+    workflowResponse = undefined
+    useAuthStore.setState({ isAuthenticated: true, user: otherWriterUser })
+
+    render(<ExpenseDetailPage />)
+
+    expect(
+      screen.queryByRole('link', { name: /edit and resubmit/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('does not show edit and resubmit for rejected non-resubmittable expenses', () => {

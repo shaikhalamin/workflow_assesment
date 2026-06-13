@@ -153,6 +153,7 @@ type FormShellProps = {
   kicker: string
   title: string
   description?: string
+  navigation?: React.ReactNode
   actions?: React.ReactNode
   children: React.ReactNode
   aside?: React.ReactNode
@@ -162,25 +163,29 @@ export function FormShell({
   kicker,
   title,
   description,
+  navigation,
   actions,
   children,
   aside,
 }: FormShellProps) {
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">
-            {kicker}
-          </p>
-          <h1 className="text-[22px] font-semibold tracking-tight text-[var(--foreground)] sm:text-[26px]">
-            {title}
-          </h1>
-          {description ? (
-            <p className="mt-1 max-w-3xl text-sm text-[var(--muted-foreground)]">
-              {description}
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-start gap-3">
+          {navigation}
+          <div className="min-w-0">
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)]">
+              {kicker}
             </p>
-          ) : null}
+            <h1 className="text-[22px] font-semibold tracking-tight text-[var(--foreground)] sm:text-[26px]">
+              {title}
+            </h1>
+            {description ? (
+              <p className="mt-1 max-w-3xl text-sm text-[var(--muted-foreground)]">
+                {description}
+              </p>
+            ) : null}
+          </div>
         </div>
         {actions}
       </header>

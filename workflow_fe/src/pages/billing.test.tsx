@@ -71,6 +71,7 @@ const createBilling = vi.hoisted(() => vi.fn())
 const submitBilling = vi.hoisted(() => vi.fn())
 const cancelBilling = vi.hoisted(() => vi.fn())
 const resubmitBilling = vi.hoisted(() => vi.fn())
+const updateBilling = vi.hoisted(() => vi.fn())
 const markInvoicePaid = vi.hoisted(() => vi.fn())
 const cancelInvoice = vi.hoisted(() => vi.fn())
 
@@ -137,6 +138,7 @@ vi.mock('@/lib/api/gen', () => ({
   }),
   useBillingControllerResubmit: () => ({ error: null, isPending: false, mutate: resubmitBilling }),
   useBillingControllerSubmit: () => ({ error: null, isPending: false, mutate: submitBilling }),
+  useBillingControllerUpdate: () => ({ error: null, isPending: false, mutate: updateBilling }),
   useDashboardControllerAccounts: () => ({ data: undefined }),
   useDashboardControllerAdmin: () => ({ data: undefined }),
   useDashboardControllerApprover: () => ({ data: undefined }),
@@ -285,6 +287,7 @@ describe('billing and invoice pages', () => {
     submitBilling.mockClear()
     cancelBilling.mockClear()
     resubmitBilling.mockClear()
+    updateBilling.mockClear()
     markInvoicePaid.mockClear()
     cancelInvoice.mockClear()
   })
@@ -305,6 +308,15 @@ describe('billing and invoice pages', () => {
 
     expect(submitBilling).toHaveBeenCalledWith({ id: 'billing-1' })
     expect(cancelBilling).toHaveBeenCalledWith({ id: 'billing-1' })
+  })
+
+  it('links draft billing rows to the edit page', () => {
+    render(<BillingRequestsPage />)
+
+    expect(screen.getByRole('link', { name: /^edit$/i })).toHaveAttribute(
+      'href',
+      '/billing/$billingId/edit',
+    )
   })
 
   it('hides draft billing submit and cancel actions from non-requester writers', () => {
@@ -415,10 +427,97 @@ describe('billing and invoice pages', () => {
     expect(resubmitBilling).not.toHaveBeenCalled()
   })
 
+  it('prefills draft billing fields and saves edited data', async () => {
+    const billingDetail = billingDetailState.value
+    if (!billingDetail || typeof billingDetail !== 'object') {
+      throw new Error('Expected billing detail fixture')
+    }
+
+    billingDetailState.value = {
+      ...billingDetail,
+      status: 'DRAFT',
+      canResubmit: false,
+      workflowInstanceId: null,
+      invoiceId: null,
+    }
+
+    render(<BillingEditPage />)
+
+    expect(screen.getByRole('textbox', { name: /title/i })).toHaveDisplayValue(
+      'Enterprise installation',
+    )
+
+    fireEvent.change(screen.getByRole('textbox', { name: /title/i }), {
+      target: { value: 'Draft installation bill' },
+    })
+    fireEvent.change(screen.getByRole('spinbutton', { name: /amount/i }), {
+      target: { value: '98000' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /save billing/i }))
+
+    await waitFor(() => {
+      expect(updateBilling).toHaveBeenCalledWith({
+        id: 'billing-1',
+        data: expect.objectContaining({
+          title: 'Draft installation bill',
+          customerName: 'ACME Bangladesh Ltd.',
+          amount: 98000,
+          currency: 'BDT',
+          billingCategory: 'Installation',
+        }),
+      })
+    })
+    expect(resubmitBilling).not.toHaveBeenCalled()
+  })
+
+  it('links billing edit back to the billing list', () => {
+    billingDetailState.value = {
+      ...(billingDetailState.value as object),
+      status: 'DRAFT',
+      canResubmit: false,
+      workflowInstanceId: null,
+      invoiceId: null,
+    }
+
+    render(<BillingEditPage />)
+
+    expect(screen.getByRole('link', { name: /back to billing/i })).toHaveAttribute(
+      'href',
+      '/billing',
+    )
+  })
+
+  it('blocks billing edit when the current user is not the requester', () => {
+    const billingDetail = billingDetailState.value
+    if (!billingDetail || typeof billingDetail !== 'object') {
+      throw new Error('Expected billing detail fixture')
+    }
+
+    billingDetailState.value = {
+      ...billingDetail,
+      status: 'DRAFT',
+      canResubmit: false,
+      workflowInstanceId: null,
+      invoiceId: null,
+    }
+    useAuthStore.setState({ isAuthenticated: true, user: adminBillingUser })
+
+    render(<BillingEditPage />)
+
+    expect(
+      screen.getByText('This billing request cannot be edited.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /save billing/i })).not.toBeInTheDocument()
+  })
+
   it('shows billing details with workflow and invoice links', () => {
     render(<BillingDetailPage />)
 
     expect(screen.getByRole('heading', { level: 1, name: 'Enterprise installation' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /back to billing/i })).toHaveAttribute(
+      'href',
+      '/billing',
+    )
     expect(screen.getByText('ACME Bangladesh Ltd.')).toBeInTheDocument()
     expect(screen.getByText('billing@acme.example')).toBeInTheDocument()
     expect(screen.getByText('125000.00 BDT')).toBeInTheDocument()
@@ -430,6 +529,30 @@ describe('billing and invoice pages', () => {
       'href',
       '/invoices/$invoiceId',
     )
+  })
+
+  it('hides billing edit and resubmit on detail when the current user is not the requester', () => {
+    const billingDetail = billingDetailState.value
+    if (!billingDetail || typeof billingDetail !== 'object') {
+      throw new Error('Expected billing detail fixture')
+    }
+
+    billingDetailState.value = {
+      ...billingDetail,
+      status: 'REJECTED',
+      canResubmit: true,
+      rejectionReason: 'Pricing needs review',
+      workflowInstanceId: null,
+      invoiceId: null,
+    }
+    workflowState.value = undefined
+    useAuthStore.setState({ isAuthenticated: true, user: adminBillingUser })
+
+    render(<BillingDetailPage />)
+
+    expect(
+      screen.queryByRole('link', { name: /edit and resubmit/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('lists invoices and lets invoice writers mark issued invoices paid or cancelled', () => {
@@ -450,6 +573,10 @@ describe('billing and invoice pages', () => {
     render(<InvoiceDetailPage />)
 
     expect(screen.getByRole('heading', { level: 1, name: 'INV-20260610-0001' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /back to invoices/i })).toHaveAttribute(
+      'href',
+      '/invoices',
+    )
     expect(screen.getByText('Enterprise installation')).toBeInTheDocument()
     expect(screen.getByText('ACME Bangladesh Ltd.')).toBeInTheDocument()
     expect(screen.getByText('2026-07-10')).toBeInTheDocument()

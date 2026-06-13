@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useWorkflowBuilderStore } from '@/features/workflows/workflow-builder-store'
@@ -14,9 +15,11 @@ let templateResponse: unknown | undefined
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
+    to,
   }: {
-    children: React.ReactNode
-  }) => <>{children}</>,
+    children: ReactNode
+    to?: string
+  }) => <a href={to ?? '#'}>{children}</a>,
   useNavigate: () => vi.fn(),
   useParams: () => ({}),
 }))
@@ -307,6 +310,9 @@ describe('WorkflowBuilderPage trigger setup', () => {
       expect(screen.getByDisplayValue('Existing draft workflow')).toBeInTheDocument(),
     )
     expect(screen.getByText('Edit workflow template')).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /back to workflow templates/i }),
+    ).toHaveAttribute('href', '/workflow-templates')
     expect(screen.getByDisplayValue('Run When Conditions Match')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /05review/i }))

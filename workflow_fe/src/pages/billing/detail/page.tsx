@@ -1,10 +1,12 @@
 import { Link,useParams } from '@tanstack/react-router'
 import {
+ArrowLeft,
 Pencil
 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { hasPermission } from '@/features/auth/auth-routing'
 import type {
 BillingRequestResponseDto,
 WorkflowInstanceResponseDto
@@ -29,8 +31,10 @@ formatOptionalDate,
 moneyLabel,
 workflowIdFromBilling
 } from '@/pages/utils/page-helpers'
+import { useAuthStore } from '@/stores/auth-store'
 
 export function BillingDetailPage() {
+  const user = useAuthStore((state) => state.user)
   const { billingId } = useParams({ strict: false }) as { billingId: string }
   const query = useBillingControllerFindOne({ id: billingId })
   const billing = unwrapData(query.data) as BillingRequestResponseDto | undefined
@@ -39,21 +43,39 @@ export function BillingDetailPage() {
   const workflow = workflowId
     ? (unwrapData(workflowQuery.data) as WorkflowInstanceResponseDto | undefined)
     : undefined
-  const canEditAndResubmit = billing?.status === 'REJECTED' && billing.canResubmit === true
+  const isRequester = billing?.requesterId === user?.id
+  const canWriteBilling = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'billing.write',
+  )
+  const canEditDraft = canWriteBilling && isRequester && billing?.status === 'DRAFT'
+  const canEditAndResubmit =
+    canWriteBilling && isRequester && billing?.status === 'REJECTED' && billing.canResubmit === true
+  const canEdit = canEditDraft || canEditAndResubmit
 
   return (
     <>
       <PageHeader
         title={billing?.title ?? `Billing ${billingId}`}
         kicker="Billing detail"
+        navigation={
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+            to="/billing"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to billing
+          </Link>
+        }
         action={
-          billing && (canEditAndResubmit || workflowId || billing.invoiceId) ? (
+          canEdit || workflowId || billing?.invoiceId ? (
             <div className="flex flex-wrap items-center gap-2">
-              {canEditAndResubmit ? (
+              {canEdit ? (
                 <Button className="border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700" type="button">
                   <Link className="inline-flex items-center gap-2" to="/billing/$billingId/edit" params={{ billingId }}>
                     <Pencil className="h-4 w-4" />
-                    Edit and resubmit
+                    {canEditDraft ? 'Edit' : 'Edit and resubmit'}
                   </Link>
                 </Button>
               ) : null}
@@ -64,7 +86,7 @@ export function BillingDetailPage() {
                   </Link>
                 </Button>
               ) : null}
-              {billing.invoiceId ? (
+              {billing?.invoiceId ? (
                 <Button type="button" variant="secondary">
                   <Link to="/invoices/$invoiceId" params={{ invoiceId: billing.invoiceId }}>
                     Open invoice
@@ -72,7 +94,7 @@ export function BillingDetailPage() {
                 </Button>
               ) : null}
             </div>
-          ) : null
+          ) : undefined
         }
       />
       <ErrorNotice error={query.error ?? workflowQuery.error} />

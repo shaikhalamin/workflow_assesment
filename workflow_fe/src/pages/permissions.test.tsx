@@ -325,6 +325,20 @@ describe('workspace page permissions', () => {
     expect(deleteExpense).toHaveBeenCalledWith({ id: 'expense-1' })
   })
 
+  it('links draft expense rows to the edit page', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableExpenseUser,
+    })
+
+    render(<ExpensesPage />)
+
+    expect(screen.getByRole('link', { name: /^edit$/i })).toHaveAttribute(
+      'href',
+      '/expenses/$expenseId/edit',
+    )
+  })
+
   it('hides draft expense submit and delete actions from non-requester writers', () => {
     useAuthStore.setState({
       isAuthenticated: true,
@@ -544,6 +558,20 @@ describe('workspace page permissions', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
 
     expect(submitLeave).toHaveBeenCalledWith({ id: 'leave-1' })
+  })
+
+  it('links draft leave rows to the edit page', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writableLeaveUser,
+    })
+
+    render(<LeavesPage />)
+
+    expect(screen.getByRole('link', { name: /^edit$/i })).toHaveAttribute(
+      'href',
+      '/leaves/$leaveId/edit',
+    )
   })
 
   it('disables submitted leave rows with submitted text', () => {

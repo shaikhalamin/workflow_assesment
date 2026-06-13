@@ -359,6 +359,14 @@ describe('WorkflowInstanceDetailPage', () => {
     localStorage.clear()
   })
 
+  it('links back to the workflow runtime list', () => {
+    render(<WorkflowInstanceDetailPage />)
+
+    expect(
+      screen.getByRole('link', { name: /back to workflow runtime/i }),
+    ).toHaveAttribute('href', '/workflow-instances')
+  })
+
   it('renders ordered readable workflow progress and responsibility summaries', () => {
     const { container } = render(<WorkflowInstanceDetailPage />)
 

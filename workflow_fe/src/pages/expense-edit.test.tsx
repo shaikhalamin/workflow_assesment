@@ -2,10 +2,14 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { AuthUserDto } from '@/lib/api/gen'
+import { useAuthStore } from '@/stores/auth-store'
+
 import { ExpenseEditPage } from './index'
 
 const navigate = vi.hoisted(() => vi.fn())
 const resubmitExpense = vi.hoisted(() => vi.fn())
+const updateExpense = vi.hoisted(() => vi.fn())
 const expenseState = vi.hoisted((): {
   expense: unknown | undefined
   error: unknown
@@ -59,6 +63,11 @@ vi.mock('@/lib/api/gen', () => ({
     mutate: resubmitExpense,
   }),
   useExpensesControllerSubmit: () => ({ error: null, isPending: false, mutate: vi.fn() }),
+  useExpensesControllerUpdate: () => ({
+    error: null,
+    isPending: false,
+    mutate: updateExpense,
+  }),
   useLeavesControllerCreate: () => ({ error: null, isPending: false, mutate: vi.fn() }),
   useLeavesControllerDelete: () => ({ error: null, isPending: false, mutate: vi.fn() }),
   useLeavesControllerFindOne: () => ({ data: undefined, error: null }),
@@ -89,6 +98,7 @@ vi.mock('@/lib/api/gen', () => ({
 
 const rejectedExpense = {
   id: 'expense-1',
+  requesterId: 'requester-1',
   title: 'Original laptop claim',
   description: 'Original receipt note',
   amount: '4500',
@@ -100,12 +110,78 @@ const rejectedExpense = {
   rejectionReason: 'Receipt missing',
 }
 
+const requesterUser: AuthUserDto = {
+  id: 'requester-1',
+  name: 'Expense Requester',
+  email: 'requester@example.com',
+  roles: ['employee'],
+  permissions: ['expenses.read', 'expenses.write'],
+}
+
+const otherWriterUser: AuthUserDto = {
+  id: 'other-user',
+  name: 'Other Writer',
+  email: 'other@example.com',
+  roles: ['admin'],
+  permissions: ['expenses.read', 'expenses.write'],
+}
+
 describe('ExpenseEditPage', () => {
   beforeEach(() => {
+    localStorage.clear()
+    useAuthStore.setState({ isAuthenticated: true, user: requesterUser })
     expenseState.expense = rejectedExpense
     expenseState.error = null
     navigate.mockClear()
     resubmitExpense.mockClear()
+    updateExpense.mockClear()
+  })
+
+  it('prefills draft expense fields and saves edited data', async () => {
+    expenseState.expense = {
+      ...rejectedExpense,
+      status: 'DRAFT',
+      canResubmit: false,
+      rejectionReason: null,
+    }
+
+    render(<ExpenseEditPage />)
+
+    expect(screen.getByRole('textbox', { name: /title/i })).toHaveDisplayValue(
+      'Original laptop claim',
+    )
+
+    fireEvent.change(screen.getByRole('textbox', { name: /title/i }), {
+      target: { value: 'Draft laptop claim' },
+    })
+    fireEvent.change(screen.getByRole('spinbutton', { name: /amount/i }), {
+      target: { value: '4300' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /save expense/i }))
+
+    await waitFor(() => {
+      expect(updateExpense).toHaveBeenCalledWith({
+        id: 'expense-1',
+        data: expect.objectContaining({
+          title: 'Draft laptop claim',
+          amount: 4300,
+          currency: 'BDT',
+          category: 'Software',
+          vendor: 'Star Tech',
+          description: 'Original receipt note',
+        }),
+      })
+    })
+    expect(resubmitExpense).not.toHaveBeenCalled()
+  })
+
+  it('links back to the expenses list', () => {
+    render(<ExpenseEditPage />)
+
+    expect(screen.getByRole('link', { name: /back to expenses/i })).toHaveAttribute(
+      'href',
+      '/expenses',
+    )
   })
 
   it('prefills rejected expense fields and resubmits edited data', async () => {
@@ -168,7 +244,18 @@ describe('ExpenseEditPage', () => {
     render(<ExpenseEditPage />)
 
     expect(
-      screen.getByText('This expense cannot be edited and resubmitted.'),
+      screen.getByText('This expense cannot be edited.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /resubmit expense/i })).not.toBeInTheDocument()
+  })
+
+  it('blocks editing when the current user is not the expense requester', () => {
+    useAuthStore.setState({ isAuthenticated: true, user: otherWriterUser })
+
+    render(<ExpenseEditPage />)
+
+    expect(
+      screen.getByText('This expense cannot be edited.'),
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /resubmit expense/i })).not.toBeInTheDocument()
   })

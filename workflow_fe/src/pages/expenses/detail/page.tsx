@@ -1,10 +1,12 @@
 import { Link,useParams } from '@tanstack/react-router'
 import {
+ArrowLeft,
 Pencil
 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { hasPermission } from '@/features/auth/auth-routing'
 import type {
 ExpenseResponseDto,
 WorkflowInstanceResponseDto
@@ -29,8 +31,10 @@ formatOptionalDate,
 readableValue,
 workflowIdFromExpense
 } from '@/pages/utils/page-helpers'
+import { useAuthStore } from '@/stores/auth-store'
 
 export function ExpenseDetailPage() {
+  const user = useAuthStore((state) => state.user)
   const { expenseId } = useParams({ strict: false }) as { expenseId: string }
   const query = useExpensesControllerFindOne({ id: expenseId })
   const expense = unwrapData(query.data) as ExpenseResponseDto | undefined
@@ -39,17 +43,35 @@ export function ExpenseDetailPage() {
   const workflow = workflowId
     ? (unwrapData(workflowQuery.data) as WorkflowInstanceResponseDto | undefined)
     : undefined
-  const canEditAndResubmit = expense?.status === 'REJECTED' && expense.canResubmit === true
+  const isRequester = expense?.requesterId === user?.id
+  const canWriteExpenses = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'expenses.write',
+  )
+  const canEditDraft = canWriteExpenses && isRequester && expense?.status === 'DRAFT'
+  const canEditAndResubmit =
+    canWriteExpenses && isRequester && expense?.status === 'REJECTED' && expense.canResubmit === true
+  const canEdit = canEditDraft || canEditAndResubmit
 
   return (
     <>
       <PageHeader
         title={expense?.title ?? `Expense ${expenseId}`}
         kicker="Expense detail"
+        navigation={
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+            to="/expenses"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to expenses
+          </Link>
+        }
         action={
-          canEditAndResubmit || workflowId ? (
+          canEdit || workflowId ? (
             <div className="flex flex-wrap items-center gap-2">
-              {canEditAndResubmit ? (
+              {canEdit ? (
                 <Button
                   className="border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
                   type="button"
@@ -60,7 +82,7 @@ export function ExpenseDetailPage() {
                     params={{ expenseId }}
                   >
                     <Pencil className="h-4 w-4" />
-                    Edit and resubmit
+                    {canEditDraft ? 'Edit' : 'Edit and resubmit'}
                   </Link>
                 </Button>
               ) : null}
@@ -78,7 +100,7 @@ export function ExpenseDetailPage() {
                 </Button>
               ) : null}
             </div>
-          ) : null
+          ) : undefined
         }
       />
       <ErrorNotice error={query.error ?? workflowQuery.error} />

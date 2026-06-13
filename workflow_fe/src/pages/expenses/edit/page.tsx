@@ -1,5 +1,8 @@
-import { useNavigate,useParams } from '@tanstack/react-router'
+import { Link,useNavigate,useParams } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
+import {
+ArrowLeft
+} from 'lucide-react'
 
 import {
 FormField,
@@ -8,11 +11,12 @@ FormSection,
 FormSelect,
 FormTextarea
 } from '@/components/form'
+import { hasPermission } from '@/features/auth/auth-routing'
 import type {
 ExpenseResponseDto,
 ResubmitExpenseDto
 } from '@/lib/api/gen'
-import { useExpensesControllerFindOne,useExpensesControllerResubmit } from '@/lib/api/gen'
+import { useExpensesControllerFindOne,useExpensesControllerResubmit,useExpensesControllerUpdate } from '@/lib/api/gen'
 import {
 unwrapData
 } from '@/lib/format'
@@ -25,15 +29,18 @@ PageHeader
 import {
 expenseFormSchema,
 fieldError,
-toResubmitExpensePayload
+toResubmitExpensePayload,
+toUpdateExpensePayload
 } from '@/pages/utils/form-validation'
 import {
 expenseCategoryOptions,
 expenseVendorOptions,
 readableValue
 } from '@/pages/utils/page-helpers'
+import { useAuthStore } from '@/stores/auth-store'
 
 export function ExpenseEditPage() {
+  const user = useAuthStore((state) => state.user)
   const { expenseId } = useParams({ strict: false }) as { expenseId: string }
   const navigate = useNavigate()
   const query = useExpensesControllerFindOne({ id: expenseId })
@@ -43,24 +50,54 @@ export function ExpenseEditPage() {
       onSuccess: async () => navigate({ to: '/expenses/$expenseId', params: { expenseId } }),
     },
   })
-  const isEditable = expense?.status === 'REJECTED' && expense.canResubmit === true
+  const updateExpense = useExpensesControllerUpdate({
+    mutation: {
+      onSuccess: async () => navigate({ to: '/expenses/$expenseId', params: { expenseId } }),
+    },
+  })
+  const isRequester = expense?.requesterId === user?.id
+  const canWriteExpenses = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'expenses.write',
+  )
+  const isDraftEditable = canWriteExpenses && isRequester && expense?.status === 'DRAFT'
+  const isRejectedEditable =
+    canWriteExpenses && isRequester && expense?.status === 'REJECTED' && expense.canResubmit === true
+  const isEditable = isDraftEditable || isRejectedEditable
 
   return (
     <div className="max-w-3xl">
       <PageHeader
         title={expense ? `Edit ${expense.title}` : `Edit expense ${expenseId}`}
         kicker="Expense request"
+        navigation={
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+            to="/expenses"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to expenses
+          </Link>
+        }
       />
-      <ErrorNotice error={query.error ?? resubmitExpense.error} />
+      <ErrorNotice error={query.error} />
       {expense && !isEditable ? (
-        <EmptyState message="This expense cannot be edited and resubmitted." />
+        <EmptyState message="This expense cannot be edited." />
       ) : null}
       {expense && isEditable ? (
         <ExpenseEditForm
           expense={expense}
-          error={resubmitExpense.error}
-          isPending={resubmitExpense.isPending}
-          onSubmit={(data) => resubmitExpense.mutate({ id: expenseId, data })}
+          error={updateExpense.error ?? resubmitExpense.error}
+          isPending={updateExpense.isPending || resubmitExpense.isPending}
+          mode={isDraftEditable ? 'draft' : 'rejected'}
+          onSubmit={(data) => {
+            if (isDraftEditable) {
+              updateExpense.mutate({ id: expenseId, data })
+              return
+            }
+            resubmitExpense.mutate({ id: expenseId, data })
+          }}
         />
       ) : null}
     </div>
@@ -71,11 +108,13 @@ function ExpenseEditForm({
   expense,
   error,
   isPending,
+  mode,
   onSubmit,
 }: {
   expense: ExpenseResponseDto
   error: unknown
   isPending: boolean
+  mode: 'draft' | 'rejected'
   onSubmit: (data: ResubmitExpenseDto) => void
 }) {
   const form = useForm({
@@ -91,18 +130,22 @@ function ExpenseEditForm({
       onSubmit: expenseFormSchema,
     },
     onSubmit: ({ value }) => {
-      onSubmit(toResubmitExpensePayload(value))
+      onSubmit(mode === 'draft' ? toUpdateExpensePayload(value) : toResubmitExpensePayload(value))
     },
   })
 
   return (
     <CreatePanel
       title="Edit expense"
-      kicker="Rejected request"
-      description="Update the rejected request details before sending it back through workflow."
+      kicker={mode === 'draft' ? 'Draft request' : 'Rejected request'}
+      description={
+        mode === 'draft'
+          ? 'Update the draft request details before submitting it for approval.'
+          : 'Update the rejected request details before sending it back through workflow.'
+      }
       error={error}
       onSubmit={() => void form.handleSubmit()}
-      submitLabel={isPending ? 'Resubmitting...' : 'Resubmit expense'}
+      submitLabel={mode === 'draft' ? (isPending ? 'Saving...' : 'Save expense') : (isPending ? 'Resubmitting...' : 'Resubmit expense')}
     >
       <FormSection index="01" title="Expense details" hint="Required for approval routing.">
         <div className="grid gap-3 md:grid-cols-2">

@@ -1,10 +1,12 @@
 import { Link,useParams } from '@tanstack/react-router'
 import {
+ArrowLeft,
 Pencil
 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { hasPermission } from '@/features/auth/auth-routing'
 import type {
 LeaveResponseDto,
 WorkflowInstanceResponseDto
@@ -28,8 +30,10 @@ describeUserReference,
 formatOptionalDate,
 workflowIdFromLeave
 } from '@/pages/utils/page-helpers'
+import { useAuthStore } from '@/stores/auth-store'
 
 export function LeaveDetailPage() {
+  const user = useAuthStore((state) => state.user)
   const { leaveId } = useParams({ strict: false }) as { leaveId: string }
   const query = useLeavesControllerFindOne({ id: leaveId })
   const leave = unwrapData(query.data) as LeaveResponseDto | undefined
@@ -38,17 +42,35 @@ export function LeaveDetailPage() {
   const workflow = workflowId
     ? (unwrapData(workflowQuery.data) as WorkflowInstanceResponseDto | undefined)
     : undefined
-  const canEditAndResubmit = leave?.status === 'REJECTED' && leave.canResubmit === true
+  const isRequester = leave?.requesterId === user?.id
+  const canWriteLeaves = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'leaves.write',
+  )
+  const canEditDraft = canWriteLeaves && isRequester && leave?.status === 'DRAFT'
+  const canEditAndResubmit =
+    canWriteLeaves && isRequester && leave?.status === 'REJECTED' && leave.canResubmit === true
+  const canEdit = canEditDraft || canEditAndResubmit
 
   return (
     <>
       <PageHeader
         title={leave ? `Leave ${leave.leaveType}` : `Leave ${leaveId}`}
         kicker="Leave detail"
+        navigation={
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+            to="/leaves"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to leaves
+          </Link>
+        }
         action={
-          canEditAndResubmit || workflowId ? (
+          canEdit || workflowId ? (
             <div className="flex flex-wrap items-center gap-2">
-              {canEditAndResubmit ? (
+              {canEdit ? (
                 <Button
                   className="border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
                   type="button"
@@ -59,7 +81,7 @@ export function LeaveDetailPage() {
                     params={{ leaveId }}
                   >
                     <Pencil className="h-4 w-4" />
-                    Edit and resubmit
+                    {canEditDraft ? 'Edit' : 'Edit and resubmit'}
                   </Link>
                 </Button>
               ) : null}
@@ -77,7 +99,7 @@ export function LeaveDetailPage() {
                 </Button>
               ) : null}
             </div>
-          ) : null
+          ) : undefined
         }
       />
       <ErrorNotice error={query.error ?? workflowQuery.error} />

@@ -1,5 +1,8 @@
-import { useNavigate,useParams } from '@tanstack/react-router'
+import { Link,useNavigate,useParams } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
+import {
+ArrowLeft
+} from 'lucide-react'
 
 import {
 FormField,
@@ -8,11 +11,12 @@ FormSection,
 FormSelect,
 FormTextarea
 } from '@/components/form'
+import { hasPermission } from '@/features/auth/auth-routing'
 import type {
 BillingRequestResponseDto,
 ResubmitBillingRequestDto
 } from '@/lib/api/gen'
-import { useBillingControllerFindOne,useBillingControllerResubmit } from '@/lib/api/gen'
+import { useBillingControllerFindOne,useBillingControllerResubmit,useBillingControllerUpdate } from '@/lib/api/gen'
 import {
 unwrapData
 } from '@/lib/format'
@@ -25,13 +29,16 @@ PageHeader
 import {
 billingFormSchema,
 fieldError,
-toResubmitBillingPayload
+toResubmitBillingPayload,
+toUpdateBillingPayload
 } from '@/pages/utils/form-validation'
 import {
 billingCategoryOptions
 } from '@/pages/utils/page-helpers'
+import { useAuthStore } from '@/stores/auth-store'
 
 export function BillingEditPage() {
+  const user = useAuthStore((state) => state.user)
   const { billingId } = useParams({ strict: false }) as { billingId: string }
   const navigate = useNavigate()
   const query = useBillingControllerFindOne({ id: billingId })
@@ -41,21 +48,54 @@ export function BillingEditPage() {
       onSuccess: async () => navigate({ to: '/billing/$billingId', params: { billingId } }),
     },
   })
-  const isEditable = billing?.status === 'REJECTED' && billing.canResubmit === true
+  const updateBilling = useBillingControllerUpdate({
+    mutation: {
+      onSuccess: async () => navigate({ to: '/billing/$billingId', params: { billingId } }),
+    },
+  })
+  const isRequester = billing?.requesterId === user?.id
+  const canWriteBilling = hasPermission(
+    user?.roles ?? [],
+    user?.permissions ?? [],
+    'billing.write',
+  )
+  const isDraftEditable = canWriteBilling && isRequester && billing?.status === 'DRAFT'
+  const isRejectedEditable =
+    canWriteBilling && isRequester && billing?.status === 'REJECTED' && billing.canResubmit === true
+  const isEditable = isDraftEditable || isRejectedEditable
 
   return (
     <div className="max-w-3xl">
-      <PageHeader title={billing ? `Edit ${billing.title}` : `Edit billing ${billingId}`} kicker="Billing request" />
-      <ErrorNotice error={query.error ?? resubmitBilling.error} />
+      <PageHeader
+        title={billing ? `Edit ${billing.title}` : `Edit billing ${billingId}`}
+        kicker="Billing request"
+        navigation={
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-sky-200 bg-sky-50 px-3 text-xs font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-100"
+            to="/billing"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to billing
+          </Link>
+        }
+      />
+      <ErrorNotice error={query.error} />
       {billing && !isEditable ? (
-        <EmptyState message="This billing request cannot be edited and resubmitted." />
+        <EmptyState message="This billing request cannot be edited." />
       ) : null}
       {billing && isEditable ? (
         <BillingEditForm
           billing={billing}
-          error={resubmitBilling.error}
-          isPending={resubmitBilling.isPending}
-          onSubmit={(data) => resubmitBilling.mutate({ id: billingId, data })}
+          error={updateBilling.error ?? resubmitBilling.error}
+          isPending={updateBilling.isPending || resubmitBilling.isPending}
+          mode={isDraftEditable ? 'draft' : 'rejected'}
+          onSubmit={(data) => {
+            if (isDraftEditable) {
+              updateBilling.mutate({ id: billingId, data })
+              return
+            }
+            resubmitBilling.mutate({ id: billingId, data })
+          }}
         />
       ) : null}
     </div>
@@ -66,11 +106,13 @@ function BillingEditForm({
   billing,
   error,
   isPending,
+  mode,
   onSubmit,
 }: {
   billing: BillingRequestResponseDto
   error: unknown
   isPending: boolean
+  mode: 'draft' | 'rejected'
   onSubmit: (data: ResubmitBillingRequestDto) => void
 }) {
   const form = useForm({
@@ -88,18 +130,22 @@ function BillingEditForm({
       onSubmit: billingFormSchema,
     },
     onSubmit: ({ value }) => {
-      onSubmit(toResubmitBillingPayload(value))
+      onSubmit(mode === 'draft' ? toUpdateBillingPayload(value) : toResubmitBillingPayload(value))
     },
   })
 
   return (
     <CreatePanel
       title="Edit billing"
-      kicker="Rejected request"
-      description="Update the rejected billing request before sending it back through workflow."
+      kicker={mode === 'draft' ? 'Draft request' : 'Rejected request'}
+      description={
+        mode === 'draft'
+          ? 'Update the draft billing request before submitting it for approval.'
+          : 'Update the rejected billing request before sending it back through workflow.'
+      }
       error={error}
       onSubmit={() => void form.handleSubmit()}
-      submitLabel={isPending ? 'Resubmitting...' : 'Resubmit billing'}
+      submitLabel={mode === 'draft' ? (isPending ? 'Saving...' : 'Save billing') : (isPending ? 'Resubmitting...' : 'Resubmit billing')}
     >
       <FormSection index="01" title="Billing details">
         <div className="grid gap-3 md:grid-cols-2">
