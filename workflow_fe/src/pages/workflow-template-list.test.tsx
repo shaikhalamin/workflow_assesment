@@ -6,6 +6,12 @@ import { WorkflowTemplatesPage } from './index'
 
 let workflowTemplateRows: Array<Record<string, unknown>> = []
 const workflowTemplateControllerListMock = vi.hoisted(() => vi.fn())
+const workflowTemplatePublishState = vi.hoisted(() => ({
+  error: null as unknown,
+}))
+const workflowTemplateDeactivateState = vi.hoisted(() => ({
+  error: null as unknown,
+}))
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -85,16 +91,24 @@ vi.mock('@/lib/api/gen', () => ({
     isPending: false,
     mutate: vi.fn(),
   }),
-  useWorkflowTemplateControllerDeactivate: () => ({ mutate: vi.fn() }),
+  useWorkflowTemplateControllerDeactivate: () => ({
+    error: workflowTemplateDeactivateState.error,
+    mutate: vi.fn(),
+  }),
   useWorkflowTemplateControllerDuplicate: () => ({ mutate: vi.fn() }),
   useWorkflowTemplateControllerFindOne: () => ({ data: undefined, error: null }),
   useWorkflowTemplateControllerList: workflowTemplateControllerListMock,
-  useWorkflowTemplateControllerPublish: () => ({ mutate: vi.fn() }),
+  useWorkflowTemplateControllerPublish: () => ({
+    error: workflowTemplatePublishState.error,
+    mutate: vi.fn(),
+  }),
 }))
 
 describe('WorkflowTemplatesPage actions', () => {
   beforeEach(() => {
     workflowTemplateRows = []
+    workflowTemplatePublishState.error = null
+    workflowTemplateDeactivateState.error = null
     workflowTemplateControllerListMock.mockClear()
     workflowTemplateControllerListMock.mockImplementation(() => ({
       data: {
@@ -192,7 +206,28 @@ describe('WorkflowTemplatesPage actions', () => {
     expect(within(row).queryByRole('button', { name: /publish/i })).not.toBeInTheDocument()
     expect(within(row).getByRole('button', { name: /deactivate/i })).toBeDisabled()
     expect(
-      within(row).getByText('Worflow already associated can not deactivate'),
+      within(row).queryByText('Worflow already associated can not deactivate'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows backend publish errors from workflow actions', () => {
+    workflowTemplatePublishState.error = {
+      response: {
+        data: {
+          error: {
+            message:
+              'A published workflow already exists for this module, event, and entity without trigger conditions. Add a trigger condition to narrow this workflow before publishing.',
+          },
+        },
+      },
+    }
+
+    render(<WorkflowTemplatesPage />)
+
+    expect(
+      screen.getByText(
+        'A published workflow already exists for this module, event, and entity without trigger conditions. Add a trigger condition to narrow this workflow before publishing.',
+      ),
     ).toBeInTheDocument()
   })
 })

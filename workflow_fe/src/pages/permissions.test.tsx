@@ -14,6 +14,7 @@ const expenseListState = vi.hoisted((): { expenses: unknown[] } => ({
   expenses: [
     {
       id: 'expense-1',
+      requesterId: 'employee-1',
       title: 'Fuel',
       amount: 1200,
       currency: 'BDT',
@@ -26,6 +27,7 @@ const leaveListState = vi.hoisted((): { leaves: unknown[] } => ({
   leaves: [
     {
       id: 'leave-1',
+      requesterId: 'employee-1',
       leaveType: 'ANNUAL',
       leaveDays: 2,
       startDate: '2026-06-10',
@@ -220,6 +222,14 @@ const writableLeaveUser: AuthUserDto = {
   permissions: ['leaves.read', 'leaves.write'],
 }
 
+const adminModuleUser: AuthUserDto = {
+  id: 'admin-1',
+  name: 'Admin User',
+  email: 'admin@example.com',
+  roles: ['admin'],
+  permissions: ['expenses.read', 'expenses.write', 'leaves.read', 'leaves.write'],
+}
+
 const writablePaymentUser: AuthUserDto = {
   id: 'finance-2',
   name: 'Finance Writer',
@@ -234,6 +244,7 @@ describe('workspace page permissions', () => {
     expenseListState.expenses = [
       {
         id: 'expense-1',
+        requesterId: 'employee-1',
         title: 'Fuel',
         amount: 1200,
         currency: 'BDT',
@@ -244,6 +255,7 @@ describe('workspace page permissions', () => {
     leaveListState.leaves = [
       {
         id: 'leave-1',
+        requesterId: 'employee-1',
         leaveType: 'ANNUAL',
         leaveDays: 2,
         startDate: '2026-06-10',
@@ -313,6 +325,21 @@ describe('workspace page permissions', () => {
     expect(deleteExpense).toHaveBeenCalledWith({ id: 'expense-1' })
   })
 
+  it('hides draft expense submit and delete actions from non-requester writers', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: adminModuleUser,
+    })
+
+    render(<ExpensesPage />)
+
+    expect(screen.getByRole('link', { name: /open/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /submit/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+    expect(submitExpense).not.toHaveBeenCalled()
+    expect(deleteExpense).not.toHaveBeenCalled()
+  })
+
   it('hides expense delete for submitted rows', () => {
     expenseListState.expenses = [
       {
@@ -371,6 +398,7 @@ describe('workspace page permissions', () => {
     expenseListState.expenses = [
       {
         id: 'expense-1',
+        requesterId: 'employee-1',
         title: 'Fuel',
         amount: 1200,
         currency: 'BDT',
@@ -391,6 +419,32 @@ describe('workspace page permissions', () => {
     ).toHaveAttribute('href', '/expenses/$expenseId/edit')
     expect(screen.queryByRole('button', { name: /^resubmit$/i })).not.toBeInTheDocument()
     expect(resubmitExpense).not.toHaveBeenCalled()
+  })
+
+  it('hides rejected expense edit and resubmit action from non-requester writers', () => {
+    expenseListState.expenses = [
+      {
+        id: 'expense-1',
+        requesterId: 'employee-1',
+        title: 'Fuel',
+        amount: 1200,
+        currency: 'BDT',
+        category: 'Travel',
+        status: 'REJECTED',
+        canResubmit: true,
+      },
+    ]
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: adminModuleUser,
+    })
+
+    render(<ExpensesPage />)
+
+    expect(screen.getByRole('link', { name: /open/i })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /edit and resubmit/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('hides payment write actions from users with read-only payment access', () => {
@@ -517,6 +571,7 @@ describe('workspace page permissions', () => {
     leaveListState.leaves = [
       {
         id: 'leave-1',
+        requesterId: 'employee-1',
         leaveType: 'ANNUAL',
         leaveDays: 2,
         startDate: '2026-06-10',
@@ -539,6 +594,32 @@ describe('workspace page permissions', () => {
     expect(resubmitLeave).not.toHaveBeenCalled()
   })
 
+  it('hides rejected leave edit and resubmit action from non-requester writers', () => {
+    leaveListState.leaves = [
+      {
+        id: 'leave-1',
+        requesterId: 'employee-1',
+        leaveType: 'ANNUAL',
+        leaveDays: 2,
+        startDate: '2026-06-10',
+        endDate: '2026-06-11',
+        status: 'REJECTED',
+        canResubmit: true,
+      },
+    ]
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: adminModuleUser,
+    })
+
+    render(<LeavesPage />)
+
+    expect(screen.getByRole('link', { name: /open/i })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /edit and resubmit/i }),
+    ).not.toBeInTheDocument()
+  })
+
   it('deletes a draft leave from the list row', () => {
     useAuthStore.setState({
       isAuthenticated: true,
@@ -550,6 +631,21 @@ describe('workspace page permissions', () => {
     fireEvent.click(screen.getByRole('button', { name: /delete/i }))
 
     expect(deleteLeave).toHaveBeenCalledWith({ id: 'leave-1' })
+  })
+
+  it('hides draft leave submit and delete actions from non-requester writers', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: adminModuleUser,
+    })
+
+    render(<LeavesPage />)
+
+    expect(screen.getByRole('link', { name: /open/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /submit/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+    expect(submitLeave).not.toHaveBeenCalled()
+    expect(deleteLeave).not.toHaveBeenCalled()
   })
 
   it('hides leave delete for submitted rows', () => {

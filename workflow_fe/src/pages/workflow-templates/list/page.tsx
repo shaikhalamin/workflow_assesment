@@ -75,11 +75,6 @@ export function WorkflowTemplatesPage() {
                   <XCircle className="h-4 w-4" /> Deactivate
                 </Button>
               </div>
-              {hasWorkflowInstances ? (
-                <p className="text-xs font-medium text-[var(--destructive)]">
-                  Worflow already associated can not deactivate
-                </p>
-              ) : null}
             </div>
           )
         },
@@ -103,6 +98,7 @@ export function WorkflowTemplatesPage() {
         }
       />
       <ErrorNotice error={query.error} />
+      <ErrorNotice error={publish.error ?? deactivate.error} />
       <DataTable columns={columns} data={rows} />
     </>
   )

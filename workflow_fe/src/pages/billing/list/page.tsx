@@ -91,6 +91,7 @@ export function BillingRequestsPage() {
               const status = String(row.original.status)
               const canResubmit = row.original.canResubmit === true
               const id = String(row.original.id)
+              const isRequester = row.original.requesterId === user?.id
 
               return (
                 <div className="flex flex-wrap items-center gap-2">
@@ -102,7 +103,7 @@ export function BillingRequestsPage() {
                     <Eye className="h-4 w-4" />
                     Open
                   </Link>
-                  {canWriteBilling && status === 'DRAFT' ? (
+                  {canWriteBilling && isRequester && status === 'DRAFT' ? (
                     <Button
                       className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
                       disabled={submit.isPending}
@@ -114,7 +115,7 @@ export function BillingRequestsPage() {
                       Submit
                     </Button>
                   ) : null}
-                  {canWriteBilling && status === 'REJECTED' && canResubmit ? (
+                  {canWriteBilling && isRequester && status === 'REJECTED' && canResubmit ? (
                     <Link
                       className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-emerald-600 bg-emerald-600 px-3 text-xs font-medium text-white shadow-sm transition hover:bg-emerald-700"
                       to="/billing/$billingId/edit"
@@ -129,7 +130,7 @@ export function BillingRequestsPage() {
                       Submitted
                     </Button>
                   ) : null}
-                  {canWriteBilling && status === 'DRAFT' ? (
+                  {canWriteBilling && isRequester && status === 'DRAFT' ? (
                     <Button
                       className="whitespace-nowrap"
                       disabled={cancel.isPending}

@@ -94,8 +94,13 @@ export class WorkflowTemplateService {
   }
 
   async createWizard(dto: WorkflowWizardDto): Promise<WorkflowTemplate> {
+    const requestedStatus = dto.template.status;
     const template = await this.create({
       ...dto.template,
+      status:
+        requestedStatus === WorkflowTemplateStatus.PUBLISHED
+          ? WorkflowTemplateStatus.DRAFT
+          : requestedStatus,
       approvedActionsJson:
         dto.approvedActionsJson ?? dto.template.approvedActionsJson ?? null,
       rejectedActionsJson:
@@ -103,6 +108,9 @@ export class WorkflowTemplateService {
     });
     for (const rule of dto.rules ?? []) {
       await this.createRule(template.id, rule);
+    }
+    if (requestedStatus === WorkflowTemplateStatus.PUBLISHED) {
+      return this.publish(template.id);
     }
     return this.findOne(template.id);
   }
@@ -149,6 +157,7 @@ export class WorkflowTemplateService {
         throw new BadRequestException('Non-fallback rules require conditions');
       }
     }
+    await this.validateCatchAllPublish(template);
 
     template.status = WorkflowTemplateStatus.PUBLISHED;
     return this.templatesRepository.save(template);
@@ -323,6 +332,37 @@ export class WorkflowTemplateService {
         throw new BadRequestException('Only one fallback rule is allowed');
       }
     }
+  }
+
+  private async validateCatchAllPublish(
+    template: WorkflowTemplate,
+  ): Promise<void> {
+    if (!this.isCatchAllTrigger(template)) return;
+
+    const publishedTemplates = await this.templatesRepository.find({
+      where: {
+        moduleName: template.moduleName,
+        eventName: template.eventName,
+        entityType: template.entityType,
+        status: WorkflowTemplateStatus.PUBLISHED,
+      },
+      relations: { triggerCondition: true },
+    });
+    const hasExistingCatchAll = publishedTemplates.some(
+      (publishedTemplate) =>
+        publishedTemplate.id !== template.id &&
+        this.isCatchAllTrigger(publishedTemplate),
+    );
+
+    if (hasExistingCatchAll) {
+      throw new BadRequestException(
+        'A published workflow already exists for this module, event, and entity without trigger conditions. Add a trigger condition to narrow this workflow before publishing.',
+      );
+    }
+  }
+
+  private isCatchAllTrigger(template: WorkflowTemplate): boolean {
+    return !template.triggerCondition?.conditionJson?.conditions.length;
   }
 
   private async validateStepAssignee(step: {

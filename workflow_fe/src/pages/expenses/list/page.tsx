@@ -85,6 +85,7 @@ export function ExpensesPage() {
             cell: ({ row }) => {
               const status = String(row.original.status)
               const canResubmit = row.original.canResubmit === true
+              const isRequester = row.original.requesterId === user?.id
 
               return (
                 <div className="flex flex-wrap items-center gap-2">
@@ -96,7 +97,7 @@ export function ExpensesPage() {
                     <Eye className="h-4 w-4" />
                     Open
                   </Link>
-                  {canWriteExpenses && status === 'DRAFT' ? (
+                  {canWriteExpenses && isRequester && status === 'DRAFT' ? (
                     <Button
                       className="whitespace-nowrap border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
                       disabled={submit.isPending}
@@ -108,7 +109,7 @@ export function ExpensesPage() {
                       Submit
                     </Button>
                   ) : null}
-                  {canWriteExpenses && status === 'REJECTED' && canResubmit ? (
+                  {canWriteExpenses && isRequester && status === 'REJECTED' && canResubmit ? (
                     <Link
                       className="inline-flex h-8 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-emerald-600 bg-emerald-600 px-3 text-xs font-medium text-white shadow-sm transition hover:bg-emerald-700"
                       to="/expenses/$expenseId/edit"
@@ -123,7 +124,7 @@ export function ExpensesPage() {
                       Submitted
                     </Button>
                   ) : null}
-                  {canWriteExpenses && status === 'DRAFT' ? (
+                  {canWriteExpenses && isRequester && status === 'DRAFT' ? (
                     <Button
                       className="whitespace-nowrap"
                       disabled={deleteExpense.isPending}

@@ -18,6 +18,7 @@ const billingRowsState = vi.hoisted((): { rows: unknown[] } => ({
   rows: [
     {
       id: 'billing-1',
+      requesterId: 'employee-1',
       title: 'Enterprise installation',
       customerName: 'ACME Bangladesh Ltd.',
       createdById: 'creator-1',
@@ -191,10 +192,37 @@ const billingUser: AuthUserDto = {
   permissions: ['billing.read', 'billing.write', 'invoices.read', 'invoices.write'],
 }
 
+const adminBillingUser: AuthUserDto = {
+  id: 'admin-1',
+  name: 'Admin User',
+  email: 'admin@example.com',
+  roles: ['admin'],
+  permissions: ['billing.read', 'billing.write'],
+}
+
 describe('billing and invoice pages', () => {
   beforeEach(() => {
     localStorage.clear()
     useAuthStore.setState({ isAuthenticated: true, user: billingUser })
+    billingRowsState.rows = [
+      {
+        id: 'billing-1',
+        requesterId: 'employee-1',
+        title: 'Enterprise installation',
+        customerName: 'ACME Bangladesh Ltd.',
+        createdById: 'creator-1',
+        createdBy: {
+          id: 'creator-1',
+          name: 'Billing Creator',
+          email: 'billing.creator@example.com',
+        },
+        amount: '125000.00',
+        currency: 'BDT',
+        billingCategory: 'Installation',
+        status: 'DRAFT',
+        canResubmit: false,
+      },
+    ]
     billingDetailState.value = {
       id: 'billing-1',
       requesterId: 'employee-1',
@@ -277,6 +305,48 @@ describe('billing and invoice pages', () => {
 
     expect(submitBilling).toHaveBeenCalledWith({ id: 'billing-1' })
     expect(cancelBilling).toHaveBeenCalledWith({ id: 'billing-1' })
+  })
+
+  it('hides draft billing submit and cancel actions from non-requester writers', () => {
+    useAuthStore.setState({ isAuthenticated: true, user: adminBillingUser })
+
+    render(<BillingRequestsPage />)
+
+    expect(screen.getByRole('link', { name: /open/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /submit/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /cancel/i })).not.toBeInTheDocument()
+    expect(submitBilling).not.toHaveBeenCalled()
+    expect(cancelBilling).not.toHaveBeenCalled()
+  })
+
+  it('hides rejected billing edit and resubmit action from non-requester writers', () => {
+    billingRowsState.rows = [
+      {
+        id: 'billing-1',
+        requesterId: 'employee-1',
+        title: 'Enterprise installation',
+        customerName: 'ACME Bangladesh Ltd.',
+        createdById: 'creator-1',
+        createdBy: {
+          id: 'creator-1',
+          name: 'Billing Creator',
+          email: 'billing.creator@example.com',
+        },
+        amount: '125000.00',
+        currency: 'BDT',
+        billingCategory: 'Installation',
+        status: 'REJECTED',
+        canResubmit: true,
+      },
+    ]
+    useAuthStore.setState({ isAuthenticated: true, user: adminBillingUser })
+
+    render(<BillingRequestsPage />)
+
+    expect(screen.getByRole('link', { name: /open/i })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /edit and resubmit/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('creates billing requests with customer and amount details', async () => {

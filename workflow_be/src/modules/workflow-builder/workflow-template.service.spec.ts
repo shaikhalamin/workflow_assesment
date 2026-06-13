@@ -4,6 +4,7 @@ import { WorkflowTemplateService } from './workflow-template.service';
 import {
   WorkflowAssigneeType,
   WorkflowStepType,
+  WorkflowTemplateStatus,
 } from './enums/workflow-builder.enums';
 
 describe('WorkflowTemplateService publish validation', () => {
@@ -20,6 +21,159 @@ describe('WorkflowTemplateService publish validation', () => {
 
     await expect(service.publish('tpl-1')).rejects.toBeInstanceOf(
       BadRequestException,
+    );
+  });
+
+  it('rejects publishing a second catch-all template for the same workflow event', async () => {
+    const templatesRepository = {
+      findOne: jest.fn().mockResolvedValue({
+        id: 'tpl-2',
+        moduleName: 'expenses',
+        eventName: 'expense.submitted',
+        entityType: 'Expense',
+        triggerCondition: {
+          conditionJson: { mode: 'all', conditions: [] },
+        },
+        rules: [
+          {
+            isActive: true,
+            isFallback: false,
+            conditionJson: {
+              mode: 'all',
+              conditions: [
+                { field: 'currency', operator: 'eq', value: 'EURO' },
+              ],
+            },
+            steps: [{ id: 'step-1' }],
+          },
+        ],
+      }),
+      find: jest.fn().mockResolvedValue([
+        {
+          id: 'tpl-1',
+          moduleName: 'expenses',
+          eventName: 'expense.submitted',
+          entityType: 'Expense',
+          status: WorkflowTemplateStatus.PUBLISHED,
+          triggerCondition: {
+            conditionJson: { mode: 'all', conditions: [] },
+          },
+        },
+      ]),
+      save: jest.fn(),
+    };
+    const service = new WorkflowTemplateService(
+      templatesRepository as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+    );
+
+    await expect(service.publish('tpl-2')).rejects.toThrow(
+      'A published workflow already exists for this module, event, and entity without trigger conditions. Add a trigger condition to narrow this workflow before publishing.',
+    );
+    expect(templatesRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('runs publish validation when wizard creation requests published status', async () => {
+    const template = {
+      id: 'tpl-2',
+      name: 'Euro expense workflow',
+      moduleName: 'expenses',
+      eventName: 'expense.submitted',
+      entityType: 'Expense',
+      status: WorkflowTemplateStatus.PUBLISHED,
+      priority: 5,
+      triggerCondition: {
+        conditionJson: { mode: 'all', conditions: [] },
+      },
+      rules: [
+        {
+          isActive: true,
+          isFallback: false,
+          conditionJson: {
+            mode: 'all',
+            conditions: [{ field: 'currency', operator: 'eq', value: 'EURO' }],
+          },
+          steps: [{ id: 'step-1' }],
+        },
+      ],
+    };
+    const templatesRepository = {
+      create: jest.fn((value: object) => ({ id: 'tpl-2', ...value })),
+      save: jest.fn((value: object) => value),
+      findOne: jest.fn().mockResolvedValue(template),
+      find: jest.fn().mockResolvedValue([
+        {
+          id: 'tpl-1',
+          moduleName: 'expenses',
+          eventName: 'expense.submitted',
+          entityType: 'Expense',
+          status: WorkflowTemplateStatus.PUBLISHED,
+          triggerCondition: {
+            conditionJson: { mode: 'all', conditions: [] },
+          },
+        },
+      ]),
+    };
+    const rulesRepository = {
+      findOneBy: jest.fn().mockResolvedValue(null),
+      create: jest.fn((value: object) => value),
+      save: jest.fn((value: object) => ({ id: 'rule-1', ...value })),
+      findOneOrFail: jest.fn().mockResolvedValue({ id: 'rule-1', steps: [] }),
+    };
+    const stepConfigsRepository = {
+      create: jest.fn((value: object) => value),
+      save: jest.fn((value: object) => value),
+    };
+    const triggerConditionsRepository = {
+      findOneBy: jest.fn().mockResolvedValue(null),
+      create: jest.fn((value: object) => value),
+      save: jest.fn((value: object) => value),
+    };
+    const service = new WorkflowTemplateService(
+      templatesRepository as never,
+      triggerConditionsRepository as never,
+      rulesRepository as never,
+      stepConfigsRepository as never,
+      {} as never,
+    );
+
+    await expect(
+      service.createWizard({
+        template: {
+          name: 'Euro expense workflow',
+          moduleName: 'expenses',
+          eventName: 'expense.submitted',
+          entityType: 'Expense',
+          status: WorkflowTemplateStatus.PUBLISHED,
+          priority: 5,
+          triggerConditionJson: { mode: 'all', conditions: [] },
+        },
+        rules: [
+          {
+            name: 'Euro expense path',
+            priority: 1,
+            conditionJson: {
+              mode: 'all',
+              conditions: [
+                { field: 'currency', operator: 'eq', value: 'EURO' },
+              ],
+            },
+            steps: [
+              {
+                stepOrder: 1,
+                stepName: 'Manager approval',
+                stepType: WorkflowStepType.APPROVAL,
+                assigneeType: WorkflowAssigneeType.REQUESTER_MANAGER,
+              },
+            ],
+          },
+        ],
+      }),
+    ).rejects.toThrow(
+      'A published workflow already exists for this module, event, and entity without trigger conditions. Add a trigger condition to narrow this workflow before publishing.',
     );
   });
 });
