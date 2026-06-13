@@ -53,6 +53,10 @@ export type {
 } from "./LeaveResponseDto.ts";
 export type { LoginDto } from "./LoginDto.ts";
 export type { MarkPaidDto } from "./MarkPaidDto.ts";
+export type {
+  NotificationResponseDto,
+  NotificationResponseDtoTypeEnum,
+} from "./NotificationResponseDto.ts";
 export type { PaginatedResponseDto } from "./PaginatedResponseDto.ts";
 export type { PaginationMetaDto } from "./PaginationMetaDto.ts";
 export type {
@@ -486,6 +490,25 @@ export type {
   LeavesControllerUpdateMutationResponse,
   LeavesControllerUpdatePathParams,
 } from "./leavesController/LeavesControllerUpdate.ts";
+export type {
+  NotificationsControllerList200,
+  NotificationsControllerList400,
+  NotificationsControllerList401,
+  NotificationsControllerList429,
+  NotificationsControllerListQuery,
+  NotificationsControllerListQueryParams,
+  NotificationsControllerListQueryResponse,
+} from "./notificationsController/NotificationsControllerList.ts";
+export type {
+  NotificationsControllerMarkRead200,
+  NotificationsControllerMarkRead400,
+  NotificationsControllerMarkRead401,
+  NotificationsControllerMarkRead404,
+  NotificationsControllerMarkRead429,
+  NotificationsControllerMarkReadMutation,
+  NotificationsControllerMarkReadMutationResponse,
+  NotificationsControllerMarkReadPathParams,
+} from "./notificationsController/NotificationsControllerMarkRead.ts";
 export type {
   PaymentsControllerFindOne200,
   PaymentsControllerFindOne400,

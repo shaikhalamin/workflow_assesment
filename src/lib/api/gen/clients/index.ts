@@ -38,6 +38,8 @@ export { leavesControllerList } from "./leavesController/leavesControllerList.ts
 export { leavesControllerResubmit } from "./leavesController/leavesControllerResubmit.ts";
 export { leavesControllerSubmit } from "./leavesController/leavesControllerSubmit.ts";
 export { leavesControllerUpdate } from "./leavesController/leavesControllerUpdate.ts";
+export { notificationsControllerList } from "./notificationsController/notificationsControllerList.ts";
+export { notificationsControllerMarkRead } from "./notificationsController/notificationsControllerMarkRead.ts";
 export { paymentsControllerFindOne } from "./paymentRequestsController/paymentsControllerFindOne.ts";
 export { paymentsControllerList } from "./paymentRequestsController/paymentsControllerList.ts";
 export { paymentsControllerMarkPaid } from "./paymentRequestsController/paymentsControllerMarkPaid.ts";

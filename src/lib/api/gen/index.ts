@@ -38,6 +38,8 @@ export type { LeavesControllerListQueryKey } from "./hooks/leavesController/useL
 export type { LeavesControllerResubmitMutationKey } from "./hooks/leavesController/useLeavesControllerResubmit.ts";
 export type { LeavesControllerSubmitMutationKey } from "./hooks/leavesController/useLeavesControllerSubmit.ts";
 export type { LeavesControllerUpdateMutationKey } from "./hooks/leavesController/useLeavesControllerUpdate.ts";
+export type { NotificationsControllerListQueryKey } from "./hooks/notificationsController/useNotificationsControllerList.ts";
+export type { NotificationsControllerMarkReadMutationKey } from "./hooks/notificationsController/useNotificationsControllerMarkRead.ts";
 export type { PaymentsControllerFindOneQueryKey } from "./hooks/paymentRequestsController/usePaymentsControllerFindOne.ts";
 export type { PaymentsControllerListQueryKey } from "./hooks/paymentRequestsController/usePaymentsControllerList.ts";
 export type { PaymentsControllerMarkPaidMutationKey } from "./hooks/paymentRequestsController/usePaymentsControllerMarkPaid.ts";
@@ -126,6 +128,10 @@ export type {
 } from "./types/LeaveResponseDto.ts";
 export type { LoginDto } from "./types/LoginDto.ts";
 export type { MarkPaidDto } from "./types/MarkPaidDto.ts";
+export type {
+  NotificationResponseDto,
+  NotificationResponseDtoTypeEnum,
+} from "./types/NotificationResponseDto.ts";
 export type { PaginatedResponseDto } from "./types/PaginatedResponseDto.ts";
 export type { PaginationMetaDto } from "./types/PaginationMetaDto.ts";
 export type {
@@ -560,6 +566,25 @@ export type {
   LeavesControllerUpdatePathParams,
 } from "./types/leavesController/LeavesControllerUpdate.ts";
 export type {
+  NotificationsControllerList200,
+  NotificationsControllerList400,
+  NotificationsControllerList401,
+  NotificationsControllerList429,
+  NotificationsControllerListQuery,
+  NotificationsControllerListQueryParams,
+  NotificationsControllerListQueryResponse,
+} from "./types/notificationsController/NotificationsControllerList.ts";
+export type {
+  NotificationsControllerMarkRead200,
+  NotificationsControllerMarkRead400,
+  NotificationsControllerMarkRead401,
+  NotificationsControllerMarkRead404,
+  NotificationsControllerMarkRead429,
+  NotificationsControllerMarkReadMutation,
+  NotificationsControllerMarkReadMutationResponse,
+  NotificationsControllerMarkReadPathParams,
+} from "./types/notificationsController/NotificationsControllerMarkRead.ts";
+export type {
   PaymentsControllerFindOne200,
   PaymentsControllerFindOne400,
   PaymentsControllerFindOne401,
@@ -925,6 +950,8 @@ export { leavesControllerList } from "./clients/leavesController/leavesControlle
 export { leavesControllerResubmit } from "./clients/leavesController/leavesControllerResubmit.ts";
 export { leavesControllerSubmit } from "./clients/leavesController/leavesControllerSubmit.ts";
 export { leavesControllerUpdate } from "./clients/leavesController/leavesControllerUpdate.ts";
+export { notificationsControllerList } from "./clients/notificationsController/notificationsControllerList.ts";
+export { notificationsControllerMarkRead } from "./clients/notificationsController/notificationsControllerMarkRead.ts";
 export { paymentsControllerFindOne } from "./clients/paymentRequestsController/paymentsControllerFindOne.ts";
 export { paymentsControllerList } from "./clients/paymentRequestsController/paymentsControllerList.ts";
 export { paymentsControllerMarkPaid } from "./clients/paymentRequestsController/paymentsControllerMarkPaid.ts";
@@ -1078,6 +1105,12 @@ export { useLeavesControllerSubmit } from "./hooks/leavesController/useLeavesCon
 export { leavesControllerUpdateMutationKey } from "./hooks/leavesController/useLeavesControllerUpdate.ts";
 export { leavesControllerUpdateMutationOptions } from "./hooks/leavesController/useLeavesControllerUpdate.ts";
 export { useLeavesControllerUpdate } from "./hooks/leavesController/useLeavesControllerUpdate.ts";
+export { notificationsControllerListQueryKey } from "./hooks/notificationsController/useNotificationsControllerList.ts";
+export { notificationsControllerListQueryOptions } from "./hooks/notificationsController/useNotificationsControllerList.ts";
+export { useNotificationsControllerList } from "./hooks/notificationsController/useNotificationsControllerList.ts";
+export { notificationsControllerMarkReadMutationKey } from "./hooks/notificationsController/useNotificationsControllerMarkRead.ts";
+export { notificationsControllerMarkReadMutationOptions } from "./hooks/notificationsController/useNotificationsControllerMarkRead.ts";
+export { useNotificationsControllerMarkRead } from "./hooks/notificationsController/useNotificationsControllerMarkRead.ts";
 export { paymentsControllerFindOneQueryKey } from "./hooks/paymentRequestsController/usePaymentsControllerFindOne.ts";
 export { paymentsControllerFindOneQueryOptions } from "./hooks/paymentRequestsController/usePaymentsControllerFindOne.ts";
 export { usePaymentsControllerFindOne } from "./hooks/paymentRequestsController/usePaymentsControllerFindOne.ts";
@@ -1538,6 +1571,24 @@ export {
 } from "./zod/leavesController/leavesControllerUpdateSchema.ts";
 export { loginDtoSchema } from "./zod/loginDtoSchema.ts";
 export { markPaidDtoSchema } from "./zod/markPaidDtoSchema.ts";
+export { notificationResponseDtoSchema } from "./zod/notificationResponseDtoSchema.ts";
+export {
+  notificationsControllerList200Schema,
+  notificationsControllerList400Schema,
+  notificationsControllerList401Schema,
+  notificationsControllerList429Schema,
+  notificationsControllerListQueryParamsSchema,
+  notificationsControllerListQueryResponseSchema,
+} from "./zod/notificationsController/notificationsControllerListSchema.ts";
+export {
+  notificationsControllerMarkRead200Schema,
+  notificationsControllerMarkRead400Schema,
+  notificationsControllerMarkRead401Schema,
+  notificationsControllerMarkRead404Schema,
+  notificationsControllerMarkRead429Schema,
+  notificationsControllerMarkReadMutationResponseSchema,
+  notificationsControllerMarkReadPathParamsSchema,
+} from "./zod/notificationsController/notificationsControllerMarkReadSchema.ts";
 export { paginatedResponseDtoSchema } from "./zod/paginatedResponseDtoSchema.ts";
 export { paginationMetaDtoSchema } from "./zod/paginationMetaDtoSchema.ts";
 export { paymentRequestResponseDtoSchema } from "./zod/paymentRequestResponseDtoSchema.ts";

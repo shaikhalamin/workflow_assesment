@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import {
+  Bell,
   ChevronDown,
   ClipboardCheck,
   FileText,
@@ -15,15 +16,23 @@ import {
   WalletCards,
   X,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { io } from 'socket.io-client'
 
-import { useAuthControllerLogout } from '@/lib/api/gen'
-import { useAuthControllerMe } from '@/lib/api/gen'
+import type { NotificationResponseDto } from '@/lib/api/gen'
+import {
+  useAuthControllerLogout,
+  useAuthControllerMe,
+  useNotificationsControllerList,
+  useNotificationsControllerMarkRead,
+} from '@/lib/api/gen'
 import { Button } from '@/components/ui/button'
 import { canAccessPrivatePath } from '@/features/auth/auth-routing'
 import { apiErrorMessage, unwrapData } from '@/lib/format'
 import { useAuthStore } from '@/stores/auth-store'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
 const navGroups = [
   {
@@ -64,6 +73,13 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [notificationMenuOpen, setNotificationMenuOpen] = useState(false)
+  const [liveNotifications, setLiveNotifications] = useState<
+    NotificationResponseDto[]
+  >([])
+  const [dismissedNotificationIds, setDismissedNotificationIds] = useState<
+    string[]
+  >([])
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const setAuthenticatedUser = useAuthStore((state) => state.login)
   const clearAuthenticatedUser = useAuthStore((state) => state.logout)
@@ -72,15 +88,75 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
   })
   const logoutMutation = useAuthControllerLogout()
   const user = unwrapData(meQuery.data)?.user
+  const unreadNotificationsQuery = useNotificationsControllerList(
+    { params: { unreadOnly: true } },
+    { query: { enabled: Boolean(user), retry: false } },
+  )
+  const unreadNotifications = unreadNotificationsQuery.data?.data
+  const markNotificationRead = useNotificationsControllerMarkRead()
+  const notifications = useMemo(() => {
+    const merged = [...liveNotifications]
+
+    for (const notification of unreadNotifications ?? []) {
+      if (!merged.some((item) => item.id === notification.id)) {
+        merged.push(notification)
+      }
+    }
+
+    return merged.filter(
+      (notification) => !dismissedNotificationIds.includes(notification.id),
+    )
+  }, [dismissedNotificationIds, liveNotifications, unreadNotifications])
   const isPublicPath =
     location.pathname === '/sign-in' || location.pathname === '/sign-up'
 
   const handleLogout = () => {
     setUserMenuOpen(false)
+    setNotificationMenuOpen(false)
     logoutMutation.mutate()
     queryClient.clear()
     clearAuthenticatedUser()
     void navigate({ to: '/sign-in' })
+  }
+
+  const handleNotificationClick = (notification: NotificationResponseDto) => {
+    setDismissedNotificationIds((ids) => [...ids, notification.id])
+    setLiveNotifications((items) =>
+      items.filter((item) => item.id !== notification.id),
+    )
+    setNotificationMenuOpen(false)
+    markNotificationRead.mutate({ id: notification.id })
+
+    if (notification.entityType === 'Expense') {
+      void navigate({
+        to: '/expenses/$expenseId',
+        params: { expenseId: notification.entityId },
+      })
+      return
+    }
+
+    if (notification.entityType === 'BillingRequest') {
+      void navigate({
+        to: '/billing/$billingId',
+        params: { billingId: notification.entityId },
+      })
+      return
+    }
+
+    if (notification.entityType === 'LeaveRequest') {
+      void navigate({
+        to: '/leaves/$leaveId',
+        params: { leaveId: notification.entityId },
+      })
+      return
+    }
+
+    if (notification.workflowInstanceId) {
+      void navigate({
+        to: '/workflow-instances/$instanceId',
+        params: { instanceId: notification.workflowInstanceId },
+      })
+    }
   }
 
   useEffect(() => {
@@ -103,6 +179,25 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
   useEffect(() => {
     if (user) setAuthenticatedUser(user)
   }, [setAuthenticatedUser, user])
+
+  useEffect(() => {
+    if (!user) return
+
+    const socket = io(`${API_BASE_URL}/notifications`, {
+      withCredentials: true,
+    })
+
+    socket.on('notification', (notification: NotificationResponseDto) => {
+      setLiveNotifications((items) => [
+        notification,
+        ...items.filter((item) => item.id !== notification.id),
+      ])
+    })
+
+    return () => {
+      socket.disconnect()
+    }
+  }, [user])
 
   useEffect(() => {
     if (!mobileSidebarOpen) return
@@ -248,6 +343,49 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center justify-end gap-1 lg:gap-3">
+            <div className="relative">
+              <button
+                type="button"
+                className="relative grid h-9 w-9 place-items-center rounded-md border border-transparent text-[var(--ink-3)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
+                aria-label={`Notifications ${notifications.length}`}
+                aria-expanded={notificationMenuOpen}
+                onClick={() => setNotificationMenuOpen((open) => !open)}
+              >
+                <Bell className="h-4 w-4" />
+                {notifications.length ? (
+                  <span className="absolute right-1 top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-4 text-white">
+                    {notifications.length}
+                  </span>
+                ) : null}
+              </button>
+              {notificationMenuOpen ? (
+                <div className="absolute right-0 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-md border border-[var(--border)] bg-white p-1 shadow-lg">
+                  {notifications.length ? (
+                    <div className="max-h-80 overflow-y-auto">
+                      {notifications.map((notification) => (
+                        <button
+                          key={notification.id}
+                          type="button"
+                          className="flex w-full flex-col gap-1 rounded px-3 py-2 text-left hover:bg-[var(--surface-2)]"
+                          onClick={() => handleNotificationClick(notification)}
+                        >
+                          <span className="text-sm font-semibold text-[var(--foreground)]">
+                            {notification.title}
+                          </span>
+                          <span className="text-xs text-[var(--muted-foreground)]">
+                            {notification.message}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="px-3 py-2 text-sm text-[var(--muted-foreground)]">
+                      No notifications
+                    </p>
+                  )}
+                </div>
+              ) : null}
+            </div>
             <div className="relative">
               <button
                 type="button"

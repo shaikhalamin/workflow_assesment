@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
   AuthControllerMeQueryResponse,
   AuthUserDto,
+  NotificationResponseDto,
 } from '@/lib/api/gen'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -14,6 +15,12 @@ import { PrivateLayout } from './private-layout'
 const navigateMock = vi.hoisted(() => vi.fn())
 const clearQueryClientMock = vi.hoisted(() => vi.fn())
 const logoutMutateMock = vi.hoisted(() => vi.fn())
+const socketOnMock = vi.hoisted(() => vi.fn())
+const socketEmitMock = vi.hoisted(() => vi.fn())
+const socketDisconnectMock = vi.hoisted(() => vi.fn())
+const socketIoMock = vi.hoisted(() => vi.fn())
+const notificationsListMock = vi.hoisted(() => vi.fn())
+const markReadMutateMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
@@ -26,6 +33,10 @@ vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({
     clear: clearQueryClientMock,
   }),
+}))
+
+vi.mock('socket.io-client', () => ({
+  io: socketIoMock,
 }))
 
 const user: AuthUserDto = {
@@ -63,6 +74,7 @@ const workflowBuilderUser: AuthUserDto = {
 }
 
 let currentUser = user
+let unreadNotifications: NotificationResponseDto[] = []
 
 vi.mock('@/lib/api/gen', () => ({
   useAuthControllerLogout: () => ({
@@ -80,6 +92,10 @@ vi.mock('@/lib/api/gen', () => ({
       isError: false,
     }
   },
+  useNotificationsControllerList: notificationsListMock,
+  useNotificationsControllerMarkRead: () => ({
+    mutate: markReadMutateMock,
+  }),
 }))
 
 describe('PrivateLayout', () => {
@@ -88,19 +104,115 @@ describe('PrivateLayout', () => {
     navigateMock.mockClear()
     clearQueryClientMock.mockClear()
     logoutMutateMock.mockClear()
+    socketOnMock.mockClear()
+    socketEmitMock.mockClear()
+    socketDisconnectMock.mockClear()
+    socketIoMock.mockReset()
+    socketIoMock.mockReturnValue({
+      on: socketOnMock,
+      emit: socketEmitMock,
+      disconnect: socketDisconnectMock,
+    })
+    notificationsListMock.mockImplementation(() => ({
+      data: {
+        data: unreadNotifications,
+        meta: {
+          page: 1,
+          limit: 25,
+          total: unreadNotifications.length,
+          totalPages: 1,
+        },
+        error: null,
+      },
+      error: null,
+      isError: false,
+    }))
+    markReadMutateMock.mockClear()
+    unreadNotifications = []
     currentUser = user
     useAuthStore.setState({ isAuthenticated: true, user })
   })
 
-  it('does not render theme or notification topbar buttons', () => {
+  it('does not render the theme topbar button', () => {
     render(<PrivateLayout />)
 
     expect(
       screen.queryByRole('button', { name: /toggle theme/i }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: /notifications/i }),
-    ).not.toBeInTheDocument()
+  })
+
+  it('subscribes to workflow notifications and opens the request detail when clicked', async () => {
+    const pointer = userEvent.setup()
+    currentUser = {
+      ...user,
+      roles: ['employee', 'department-reviewer'],
+    }
+    unreadNotifications = [
+      {
+        id: 'notification-db-1',
+        title: 'Workflow task assigned',
+        message: 'Billing needs review',
+        type: 'WORKFLOW_TASK_ASSIGNED',
+        entityType: 'BillingRequest',
+        entityId: 'billing-1',
+        workflowInstanceId: 'workflow-1',
+        isRead: false,
+        readAt: null,
+        createdAt: '2026-06-13T09:00:00.000Z',
+      },
+    ]
+    useAuthStore.setState({ isAuthenticated: true, user: currentUser })
+
+    render(<PrivateLayout />)
+
+    expect(notificationsListMock).toHaveBeenCalledWith(
+      {
+        params: { unreadOnly: true },
+      },
+      {
+        query: { enabled: true, retry: false },
+      },
+    )
+    expect(socketIoMock).toHaveBeenCalledWith('/notifications', {
+      withCredentials: true,
+    })
+    expect(socketEmitMock).not.toHaveBeenCalled()
+
+    const notificationHandler = socketOnMock.mock.calls.find(
+      (call: unknown[]) => call[0] === 'notification',
+    )?.[1]
+    expect(notificationHandler).toEqual(expect.any(Function))
+
+    const handleNotification = notificationHandler as (
+      payload: NotificationResponseDto,
+    ) => void
+    act(() => {
+      handleNotification({
+        id: 'notification-1',
+        title: 'Workflow task assigned',
+        message: 'Expense needs approval',
+        type: 'WORKFLOW_TASK_ASSIGNED',
+        entityType: 'Expense',
+        entityId: 'expense-1',
+        workflowInstanceId: 'workflow-expense-1',
+        isRead: false,
+        readAt: null,
+        createdAt: '2026-06-13T10:00:00.000Z',
+      })
+    })
+
+    await pointer.click(
+      screen.getByRole('button', { name: /notifications 2/i }),
+    )
+    expect(screen.getByText('Billing needs review')).toBeInTheDocument()
+    await pointer.click(screen.getByRole('button', { name: /expense needs approval/i }))
+
+    expect(markReadMutateMock).toHaveBeenCalledWith({ id: 'notification-1' })
+    expect(navigateMock).toHaveBeenCalledWith({
+      to: '/expenses/$expenseId',
+      params: { expenseId: 'expense-1' },
+    })
+    expect(screen.queryByText('Expense needs approval')).not.toBeInTheDocument()
   })
 
   it('logs out locally and redirects when the logout menu item is clicked', async () => {

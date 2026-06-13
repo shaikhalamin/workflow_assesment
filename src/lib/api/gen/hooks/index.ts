@@ -38,6 +38,8 @@ export type { LeavesControllerListQueryKey } from "./leavesController/useLeavesC
 export type { LeavesControllerResubmitMutationKey } from "./leavesController/useLeavesControllerResubmit.ts";
 export type { LeavesControllerSubmitMutationKey } from "./leavesController/useLeavesControllerSubmit.ts";
 export type { LeavesControllerUpdateMutationKey } from "./leavesController/useLeavesControllerUpdate.ts";
+export type { NotificationsControllerListQueryKey } from "./notificationsController/useNotificationsControllerList.ts";
+export type { NotificationsControllerMarkReadMutationKey } from "./notificationsController/useNotificationsControllerMarkRead.ts";
 export type { PaymentsControllerFindOneQueryKey } from "./paymentRequestsController/usePaymentsControllerFindOne.ts";
 export type { PaymentsControllerListQueryKey } from "./paymentRequestsController/usePaymentsControllerList.ts";
 export type { PaymentsControllerMarkPaidMutationKey } from "./paymentRequestsController/usePaymentsControllerMarkPaid.ts";
@@ -191,6 +193,12 @@ export { useLeavesControllerSubmit } from "./leavesController/useLeavesControlle
 export { leavesControllerUpdateMutationKey } from "./leavesController/useLeavesControllerUpdate.ts";
 export { leavesControllerUpdateMutationOptions } from "./leavesController/useLeavesControllerUpdate.ts";
 export { useLeavesControllerUpdate } from "./leavesController/useLeavesControllerUpdate.ts";
+export { notificationsControllerListQueryKey } from "./notificationsController/useNotificationsControllerList.ts";
+export { notificationsControllerListQueryOptions } from "./notificationsController/useNotificationsControllerList.ts";
+export { useNotificationsControllerList } from "./notificationsController/useNotificationsControllerList.ts";
+export { notificationsControllerMarkReadMutationKey } from "./notificationsController/useNotificationsControllerMarkRead.ts";
+export { notificationsControllerMarkReadMutationOptions } from "./notificationsController/useNotificationsControllerMarkRead.ts";
+export { useNotificationsControllerMarkRead } from "./notificationsController/useNotificationsControllerMarkRead.ts";
 export { paymentsControllerFindOneQueryKey } from "./paymentRequestsController/usePaymentsControllerFindOne.ts";
 export { paymentsControllerFindOneQueryOptions } from "./paymentRequestsController/usePaymentsControllerFindOne.ts";
 export { usePaymentsControllerFindOne } from "./paymentRequestsController/usePaymentsControllerFindOne.ts";
