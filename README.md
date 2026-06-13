@@ -2,6 +2,23 @@
 
 This project is an internal ERP-style workflow module for any business operations. The base product is a configurable approval system where employees or business teams create operational requests, approvers act on staged workflow tasks, and final business outcomes are produced with full status tracking and audit history.
 
+## Features Built Here
+
+- **Multi-role operating model:** The system includes more than the required 2-3 user roles, with seeded access for Employee/requester, Manager, Accounts Officer, Finance Admin, HR Officer, HR Manager, CFO, Payroll Officer, and Admin users. These roles drive both what users can see and what workflow actions they can perform.
+- **Role-based access control:** Backend guards and frontend navigation use role and permission assignments for workflow setup, request management, approvals, invoices, payments, audit logs, and permission administration. Admin users can review roles and update permission assignments for non-admin roles.
+- **Clear workflow statuses:** Business records and workflow runtime records move through explicit states. Billing requests progress through `DRAFT`, `SUBMITTED`, `UNDER_REVIEW`, `REJECTED`, `APPROVED`, `INVOICED`, and `CANCELLED`; workflow instances use `PENDING`, `ACTIVE`, `APPROVED`, `REJECTED`, `CANCELLED`, and `FAILED`; individual approval steps use `WAITING`, `ACTIVE`, `APPROVED`, `REJECTED`, and `SKIPPED`.
+- **Create, view, update, approve, and reject actions:** Requesters can create, list, view, update, submit, resubmit, cancel, or delete records where the business state allows it. Approvers can view assigned workflow tasks and approve or reject active steps with comments or rejection reasons. Finance and Accounts users can act on generated invoices and payment requests.
+- **Basic dashboard and list views:** The frontend includes dashboard, approval task, workflow runtime, workflow builder, billing request, invoice, expense, leave, payment request, permission, and audit log screens. These views support operational review through searchable/list-style pages and detail pages.
+- **Audit trail and activity history:** The backend records audit logs and workflow actions for creation, updates, submissions, workflow triggers, step activations, approvals, rejections, comments, cancellations, generated invoices, payment completion, and status changes. Detail screens expose workflow progress, actor information, comments, timestamps, and action history.
+- **Sensible data model:** The domain model separates users, roles, permissions, departments, workflow templates, approval rules, trigger conditions, step configs, outcome configs, workflow instances, workflow steps, workflow actions, billing requests, invoices, expenses, leave requests, payment requests, notifications, and audit logs.
+- **Basic validation and error states:** API DTO validation, whitelisted request bodies, permission guards, status checks, required rejection reasons, workflow publish checks, and assignee checks protect invalid operations. The frontend displays loading, empty, and error states across the main workflow screens.
+- **Seed data for review:** Development startup seeds departments, roles, permissions, users, workflow definitions, approval rules, and draft business records so reviewers can immediately test billing approval, expense approval, leave approval, invoice creation, payment handling, notifications, and audit history.
+- **Comments on workflow actions:** Approval decisions and workflow detail activity support comments, with rejection reasons captured separately where required. These comments become part of the workflow action history for review.
+- **Notifications and simulated notifications:** The system creates in-app notifications for assigned approval tasks and major workflow outcomes. Socket.IO pushes live updates to the frontend, and the default console mailer simulates email delivery in backend logs.
+- **Reporting and summary metrics:** Dashboard APIs provide role-focused summaries for Admin, Employee, Approver, Accounts, Finance, and HR users, including active workflows, pending approvals, billing status counts, invoice status counts, payment counts, leave counts, and recent workflow activity.
+- **Invoice object model:** Approved billing requests generate linked invoice records with invoice number, requester, department, customer details, title, description, amount, currency, due date, status, issued date, cancelled date, paid date, and audit timestamps. Invoice statuses include `ISSUED`, `PAID`, and `CANCELLED`.
+- **Configurable approval rules:** Workflow templates contain trigger conditions and prioritized approval rules. Seeded examples route billing requests over `2500 BDT`, expense requests over `2000 BDT`, and leave requests of at least three days through staged approvers such as requester manager, Accounts Officer, HR roles, and CFO.
+
 The primary implemented flow is Sales billing approval:
 
 1. A Sales/Employee user creates a billing request.
@@ -9,7 +26,7 @@ The primary implemented flow is Sales billing approval:
 3. Approval moves through requester manager, Accounts Officer, and CFO.
 4. When all approval steps pass, the system marks the billing request approved, creates an invoice, links it back to the billing request, records audit logs, and sends simulated notifications.
 
-## The product also includes expense approval to payment request and leave approval flows to demonstrate that the workflow engine is reusable, not hard-coded only for billing.
+The product also includes expense approval to payment request and leave approval flows to demonstrate that the workflow engine is reusable, not hard-coded only for billing.
 
 ## Run With Docker Compose
 
@@ -73,7 +90,7 @@ The seed process creates departments, roles, permissions, workflow definitions, 
 
 Then sign in as the relevant approvers to complete each active approval step.
 
-## Built Features
+## Detailed Capability Notes
 
 ### Authentication And Role-Based Access
 
