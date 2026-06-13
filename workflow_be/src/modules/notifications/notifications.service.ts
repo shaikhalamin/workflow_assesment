@@ -1,0 +1,339 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
+import type { EmailPayload } from '../../mailer/mailer.service';
+import { MailerService } from '../../mailer/mailer.service';
+import { Paginated } from '../../common/http/paginated';
+import { paginateRepo } from '../../common/http/paginate';
+import { UserRole } from '../rbac/entities/user-role.entity';
+import { User } from '../users/entities/user.entity';
+import { Notification, NotificationType } from './entities/notification.entity';
+import { NotificationPushQueue } from './notification-push.queue';
+
+export type NotificationChannels = {
+  push?: boolean;
+  email?: true | EmailPayload;
+};
+
+type WithNotificationChannels = {
+  channels?: NotificationChannels;
+};
+
+type NotificationInput = {
+  recipientUserId?: string | null;
+  recipientRoleSlug?: string | null;
+  title: string;
+  message: string;
+  type: NotificationType;
+  entityType: string;
+  entityId: string;
+  workflowInstanceId?: string | null;
+  channels?: NotificationChannels;
+};
+
+type NotificationListQuery = {
+  page?: number;
+  limit?: number;
+  unreadOnly?: boolean;
+};
+
+@Injectable()
+export class NotificationsService {
+  constructor(
+    @InjectRepository(Notification)
+    private readonly notificationsRepository: Repository<Notification>,
+    private readonly notificationPushQueue: NotificationPushQueue,
+    private readonly mailerService: MailerService,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+    @InjectRepository(UserRole)
+    private readonly userRolesRepository: Repository<UserRole>,
+  ) {}
+
+  list(
+    query: NotificationListQuery,
+    actor: Express.User,
+  ): Promise<Paginated<Notification>> {
+    return paginateRepo(this.notificationsRepository, {
+      page: query.page ?? 1,
+      limit: query.limit ?? 25,
+      where: this.visibleNotificationWhere(actor, query.unreadOnly === true),
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async markRead(id: string, actor: Express.User): Promise<Notification> {
+    const notification = await this.notificationsRepository.findOne({
+      where: this.visibleNotificationWhere(actor, false, id),
+    });
+    if (!notification) throw new NotFoundException('Notification not found');
+    if (notification.isRead) return notification;
+
+    notification.isRead = true;
+    notification.readAt = new Date();
+    return this.notificationsRepository.save(notification);
+  }
+
+  private visibleNotificationWhere(
+    actor: Express.User,
+    unreadOnly: boolean,
+    id?: string,
+  ): FindOptionsWhere<Notification>[] {
+    const unreadWhere = unreadOnly ? { isRead: false } : {};
+    const idWhere = id ? { id } : {};
+    const where: FindOptionsWhere<Notification>[] = [
+      { ...idWhere, recipientUserId: actor.userId, ...unreadWhere },
+    ];
+
+    if (actor.roles.length) {
+      where.push({
+        ...idWhere,
+        recipientRoleSlug: In(actor.roles),
+        ...unreadWhere,
+      });
+    }
+
+    return where;
+  }
+
+  async create(
+    input: NotificationInput,
+    notificationsRepository: Repository<Notification> = this
+      .notificationsRepository,
+  ): Promise<Notification> {
+    const notification = await notificationsRepository.save(
+      notificationsRepository.create({
+        recipientUserId: input.recipientUserId ?? null,
+        recipientRoleSlug: input.recipientRoleSlug ?? null,
+        title: input.title,
+        message: input.message,
+        type: input.type,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        workflowInstanceId: input.workflowInstanceId ?? null,
+        isRead: false,
+        readAt: null,
+      }),
+    );
+
+    if (input.channels?.push) {
+      await this.notificationPushQueue.enqueue(notification);
+    }
+
+    if (input.channels?.email === true) {
+      const email = await this.defaultNotificationEmail(input, notification);
+      if (email) await this.mailerService.enqueue(email);
+    } else if (input.channels?.email) {
+      await this.mailerService.enqueue(input.channels.email);
+    }
+
+    return notification;
+  }
+
+  private async defaultNotificationEmail(
+    input: NotificationInput,
+    notification: Notification,
+  ): Promise<EmailPayload | null> {
+    const recipientEmail = await this.findRecipientEmail(notification);
+    if (!recipientEmail) return null;
+
+    return {
+      template: 'notification',
+      to: recipientEmail,
+      subject: input.title,
+      props: {
+        recipientEmail,
+        title: input.title,
+        message: input.message,
+      },
+    };
+  }
+
+  private async findRecipientEmail(
+    notification: Notification,
+  ): Promise<string | null> {
+    if (notification.recipientUserId) {
+      const user = await this.usersRepository.findOne({
+        where: { id: notification.recipientUserId, isActive: true },
+        select: { id: true, email: true },
+      });
+      return user?.email ?? null;
+    }
+
+    if (!notification.recipientRoleSlug) return null;
+
+    const userRole = await this.userRolesRepository.findOne({
+      where: {
+        role: { slug: notification.recipientRoleSlug },
+        user: { isActive: true },
+      },
+      relations: { role: true, user: true },
+      order: { createdAt: 'ASC' },
+    });
+    return userRole?.user.email ?? null;
+  }
+
+  createTaskAssigned(
+    input: {
+      assignedUserId?: string | null;
+      assignedRoleSlug?: string | null;
+      entityType: string;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+    notificationsRepository?: Repository<Notification>,
+  ) {
+    return this.create(
+      {
+        recipientUserId: input.assignedUserId ?? null,
+        recipientRoleSlug: input.assignedRoleSlug ?? null,
+        title: 'Workflow task assigned',
+        message: `${input.entityType} needs approval`,
+        type: NotificationType.WORKFLOW_TASK_ASSIGNED,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        workflowInstanceId: input.workflowInstanceId,
+        channels: input.channels,
+      },
+      notificationsRepository,
+    );
+  }
+
+  createWorkflowApproved(
+    input: {
+      recipientUserId: string;
+      entityType: string;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+  ) {
+    return this.create({
+      recipientUserId: input.recipientUserId,
+      title: 'Workflow approved',
+      message: `${input.entityType} was approved`,
+      type: NotificationType.WORKFLOW_APPROVED,
+      entityType: input.entityType,
+      entityId: input.entityId,
+      workflowInstanceId: input.workflowInstanceId,
+      channels: input.channels,
+    });
+  }
+
+  createWorkflowRejected(
+    input: {
+      recipientUserId: string;
+      entityType: string;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+  ) {
+    return this.create({
+      recipientUserId: input.recipientUserId,
+      title: 'Workflow rejected',
+      message: `${input.entityType} was rejected`,
+      type: NotificationType.WORKFLOW_REJECTED,
+      entityType: input.entityType,
+      entityId: input.entityId,
+      workflowInstanceId: input.workflowInstanceId,
+      channels: input.channels,
+    });
+  }
+
+  createPaymentCreated(
+    input: {
+      recipientRoleSlug?: string | null;
+      entityType: string;
+      entityId: string;
+      workflowInstanceId?: string | null;
+    } & WithNotificationChannels,
+  ) {
+    return this.create({
+      recipientRoleSlug: input.recipientRoleSlug ?? 'accounts-officer',
+      title: 'Payment request created',
+      message: 'A payment request is pending',
+      type: NotificationType.PAYMENT_REQUEST_CREATED,
+      entityType: input.entityType,
+      entityId: input.entityId,
+      workflowInstanceId: input.workflowInstanceId ?? null,
+      channels: input.channels,
+    });
+  }
+
+  createPaymentPaid(
+    input: {
+      recipientUserId?: string | null;
+      entityType: string;
+      entityId: string;
+    } & WithNotificationChannels,
+  ) {
+    return this.create({
+      recipientUserId: input.recipientUserId ?? null,
+      title: 'Payment paid',
+      message: 'A payment request was paid',
+      type: NotificationType.PAYMENT_PAID,
+      entityType: input.entityType,
+      entityId: input.entityId,
+      workflowInstanceId: null,
+      channels: input.channels,
+    });
+  }
+
+  createBillingApproved(
+    input: {
+      recipientUserId: string;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+  ) {
+    return this.create({
+      recipientUserId: input.recipientUserId,
+      title: 'Billing request approved',
+      message: 'A billing request was approved',
+      type: NotificationType.BILLING_REQUEST_APPROVED,
+      entityType: 'BillingRequest',
+      entityId: input.entityId,
+      workflowInstanceId: input.workflowInstanceId,
+      channels: input.channels,
+    });
+  }
+
+  createBillingRejected(
+    input: {
+      recipientUserId: string;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+  ) {
+    return this.create({
+      recipientUserId: input.recipientUserId,
+      title: 'Billing request rejected',
+      message: 'A billing request was rejected',
+      type: NotificationType.BILLING_REQUEST_REJECTED,
+      entityType: 'BillingRequest',
+      entityId: input.entityId,
+      workflowInstanceId: input.workflowInstanceId,
+      channels: input.channels,
+    });
+  }
+
+  createInvoiceCreated(
+    input: {
+      recipientUserId?: string | null;
+      recipientRoleSlug?: string | null;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+  ) {
+    return this.create({
+      recipientUserId: input.recipientUserId ?? null,
+      recipientRoleSlug: input.recipientRoleSlug ?? null,
+      title: 'Invoice created',
+      message: 'An invoice was issued',
+      type: NotificationType.INVOICE_CREATED,
+      entityType: 'Invoice',
+      entityId: input.entityId,
+      workflowInstanceId: input.workflowInstanceId,
+      channels: input.channels,
+    });
+  }
+}
