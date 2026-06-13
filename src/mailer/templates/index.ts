@@ -3,9 +3,12 @@ import { createElement } from 'react';
 import type { ComponentProps, ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { BrandConfig } from './brand';
+import { NotificationEmail } from './notification.template';
 import { Welcome } from './welcome.template';
 
 const renderers = {
+  notification: (props: ComponentProps<typeof NotificationEmail>) =>
+    createElement(NotificationEmail, props),
   welcome: (props: ComponentProps<typeof Welcome>) =>
     createElement(Welcome, props),
 };

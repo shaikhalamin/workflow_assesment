@@ -1,7 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import type { EmailPayload } from '../../mailer/mailer.service';
+import { MailerService } from '../../mailer/mailer.service';
 import { Notification, NotificationType } from './entities/notification.entity';
+import { NotificationPushQueue } from './notification-push.queue';
+
+export type NotificationChannels = {
+  push?: boolean;
+  email?: EmailPayload;
+};
+
+type WithNotificationChannels = {
+  channels?: NotificationChannels;
+};
 
 type NotificationInput = {
   recipientUserId?: string | null;
@@ -12,6 +24,7 @@ type NotificationInput = {
   entityType: string;
   entityId: string;
   workflowInstanceId?: string | null;
+  channels?: NotificationChannels;
 };
 
 @Injectable()
@@ -19,14 +32,16 @@ export class NotificationsService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationsRepository: Repository<Notification>,
+    private readonly notificationPushQueue: NotificationPushQueue,
+    private readonly mailerService: MailerService,
   ) {}
 
-  create(
+  async create(
     input: NotificationInput,
     notificationsRepository: Repository<Notification> = this
       .notificationsRepository,
   ): Promise<Notification> {
-    return notificationsRepository.save(
+    const notification = await notificationsRepository.save(
       notificationsRepository.create({
         recipientUserId: input.recipientUserId ?? null,
         recipientRoleSlug: input.recipientRoleSlug ?? null,
@@ -40,6 +55,16 @@ export class NotificationsService {
         readAt: null,
       }),
     );
+
+    if (input.channels?.push) {
+      await this.notificationPushQueue.enqueue(notification);
+    }
+
+    if (input.channels?.email) {
+      await this.mailerService.enqueue(input.channels.email);
+    }
+
+    return notification;
   }
 
   createTaskAssigned(
@@ -49,7 +74,7 @@ export class NotificationsService {
       entityType: string;
       entityId: string;
       workflowInstanceId: string;
-    },
+    } & WithNotificationChannels,
     notificationsRepository?: Repository<Notification>,
   ) {
     return this.create(
@@ -62,17 +87,20 @@ export class NotificationsService {
         entityType: input.entityType,
         entityId: input.entityId,
         workflowInstanceId: input.workflowInstanceId,
+        channels: input.channels,
       },
       notificationsRepository,
     );
   }
 
-  createWorkflowApproved(input: {
-    recipientUserId: string;
-    entityType: string;
-    entityId: string;
-    workflowInstanceId: string;
-  }) {
+  createWorkflowApproved(
+    input: {
+      recipientUserId: string;
+      entityType: string;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+  ) {
     return this.create({
       recipientUserId: input.recipientUserId,
       title: 'Workflow approved',
@@ -81,15 +109,18 @@ export class NotificationsService {
       entityType: input.entityType,
       entityId: input.entityId,
       workflowInstanceId: input.workflowInstanceId,
+      channels: input.channels,
     });
   }
 
-  createWorkflowRejected(input: {
-    recipientUserId: string;
-    entityType: string;
-    entityId: string;
-    workflowInstanceId: string;
-  }) {
+  createWorkflowRejected(
+    input: {
+      recipientUserId: string;
+      entityType: string;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+  ) {
     return this.create({
       recipientUserId: input.recipientUserId,
       title: 'Workflow rejected',
@@ -98,15 +129,18 @@ export class NotificationsService {
       entityType: input.entityType,
       entityId: input.entityId,
       workflowInstanceId: input.workflowInstanceId,
+      channels: input.channels,
     });
   }
 
-  createPaymentCreated(input: {
-    recipientRoleSlug?: string | null;
-    entityType: string;
-    entityId: string;
-    workflowInstanceId?: string | null;
-  }) {
+  createPaymentCreated(
+    input: {
+      recipientRoleSlug?: string | null;
+      entityType: string;
+      entityId: string;
+      workflowInstanceId?: string | null;
+    } & WithNotificationChannels,
+  ) {
     return this.create({
       recipientRoleSlug: input.recipientRoleSlug ?? 'accounts-officer',
       title: 'Payment request created',
@@ -115,14 +149,17 @@ export class NotificationsService {
       entityType: input.entityType,
       entityId: input.entityId,
       workflowInstanceId: input.workflowInstanceId ?? null,
+      channels: input.channels,
     });
   }
 
-  createPaymentPaid(input: {
-    recipientUserId?: string | null;
-    entityType: string;
-    entityId: string;
-  }) {
+  createPaymentPaid(
+    input: {
+      recipientUserId?: string | null;
+      entityType: string;
+      entityId: string;
+    } & WithNotificationChannels,
+  ) {
     return this.create({
       recipientUserId: input.recipientUserId ?? null,
       title: 'Payment paid',
@@ -131,14 +168,17 @@ export class NotificationsService {
       entityType: input.entityType,
       entityId: input.entityId,
       workflowInstanceId: null,
+      channels: input.channels,
     });
   }
 
-  createBillingApproved(input: {
-    recipientUserId: string;
-    entityId: string;
-    workflowInstanceId: string;
-  }) {
+  createBillingApproved(
+    input: {
+      recipientUserId: string;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+  ) {
     return this.create({
       recipientUserId: input.recipientUserId,
       title: 'Billing request approved',
@@ -147,14 +187,17 @@ export class NotificationsService {
       entityType: 'BillingRequest',
       entityId: input.entityId,
       workflowInstanceId: input.workflowInstanceId,
+      channels: input.channels,
     });
   }
 
-  createBillingRejected(input: {
-    recipientUserId: string;
-    entityId: string;
-    workflowInstanceId: string;
-  }) {
+  createBillingRejected(
+    input: {
+      recipientUserId: string;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+  ) {
     return this.create({
       recipientUserId: input.recipientUserId,
       title: 'Billing request rejected',
@@ -163,15 +206,18 @@ export class NotificationsService {
       entityType: 'BillingRequest',
       entityId: input.entityId,
       workflowInstanceId: input.workflowInstanceId,
+      channels: input.channels,
     });
   }
 
-  createInvoiceCreated(input: {
-    recipientUserId?: string | null;
-    recipientRoleSlug?: string | null;
-    entityId: string;
-    workflowInstanceId: string;
-  }) {
+  createInvoiceCreated(
+    input: {
+      recipientUserId?: string | null;
+      recipientRoleSlug?: string | null;
+      entityId: string;
+      workflowInstanceId: string;
+    } & WithNotificationChannels,
+  ) {
     return this.create({
       recipientUserId: input.recipientUserId ?? null,
       recipientRoleSlug: input.recipientRoleSlug ?? null,
@@ -181,6 +227,7 @@ export class NotificationsService {
       entityType: 'Invoice',
       entityId: input.entityId,
       workflowInstanceId: input.workflowInstanceId,
+      channels: input.channels,
     });
   }
 }
