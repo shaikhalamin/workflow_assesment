@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { cookiesConfig } from '../../config/cookies.config';
 import { jwtConfig } from '../../config/jwt.config';
+import { MailerModule } from '../../mailer/mailer.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -23,6 +24,7 @@ import { JwtStrategy } from './jwt.strategy';
         secret: config.secret,
       }),
     }),
+    MailerModule,
     UsersModule,
   ],
   controllers: [AuthController],

@@ -17,6 +17,9 @@ describe('AuthService', () => {
     permissions: ['auth.profile.read'],
   };
   const jwtService = new JwtService({ secret: 'a'.repeat(32) });
+  const mailerService = {
+    enqueue: jest.fn<Promise<unknown>, [unknown]>(),
+  };
 
   function buildRefreshSessionRepository(): Repository<RefreshTokenSession> {
     const updateBuilder = {
@@ -41,6 +44,7 @@ describe('AuthService', () => {
   }
 
   it('rejects invalid passwords', async () => {
+    mailerService.enqueue.mockResolvedValue(undefined);
     user.passwordHash = await bcrypt.hash('Password123!', 10);
     const service = new AuthService(
       {
@@ -49,6 +53,7 @@ describe('AuthService', () => {
       buildRefreshSessionRepository(),
       jwtService,
       { domain: 'localhost' },
+      mailerService,
     );
 
     await expect(
@@ -57,6 +62,7 @@ describe('AuthService', () => {
   });
 
   it('signs access tokens with only the user id claim', async () => {
+    mailerService.enqueue.mockResolvedValue(undefined);
     user.passwordHash = await bcrypt.hash('Password123!', 10);
     const service = new AuthService(
       {
@@ -65,6 +71,7 @@ describe('AuthService', () => {
       buildRefreshSessionRepository(),
       jwtService,
       { domain: 'localhost' },
+      mailerService,
     );
 
     const result = await service.login(
@@ -82,6 +89,7 @@ describe('AuthService', () => {
   });
 
   it('does not set a cookie domain for localhost sessions', () => {
+    mailerService.enqueue.mockResolvedValue(undefined);
     const service = new AuthService(
       {
         findByEmailWithAccess: jest.fn(),
@@ -89,8 +97,71 @@ describe('AuthService', () => {
       buildRefreshSessionRepository(),
       jwtService,
       { domain: 'localhost' },
+      mailerService,
     );
 
     expect(service.buildCookieOptions(1000).domain).toBeUndefined();
+  });
+
+  it('enqueues a welcome email after signup', async () => {
+    mailerService.enqueue.mockResolvedValue(undefined);
+    const createSignupUser = jest.fn().mockResolvedValue(user);
+    const service = new AuthService(
+      {
+        createSignupUser,
+      } as unknown as UsersService,
+      buildRefreshSessionRepository(),
+      jwtService,
+      { domain: 'localhost' },
+      mailerService,
+    );
+
+    await service.signup(
+      {
+        name: user.name,
+        email: user.email,
+        password: 'Password123!',
+      },
+      {} as never,
+    );
+
+    expect(mailerService.enqueue).toHaveBeenCalledWith({
+      template: 'welcome',
+      to: user.email,
+      subject: 'Welcome to Fiber@Home Workflow',
+      props: {
+        name: user.name,
+        recipientEmail: user.email,
+      },
+    });
+  });
+
+  it('keeps signup successful when welcome email enqueue fails', async () => {
+    mailerService.enqueue.mockRejectedValue(new Error('Redis unavailable'));
+    const service = new AuthService(
+      {
+        createSignupUser: jest.fn().mockResolvedValue(user),
+      } as unknown as UsersService,
+      buildRefreshSessionRepository(),
+      jwtService,
+      { domain: 'localhost' },
+      mailerService,
+    );
+
+    await expect(
+      service.signup(
+        {
+          name: user.name,
+          email: user.email,
+          password: 'Password123!',
+        },
+        {} as never,
+      ),
+    ).resolves.toMatchObject({
+      user: {
+        email: user.email,
+        name: user.name,
+      },
+    });
   });
 });

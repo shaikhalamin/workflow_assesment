@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -8,6 +13,7 @@ import { Repository } from 'typeorm';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
 import { RefreshTokenSession } from './entities/refresh-token-session.entity';
+import { MailerService } from '../../mailer/mailer.service';
 import { UsersService, UserWithAccess } from '../users/users.service';
 
 type AccessPayload = {
@@ -51,6 +57,8 @@ const LOCAL_COOKIE_DOMAINS = new Set(['localhost', '127.0.0.1']);
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     @InjectRepository(RefreshTokenSession)
@@ -58,6 +66,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @Inject(COOKIES_CONFIG_TOKEN)
     private readonly cookieConfig: { domain: string },
+    private readonly mailerService: MailerService,
   ) {}
 
   async login(dto: LoginDto, request: Request): Promise<AuthResult> {
@@ -80,6 +89,8 @@ export class AuthService {
       email: dto.email,
       passwordHash: await bcrypt.hash(dto.password, 10),
     });
+
+    await this.enqueueWelcomeEmail(user);
 
     return this.createAuthResult(user, request);
   }
@@ -236,6 +247,25 @@ export class AuthService {
       .where('"userId" = :userId', { userId })
       .andWhere('"revokedAt" IS NULL')
       .execute();
+  }
+
+  private async enqueueWelcomeEmail(user: UserWithAccess): Promise<void> {
+    try {
+      await this.mailerService.enqueue({
+        template: 'welcome',
+        to: user.email,
+        subject: 'Welcome to Fiber@Home Workflow',
+        props: {
+          name: user.name,
+          recipientEmail: user.email,
+        },
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Failed to enqueue welcome email for ${user.email}: ${message}`,
+      );
+    }
   }
 
   private async revokeSession(

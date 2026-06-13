@@ -16,6 +16,11 @@ services:
       COOKIE_DOMAIN: ${COOKIE_DOMAIN:-localhost}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
       LOG_LEVEL: ${LOG_LEVEL:-debug}
+      MAILER_TRANSPORT: ${MAILER_TRANSPORT:-console}
+      RESEND_API_KEY: ${RESEND_API_KEY:-fkodf94i5i459i5j459459j45945u454i5i454509}
+      MAILER_FROM: ${MAILER_FROM:-onboarding@resend.dev}
+      MAILER_COMPANY_ADDRESS: ${MAILER_COMPANY_ADDRESS:-Fiber@Home Ltd.}
+      MAILER_SUPPORT_EMAIL: ${MAILER_SUPPORT_EMAIL:-onboarding@resend.dev}
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-true}
     ports:
       - "${PORT:-8870}:${PORT:-8870}"
@@ -32,7 +37,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8870) + '/api').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+          "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8870) + '/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\"",
         ]
       interval: 10s
       timeout: 5s

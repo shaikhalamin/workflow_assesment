@@ -26,6 +26,14 @@ const schema = z.object({
 
   COOKIE_DOMAIN: z.string().min(1),
   FRONTEND_ORIGIN: z.url(),
+  MAILER_TRANSPORT: z.enum(['console', 'resend']).default('console'),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  MAILER_FROM: z
+    .string()
+    .min(1)
+    .default('Fiber@Home Workflow <no-reply@fiberathome.local>'),
+  MAILER_COMPANY_ADDRESS: z.string().min(1).default('Fiber@Home Ltd.'),
+  MAILER_SUPPORT_EMAIL: z.email().default('support@fiberathome.net'),
   LOG_LEVEL: z
     .enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal'])
     .default('info'),

@@ -28,6 +28,7 @@ import { SeedModule } from './modules/seed/seed.module';
 import { UsersModule } from './modules/users/users.module';
 import { WorkflowBuilderModule } from './modules/workflow-builder/workflow-builder.module';
 import { WorkflowRuntimeModule } from './modules/workflow-runtime/workflow-runtime.module';
+import { QueueModule } from './queue/queue.module';
 
 const devModules = process.env.NODE_ENV === 'production' ? [] : [SeedModule];
 
@@ -39,6 +40,7 @@ const devModules = process.env.NODE_ENV === 'production' ? [] : [SeedModule];
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     DatabaseModule,
+    QueueModule,
     AuditLogsModule,
     NotificationsModule,
     DashboardModule,

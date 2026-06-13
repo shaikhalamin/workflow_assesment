@@ -1,4 +1,4 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
@@ -28,6 +28,11 @@ interface AuthUserBody {
     permissions: string[];
   };
 }
+
+const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 describe('workflow demo flow (e2e)', () => {
   let app: INestApplication<App>;
@@ -89,20 +94,23 @@ describe('workflow demo flow (e2e)', () => {
     await agent.get('/api/workflow-tasks/my-pending').expect(200);
   });
 
-  it('signs up a new employee and returns auth cookies', async () => {
+  it('signs up a new employee, returns auth cookies, and sends the welcome email from the queue processor', async () => {
     const unique = Date.now();
+    const email = `signup-${unique}@example.com`;
+    const logSpy = jest.spyOn(Logger.prototype, 'log');
+
     const response = await request(app.getHttpServer())
       .post('/api/auth/signup')
       .send({
         name: 'Signup Employee',
-        email: `signup-${unique}@example.com`,
+        email,
         password: 'Password123!',
       })
       .expect(201);
     const body = response.body as unknown as ApiResponseBody<AuthUserBody>;
 
     expect(body.error).toBeNull();
-    expect(body.data.user.email).toBe(`signup-${unique}@example.com`);
+    expect(body.data.user.email).toBe(email);
     expect(body.data.user.roles).toContain('employee');
     const employeePermissionSlugs =
       SeedService.rolePermissionSeeds.find(
@@ -119,5 +127,20 @@ describe('workflow demo flow (e2e)', () => {
         expect.stringContaining('refresh_token='),
       ]),
     );
+
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const loggedWelcomeEmail = logSpy.mock.calls.some(([message]) =>
+        String(message).includes(`TO: ${email}`),
+      );
+      if (loggedWelcomeEmail) break;
+      await wait(100);
+    }
+
+    expect(
+      logSpy.mock.calls.some(([message]) =>
+        String(message).includes(`TO: ${email}`),
+      ),
+    ).toBe(true);
+    logSpy.mockRestore();
   });
 });
