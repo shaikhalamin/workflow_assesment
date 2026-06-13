@@ -1,0 +1,100 @@
+services:
+  backend:
+    build:
+      context: ./workflow_be
+      dockerfile: Dockerfile
+    image: workflow-backend
+    container_name: workflow-backend
+    restart: unless-stopped
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${PORT:-8870}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-workflowbe}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret-please-rotate-in-prod-32chars}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-localhost}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      MAILER_TRANSPORT: ${MAILER_TRANSPORT:-console}
+      RESEND_API_KEY: ${RESEND_API_KEY:-fkodf94i5i459i5j459459j45945u454i5i454509}
+      MAILER_FROM: ${MAILER_FROM:-onboarding@resend.dev}
+      MAILER_COMPANY_ADDRESS: ${MAILER_COMPANY_ADDRESS:-Fiber@Home Ltd.}
+      MAILER_SUPPORT_EMAIL: ${MAILER_SUPPORT_EMAIL:-onboarding@resend.dev}
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-true}
+    ports:
+      - "${PORT:-8870}:${PORT:-8870}"
+    command: pnpm dev
+    volumes:
+      - ./workflow_be:/app
+      - backend_node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8870) + '/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./workflow_fe
+      dockerfile: Dockerfile
+    image: workflow-frontend
+    container_name: workflow-frontend
+    restart: unless-stopped
+    environment:
+      VITE_BACKEND_PROXY_TARGET: http://backend:8870
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-true}
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    command: npm run dev -- --host 0.0.0.0
+    volumes:
+      - ./workflow_fe:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      backend:
+        condition: service_started
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    container_name: workflow-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-workflowbe}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5438}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: workflow-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_HOST_PORT:-6385}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pg_data:
+  backend_node_modules:
+  frontend_node_modules:
