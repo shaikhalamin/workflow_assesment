@@ -7,6 +7,8 @@ import { fileURLToPath, URL } from 'node:url'
 
 const logger = createLogger()
 const logError = logger.error.bind(logger)
+const backendProxyTarget =
+  process.env.VITE_BACKEND_PROXY_TARGET ?? 'http://127.0.0.1:8870'
 
 logger.error = (message: string, options?: LogErrorOptions) => {
   const isSocketProxyError =
@@ -39,11 +41,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8870',
+        target: backendProxyTarget,
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'http://127.0.0.1:8870',
+        target: backendProxyTarget,
         changeOrigin: true,
         ws: true,
       },
