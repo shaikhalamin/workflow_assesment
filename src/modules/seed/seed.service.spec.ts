@@ -1,13 +1,15 @@
 import { SeedService } from './seed.service';
 import type { Repository } from 'typeorm';
-import { AuditLog } from '../audit-logs/entities/audit-log.entity';
-import { BillingRequest } from '../billing/entities/billing-request.entity';
+import {
+  BillingRequest,
+  BillingRequestStatus,
+} from '../billing/entities/billing-request.entity';
 import { Department } from '../departments/entities/department.entity';
-import { Expense } from '../expenses/entities/expense.entity';
-import { Invoice } from '../invoices/entities/invoice.entity';
-import { LeaveRequest } from '../leaves/entities/leave-request.entity';
-import { Notification } from '../notifications/entities/notification.entity';
-import { PaymentRequest } from '../payments/entities/payment-request.entity';
+import { Expense, ExpenseStatus } from '../expenses/entities/expense.entity';
+import {
+  LeaveRequest,
+  LeaveRequestStatus,
+} from '../leaves/entities/leave-request.entity';
 import { Permission } from '../rbac/entities/permission.entity';
 import { RolePermission } from '../rbac/entities/role-permission.entity';
 import { Role } from '../rbac/entities/role.entity';
@@ -19,10 +21,10 @@ import { WorkflowEventSchema } from '../workflow-builder/entities/workflow-event
 import { WorkflowOutcomeConfig } from '../workflow-builder/entities/workflow-outcome-config.entity';
 import { WorkflowTemplate } from '../workflow-builder/entities/workflow-template.entity';
 import { WorkflowTriggerCondition } from '../workflow-builder/entities/workflow-trigger-condition.entity';
-import { WorkflowTemplateStatus } from '../workflow-builder/enums/workflow-builder.enums';
-import { WorkflowAction } from '../workflow-runtime/entities/workflow-action.entity';
-import { WorkflowInstance } from '../workflow-runtime/entities/workflow-instance.entity';
-import { WorkflowStep } from '../workflow-runtime/entities/workflow-step.entity';
+import {
+  WorkflowAssigneeType,
+  WorkflowTemplateStatus,
+} from '../workflow-builder/enums/workflow-builder.enums';
 
 type MockRepository<T extends object> = {
   findOneBy: jest.Mock<Promise<T | null>, [Record<string, unknown>]>;
@@ -202,20 +204,8 @@ describe('SeedService', () => {
       createMockRepository<WorkflowOutcomeConfig>('workflow-outcome');
     const billingRequestsRepository =
       createMockRepository<BillingRequest>('billing-request');
-    const invoicesRepository = createMockRepository<Invoice>('invoice');
     const expensesRepository = createMockRepository<Expense>('expense');
     const leavesRepository = createMockRepository<LeaveRequest>('leave');
-    const paymentRequestsRepository =
-      createMockRepository<PaymentRequest>('payment');
-    const auditLogsRepository = createMockRepository<AuditLog>('audit');
-    const notificationsRepository =
-      createMockRepository<Notification>('notification');
-    const workflowInstancesRepository =
-      createMockRepository<WorkflowInstance>('workflow-instance');
-    const workflowStepsRepository =
-      createMockRepository<WorkflowStep>('workflow-step');
-    const workflowActionsRepository =
-      createMockRepository<WorkflowAction>('workflow-action');
     const roles: Role[] = SeedService.roleSeeds.map((seed) => ({
       id: `${seed.slug}-role-id`,
       slug: seed.slug,
@@ -263,15 +253,8 @@ describe('SeedService', () => {
       asRepository(workflowApprovalStepConfigsRepository),
       asRepository(workflowOutcomeConfigsRepository),
       asRepository(billingRequestsRepository),
-      asRepository(invoicesRepository),
       asRepository(expensesRepository),
       asRepository(leavesRepository),
-      asRepository(paymentRequestsRepository),
-      asRepository(auditLogsRepository),
-      asRepository(notificationsRepository),
-      asRepository(workflowInstancesRepository),
-      asRepository(workflowStepsRepository),
-      asRepository(workflowActionsRepository),
     );
     rolesRepository.find.mockResolvedValue(roles);
     usersRepository.findOneBy.mockImplementation(
@@ -300,7 +283,7 @@ describe('SeedService', () => {
     });
   });
 
-  it('seeds baseline workflow definitions without deleting existing data on development startup', async () => {
+  it('seeds requested workflow definitions and demo requests without deleting existing data on development startup', async () => {
     process.env.NODE_ENV = 'development';
     const departmentsRepository = createMockRepository<Department>('dept');
     const rolesRepository = createMockRepository<Role>('role');
@@ -324,20 +307,8 @@ describe('SeedService', () => {
       createMockRepository<WorkflowOutcomeConfig>('workflow-outcome');
     const billingRequestsRepository =
       createMockRepository<BillingRequest>('billing-request');
-    const invoicesRepository = createMockRepository<Invoice>('invoice');
     const expensesRepository = createMockRepository<Expense>('expense');
     const leavesRepository = createMockRepository<LeaveRequest>('leave');
-    const paymentRequestsRepository =
-      createMockRepository<PaymentRequest>('payment');
-    const auditLogsRepository = createMockRepository<AuditLog>('audit');
-    const notificationsRepository =
-      createMockRepository<Notification>('notification');
-    const workflowInstancesRepository =
-      createMockRepository<WorkflowInstance>('workflow-instance');
-    const workflowStepsRepository =
-      createMockRepository<WorkflowStep>('workflow-step');
-    const workflowActionsRepository =
-      createMockRepository<WorkflowAction>('workflow-action');
     const repositories = [
       departmentsRepository,
       rolesRepository,
@@ -352,15 +323,8 @@ describe('SeedService', () => {
       workflowApprovalStepConfigsRepository,
       workflowOutcomeConfigsRepository,
       billingRequestsRepository,
-      invoicesRepository,
       expensesRepository,
       leavesRepository,
-      paymentRequestsRepository,
-      auditLogsRepository,
-      notificationsRepository,
-      workflowInstancesRepository,
-      workflowStepsRepository,
-      workflowActionsRepository,
     ];
     const service = new SeedService(
       asRepository(departmentsRepository),
@@ -376,15 +340,46 @@ describe('SeedService', () => {
       asRepository(workflowApprovalStepConfigsRepository),
       asRepository(workflowOutcomeConfigsRepository),
       asRepository(billingRequestsRepository),
-      asRepository(invoicesRepository),
       asRepository(expensesRepository),
       asRepository(leavesRepository),
-      asRepository(paymentRequestsRepository),
-      asRepository(auditLogsRepository),
-      asRepository(notificationsRepository),
-      asRepository(workflowInstancesRepository),
-      asRepository(workflowStepsRepository),
-      asRepository(workflowActionsRepository),
+    );
+    usersRepository.findOneBy.mockImplementation(
+      (where: Record<string, unknown>) => {
+        if (where.email === 'employee@example.com') {
+          return Promise.resolve({
+            id: 'employee-user-id',
+            email: 'employee@example.com',
+            name: 'Employee User',
+          } as User);
+        }
+        if (where.email === 'cfo@example.com') {
+          return Promise.resolve({
+            id: 'cfo-user-id',
+            email: 'cfo@example.com',
+            name: 'CFO User',
+          } as User);
+        }
+        if (where.email === 'hr.manager@example.com') {
+          return Promise.resolve({
+            id: 'hr-manager-user-id',
+            email: 'hr.manager@example.com',
+            name: 'HR Manager',
+          } as User);
+        }
+        return Promise.resolve(null);
+      },
+    );
+    departmentsRepository.findOneBy.mockImplementation(
+      (where: Record<string, unknown>) => {
+        if (where.slug === 'sales') {
+          return Promise.resolve({
+            id: 'sales-department-id',
+            name: 'Sales',
+            slug: 'sales',
+          } as Department);
+        }
+        return Promise.resolve(null);
+      },
     );
 
     await service.onApplicationBootstrap();
@@ -396,26 +391,141 @@ describe('SeedService', () => {
         eventName: 'expense.submitted',
         entityType: 'Expense',
         status: WorkflowTemplateStatus.PUBLISHED,
+        priority: 1,
+        allowResubmission: true,
+        description: 'Routes submitted expense requests over 2000 BDT.',
+        effectiveTo: new Date('2028-12-31T23:59:59.000Z'),
+      }),
+    );
+    const savedWorkflowTemplates =
+      workflowTemplatesRepository.save.mock.calls.map(([template]) => template);
+    const savedExpenseTemplate = savedWorkflowTemplates.find(
+      (template) => template.name === 'Expense Approval Workflow',
+    );
+    expect(savedExpenseTemplate?.effectiveFrom).toBeInstanceOf(Date);
+    expect(workflowTemplatesRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Leave Approval Workflow',
+        moduleName: 'leaves',
+        eventName: 'leave.submitted',
+        entityType: 'LeaveRequest',
+        status: WorkflowTemplateStatus.PUBLISHED,
+        priority: 1,
+        allowResubmission: true,
+        description: 'Routes submitted leave requests over 2 days.',
+      }),
+    );
+    expect(workflowTemplatesRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Billing Approval Workflow',
+        moduleName: 'billing',
+        eventName: 'billing.submitted',
+        entityType: 'BillingRequest',
+        status: WorkflowTemplateStatus.PUBLISHED,
+        priority: 1,
+        allowResubmission: true,
+        description: 'Routes submitted billing requests over 2500 BDT.',
       }),
     );
     expect(workflowTriggerConditionsRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({
         conditionJson: {
           mode: 'all',
-          conditions: [{ field: 'amount', operator: 'gte', value: 1 }],
+          conditions: [],
         },
       }),
     );
     expect(workflowApprovalRulesRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: 'High value expense',
+        name: 'Expense rule over 2000 BDT',
+        priority: 1,
+        conditionJson: {
+          mode: 'all',
+          conditions: [{ field: 'amount', operator: 'gte', value: 2000 }],
+        },
         isActive: true,
       }),
     );
     expect(workflowApprovalStepConfigsRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({
-        stepName: 'Department review',
-        assigneeRoleSlug: 'department-reviewer',
+        stepOrder: 1,
+        stepName: 'Requester manager approval',
+        assigneeType: WorkflowAssigneeType.REQUESTER_MANAGER,
+      }),
+    );
+    expect(workflowApprovalStepConfigsRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stepOrder: 2,
+        stepName: 'Accounts officer approval',
+        assigneeType: WorkflowAssigneeType.ROLE,
+        assigneeRoleSlug: 'accounts-officer',
+      }),
+    );
+    expect(workflowApprovalStepConfigsRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stepOrder: 3,
+        stepName: 'CFO approval',
+        assigneeType: WorkflowAssigneeType.USER,
+        assigneeUserId: 'cfo-user-id',
+      }),
+    );
+    expect(workflowApprovalRulesRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Leave rule over 2 days',
+        priority: 1,
+        conditionJson: {
+          mode: 'all',
+          conditions: [{ field: 'leaveDays', operator: 'gte', value: 3 }],
+        },
+      }),
+    );
+    expect(workflowApprovalStepConfigsRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stepOrder: 2,
+        stepName: 'HR officer approval',
+        assigneeType: WorkflowAssigneeType.ROLE,
+        assigneeRoleSlug: 'hr-officer',
+      }),
+    );
+    expect(workflowApprovalStepConfigsRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stepOrder: 3,
+        stepName: 'HR manager approval',
+        assigneeType: WorkflowAssigneeType.USER,
+        assigneeUserId: 'hr-manager-user-id',
+      }),
+    );
+    expect(workflowApprovalRulesRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Invoice bill over 2500 BDT',
+        priority: 1,
+        conditionJson: {
+          mode: 'all',
+          conditions: [{ field: 'amount', operator: 'gte', value: 2500 }],
+        },
+      }),
+    );
+    expect(expensesRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Seed expense request over 2000 BDT',
+        amount: '2500',
+        currency: 'BDT',
+        status: ExpenseStatus.DRAFT,
+      }),
+    );
+    expect(leavesRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        leaveType: 'ANNUAL',
+        leaveDays: 3,
+        status: LeaveRequestStatus.DRAFT,
+      }),
+    );
+    expect(billingRequestsRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Seed billing request over 2500 BDT',
+        amount: '3000',
+        currency: 'BDT',
+        status: BillingRequestStatus.DRAFT,
       }),
     );
 

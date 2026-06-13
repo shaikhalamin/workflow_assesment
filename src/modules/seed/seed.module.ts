@@ -1,13 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuditLog } from '../audit-logs/entities/audit-log.entity';
 import { BillingRequest } from '../billing/entities/billing-request.entity';
 import { Department } from '../departments/entities/department.entity';
 import { Expense } from '../expenses/entities/expense.entity';
-import { Invoice } from '../invoices/entities/invoice.entity';
 import { LeaveRequest } from '../leaves/entities/leave-request.entity';
-import { Notification } from '../notifications/entities/notification.entity';
-import { PaymentRequest } from '../payments/entities/payment-request.entity';
 import { Permission } from '../rbac/entities/permission.entity';
 import { RolePermission } from '../rbac/entities/role-permission.entity';
 import { Role } from '../rbac/entities/role.entity';
@@ -19,9 +15,6 @@ import { WorkflowEventSchema } from '../workflow-builder/entities/workflow-event
 import { WorkflowOutcomeConfig } from '../workflow-builder/entities/workflow-outcome-config.entity';
 import { WorkflowTemplate } from '../workflow-builder/entities/workflow-template.entity';
 import { WorkflowTriggerCondition } from '../workflow-builder/entities/workflow-trigger-condition.entity';
-import { WorkflowAction } from '../workflow-runtime/entities/workflow-action.entity';
-import { WorkflowInstance } from '../workflow-runtime/entities/workflow-instance.entity';
-import { WorkflowStep } from '../workflow-runtime/entities/workflow-step.entity';
 import { SeedService } from './seed.service';
 
 @Module({
@@ -40,15 +33,8 @@ import { SeedService } from './seed.service';
       WorkflowApprovalStepConfig,
       WorkflowOutcomeConfig,
       BillingRequest,
-      Invoice,
       Expense,
       LeaveRequest,
-      PaymentRequest,
-      AuditLog,
-      Notification,
-      WorkflowInstance,
-      WorkflowStep,
-      WorkflowAction,
     ]),
   ],
   providers: [SeedService],

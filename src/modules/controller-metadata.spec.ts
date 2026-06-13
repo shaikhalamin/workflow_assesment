@@ -30,6 +30,9 @@ import { LeavesModule } from './leaves/leaves.module';
 import { LeavesController } from './leaves/leaves.controller';
 import { CreateLeaveDto } from './leaves/dto/create-leave.dto';
 import { LeavesService } from './leaves/leaves.service';
+import { NotificationsModule } from './notifications/notifications.module';
+import { NotificationsController } from './notifications/notifications.controller';
+import { NotificationsService } from './notifications/notifications.service';
 import { PaymentsModule } from './payments/payments.module';
 import { PaymentsController } from './payments/payments.controller';
 import { PaymentRequestResponseDto } from './payments/dto/payment-request-response.dto';
@@ -134,6 +137,7 @@ const modules = [
   DashboardModule,
   ExpensesModule,
   LeavesModule,
+  NotificationsModule,
   PaymentsModule,
   RbacModule,
   UsersModule,
@@ -148,6 +152,7 @@ const controllers: Type<unknown>[] = [
   DashboardController,
   ExpensesController,
   LeavesController,
+  NotificationsController,
   PaymentsController,
   RbacController,
   UsersController,
@@ -165,6 +170,7 @@ const controllerServices: Type<unknown>[] = [
   DashboardService,
   ExpensesService,
   LeavesService,
+  NotificationsService,
   PaymentsService,
   RbacService,
   UsersService,

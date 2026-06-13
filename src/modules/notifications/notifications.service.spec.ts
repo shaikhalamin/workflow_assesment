@@ -1,3 +1,4 @@
+import { In } from 'typeorm';
 import type { Repository } from 'typeorm';
 import type { MailerService } from '../../mailer/mailer.service';
 import type { Role } from '../rbac/entities/role.entity';
@@ -19,11 +20,22 @@ describe('NotificationsService', () => {
     const save = jest.fn((notification: Notification) =>
       Promise.resolve(notification),
     );
+    const findAndCount = jest.fn(() =>
+      Promise.resolve<[Notification[], number]>([[], 0]),
+    );
+    const findOne = jest.fn(() => Promise.resolve(null));
 
     return {
-      repository: { create, save } as unknown as Repository<Notification>,
+      repository: {
+        create,
+        save,
+        findAndCount,
+        findOne,
+      } as unknown as Repository<Notification>,
       create,
       save,
+      findAndCount,
+      findOne,
     };
   }
 
@@ -232,5 +244,112 @@ describe('NotificationsService', () => {
         message: 'A payment request is pending',
       },
     });
+  });
+
+  it('lists notifications visible to the current user and roles', async () => {
+    const { repository, findAndCount } = createRepository();
+    const service = createService({ notificationsRepository: repository });
+
+    await service.list({ page: 2, limit: 10 }, {
+      userId: 'user-1',
+      roles: ['manager'],
+    } as Express.User);
+
+    expect(findAndCount).toHaveBeenCalledWith({
+      where: [
+        { recipientUserId: 'user-1' },
+        { recipientRoleSlug: In(['manager']) },
+      ],
+      order: { createdAt: 'DESC', id: 'DESC' },
+      skip: 10,
+      take: 10,
+    });
+  });
+
+  it('filters unread notifications when requested', async () => {
+    const { repository, findAndCount } = createRepository();
+    const service = createService({ notificationsRepository: repository });
+
+    await service.list({ unreadOnly: true }, {
+      userId: 'user-1',
+      roles: ['manager'],
+    } as Express.User);
+
+    expect(findAndCount).toHaveBeenCalledWith({
+      where: [
+        { recipientUserId: 'user-1', isRead: false },
+        { recipientRoleSlug: In(['manager']), isRead: false },
+      ],
+      order: { createdAt: 'DESC', id: 'DESC' },
+      skip: 0,
+      take: 25,
+    });
+  });
+
+  it('marks a visible unread notification as read', async () => {
+    const { repository, findOne, save } = createRepository();
+    const service = createService({ notificationsRepository: repository });
+    const notification = {
+      id: 'notification-1',
+      recipientUserId: 'user-1',
+      recipientRoleSlug: null,
+      title: 'Workflow task assigned',
+      message: 'Expense needs approval',
+      type: NotificationType.WORKFLOW_TASK_ASSIGNED,
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      workflowInstanceId: 'workflow-1',
+      isRead: false,
+      readAt: null,
+      createdAt,
+    } satisfies Notification;
+    findOne.mockResolvedValue(notification);
+
+    const result = await service.markRead('notification-1', {
+      userId: 'user-1',
+      roles: ['manager'],
+    } as Express.User);
+
+    expect(findOne).toHaveBeenCalledWith({
+      where: [
+        { id: 'notification-1', recipientUserId: 'user-1' },
+        {
+          id: 'notification-1',
+          recipientRoleSlug: In(['manager']),
+        },
+      ],
+    });
+    expect(result.isRead).toBe(true);
+    expect(result.readAt).toBeInstanceOf(Date);
+    expect(save).toHaveBeenCalledWith(result);
+  });
+
+  it('does not replace readAt when a notification is already read', async () => {
+    const readAt = new Date('2026-06-13T11:00:00.000Z');
+    const { repository, findOne, save } = createRepository();
+    const service = createService({ notificationsRepository: repository });
+    const notification = {
+      id: 'notification-1',
+      recipientUserId: 'user-1',
+      recipientRoleSlug: null,
+      title: 'Workflow task assigned',
+      message: 'Expense needs approval',
+      type: NotificationType.WORKFLOW_TASK_ASSIGNED,
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      workflowInstanceId: 'workflow-1',
+      isRead: true,
+      readAt,
+      createdAt,
+    } satisfies Notification;
+    findOne.mockResolvedValue(notification);
+
+    const result = await service.markRead('notification-1', {
+      userId: 'user-1',
+      roles: ['manager'],
+    } as Express.User);
+
+    expect(result.readAt).toBe(readAt);
+    expect(save).not.toHaveBeenCalled();
   });
 });

@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
 import type { EmailPayload } from '../../mailer/mailer.service';
 import { MailerService } from '../../mailer/mailer.service';
+import { Paginated } from '../../common/http/paginated';
+import { paginateRepo } from '../../common/http/paginate';
 import { UserRole } from '../rbac/entities/user-role.entity';
 import { User } from '../users/entities/user.entity';
 import { Notification, NotificationType } from './entities/notification.entity';
@@ -29,6 +31,12 @@ type NotificationInput = {
   channels?: NotificationChannels;
 };
 
+type NotificationListQuery = {
+  page?: number;
+  limit?: number;
+  unreadOnly?: boolean;
+};
+
 @Injectable()
 export class NotificationsService {
   constructor(
@@ -41,6 +49,52 @@ export class NotificationsService {
     @InjectRepository(UserRole)
     private readonly userRolesRepository: Repository<UserRole>,
   ) {}
+
+  list(
+    query: NotificationListQuery,
+    actor: Express.User,
+  ): Promise<Paginated<Notification>> {
+    return paginateRepo(this.notificationsRepository, {
+      page: query.page ?? 1,
+      limit: query.limit ?? 25,
+      where: this.visibleNotificationWhere(actor, query.unreadOnly === true),
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async markRead(id: string, actor: Express.User): Promise<Notification> {
+    const notification = await this.notificationsRepository.findOne({
+      where: this.visibleNotificationWhere(actor, false, id),
+    });
+    if (!notification) throw new NotFoundException('Notification not found');
+    if (notification.isRead) return notification;
+
+    notification.isRead = true;
+    notification.readAt = new Date();
+    return this.notificationsRepository.save(notification);
+  }
+
+  private visibleNotificationWhere(
+    actor: Express.User,
+    unreadOnly: boolean,
+    id?: string,
+  ): FindOptionsWhere<Notification>[] {
+    const unreadWhere = unreadOnly ? { isRead: false } : {};
+    const idWhere = id ? { id } : {};
+    const where: FindOptionsWhere<Notification>[] = [
+      { ...idWhere, recipientUserId: actor.userId, ...unreadWhere },
+    ];
+
+    if (actor.roles.length) {
+      where.push({
+        ...idWhere,
+        recipientRoleSlug: In(actor.roles),
+        ...unreadWhere,
+      });
+    }
+
+    return where;
+  }
 
   async create(
     input: NotificationInput,
