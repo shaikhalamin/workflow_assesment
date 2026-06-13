@@ -3268,14 +3268,16 @@ function StepActionHistory({
   users: UserResponseDto[]
   currentUser?: AuthUserDto | null
 }) {
-  if (actions.length === 0) return null
+  const visibleActions = actions.filter((action) => action.action !== 'STEP_ACTIVATED')
+
+  if (visibleActions.length === 0) return null
 
   return (
     <div className="mt-3 space-y-2 border-t border-[var(--border)] pt-3">
       <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-3)]">
         Step actions
       </p>
-      {actions.map((action) => {
+      {visibleActions.map((action) => {
         const actionWithUser = action as WorkflowActionWithUser
 
         return (
@@ -5214,7 +5216,20 @@ export function PaymentsPage() {
   if (canWritePayments) {
     columns.push({
       header: 'Action',
-      cell: ({ row }) => <Button size="sm" type="button" onClick={() => markPaid.mutate({ id: String(row.original.id), data: { paymentReference: `MANUAL-${Date.now()}` } })}>Mark paid</Button>,
+      cell: ({ row }) => {
+        const isPaid = String(row.original.status).toUpperCase() === 'PAID'
+
+        return (
+          <Button
+            size="sm"
+            type="button"
+            disabled={isPaid}
+            onClick={() => markPaid.mutate({ id: String(row.original.id), data: { paymentReference: `MANUAL-${Date.now()}` } })}
+          >
+            Mark paid
+          </Button>
+        )
+      },
     })
   }
 

@@ -232,6 +232,56 @@ describe('PrivateLayout', () => {
     expect(useAuthStore.getState().user).toBeNull()
   })
 
+  it('closes the notifications menu when clicking outside it', async () => {
+    const pointer = userEvent.setup()
+    unreadNotifications = [
+      {
+        id: 'notification-db-1',
+        title: 'Workflow task assigned',
+        message: 'Billing needs review',
+        type: 'WORKFLOW_TASK_ASSIGNED',
+        entityType: 'BillingRequest',
+        entityId: 'billing-1',
+        workflowInstanceId: 'workflow-1',
+        isRead: false,
+        readAt: null,
+        createdAt: '2026-06-13T09:00:00.000Z',
+      },
+    ]
+
+    render(
+      <PrivateLayout>
+        <button type="button">Outside content</button>
+      </PrivateLayout>,
+    )
+
+    await pointer.click(screen.getByRole('button', { name: /notifications 1/i }))
+    expect(screen.getByText('Billing needs review')).toBeInTheDocument()
+
+    await pointer.click(screen.getByRole('button', { name: /outside content/i }))
+
+    expect(screen.queryByText('Billing needs review')).not.toBeInTheDocument()
+  })
+
+  it('closes the user menu when clicking outside it', async () => {
+    const pointer = userEvent.setup()
+
+    render(
+      <PrivateLayout>
+        <button type="button">Outside content</button>
+      </PrivateLayout>,
+    )
+
+    await pointer.click(screen.getByRole('button', { name: /dana operator/i }))
+    expect(screen.getByRole('button', { name: /log out/i })).toBeInTheDocument()
+
+    await pointer.click(screen.getByRole('button', { name: /outside content/i }))
+
+    expect(
+      screen.queryByRole('button', { name: /log out/i }),
+    ).not.toBeInTheDocument()
+  })
+
   it('only renders navigation links the user can access', () => {
     render(<PrivateLayout />)
 

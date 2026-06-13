@@ -34,10 +34,22 @@ const leaveListState = vi.hoisted((): { leaves: unknown[] } => ({
     },
   ],
 }))
+const paymentListState = vi.hoisted((): { payments: unknown[] } => ({
+  payments: [
+    {
+      id: 'payment-1',
+      expenseId: 'expense-1',
+      amount: 1200,
+      currency: 'BDT',
+      status: 'PENDING',
+    },
+  ],
+}))
 const submitLeave = vi.hoisted(() => vi.fn())
 const submitExpense = vi.hoisted(() => vi.fn())
 const resubmitExpense = vi.hoisted(() => vi.fn())
 const resubmitLeave = vi.hoisted(() => vi.fn())
+const markPaymentPaid = vi.hoisted(() => vi.fn())
 const submitExpenseState = vi.hoisted((): { error: unknown } => ({
   error: null,
 }))
@@ -140,20 +152,12 @@ vi.mock('@/lib/api/gen', () => ({
   }),
   usePaymentsControllerList: () => ({
     data: {
-      data: [
-        {
-          id: 'payment-1',
-          expenseId: 'expense-1',
-          amount: 1200,
-          currency: 'BDT',
-          status: 'PENDING',
-        },
-      ],
+      data: paymentListState.payments,
     },
     error: null,
     refetch: vi.fn(),
   }),
-  usePaymentsControllerMarkPaid: () => ({ mutate: vi.fn() }),
+  usePaymentsControllerMarkPaid: () => ({ mutate: markPaymentPaid }),
   useUsersControllerGetUsers: () => ({ data: { data: [] }, isLoading: false }),
   useWorkflowEventSchemaControllerCreate: () => ({
     error: null,
@@ -216,6 +220,14 @@ const writableLeaveUser: AuthUserDto = {
   permissions: ['leaves.read', 'leaves.write'],
 }
 
+const writablePaymentUser: AuthUserDto = {
+  id: 'finance-2',
+  name: 'Finance Writer',
+  email: 'finance-writer@example.com',
+  roles: ['finance-admin'],
+  permissions: ['payments.read', 'payments.write'],
+}
+
 describe('workspace page permissions', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -239,11 +251,21 @@ describe('workspace page permissions', () => {
         status: 'DRAFT',
       },
     ]
+    paymentListState.payments = [
+      {
+        id: 'payment-1',
+        expenseId: 'expense-1',
+        amount: 1200,
+        currency: 'BDT',
+        status: 'PENDING',
+      },
+    ]
     pendingTasksState.pendingTasks = []
     submitExpense.mockClear()
     resubmitExpense.mockClear()
     submitLeave.mockClear()
     resubmitLeave.mockClear()
+    markPaymentPaid.mockClear()
     deleteExpense.mockClear()
     deleteLeave.mockClear()
     submitExpenseState.error = null
@@ -383,6 +405,30 @@ describe('workspace page permissions', () => {
     expect(
       screen.queryByRole('button', { name: /mark paid/i }),
     ).not.toBeInTheDocument()
+  })
+
+  it('disables payment mark paid action for paid rows', () => {
+    paymentListState.payments = [
+      {
+        id: 'payment-1',
+        expenseId: 'expense-1',
+        amount: 1200,
+        currency: 'BDT',
+        status: 'PAID',
+      },
+    ]
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: writablePaymentUser,
+    })
+
+    render(<PaymentsPage />)
+
+    const markPaidButton = screen.getByRole('button', { name: /mark paid/i })
+
+    expect(markPaidButton).toBeDisabled()
+    fireEvent.click(markPaidButton)
+    expect(markPaymentPaid).not.toHaveBeenCalled()
   })
 
   it('matches expense list styling for leave open and submit actions', () => {

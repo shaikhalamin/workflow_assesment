@@ -402,7 +402,7 @@ describe('WorkflowInstanceDetailPage', () => {
     expect(within(timeline).getByText('Currently waiting for action')).toBeInTheDocument()
     expect(within(timeline).getByText('Upcoming step')).toBeInTheDocument()
     expect(within(timeline).getByText('Looks correct')).toBeInTheDocument()
-    expect(within(timeline).getByText('Ready for finance')).toBeInTheDocument()
+    expect(within(timeline).queryByText('Ready for finance')).not.toBeInTheDocument()
     expect(container.textContent).not.toContain('"steps"')
     expect(container.textContent).not.toContain('metadataJson')
     expect(container.textContent).not.toContain('{"nested"')
@@ -601,6 +601,47 @@ describe('WorkflowInstanceDetailPage', () => {
     const workflowActionRow = screen.getByRole('row', { name: /Submitted expense/ })
     expect(within(workflowActionRow).getByRole('cell', { name: 'Expense Requester (requester@example.com)' })).toBeInTheDocument()
     expect(workflowActionRow).not.toHaveTextContent('requester-1')
+  })
+
+  it('hides step activation rows from step action history while keeping approval rows', () => {
+    workflowResponse = {
+      ...baseWorkflow,
+      steps: baseWorkflow.steps.map((step) =>
+        step.id === 'step-1'
+          ? {
+              ...step,
+              actions: [
+                {
+                  id: 'action-step-activated-1',
+                  workflowInstanceId: 'wf-1',
+                  workflowStepId: 'step-1',
+                  action: 'STEP_ACTIVATED',
+                  actorUserId: null,
+                  comment: null,
+                  reason: null,
+                  metadataJson: null,
+                  createdAt: '2026-06-11T08:00:00.000Z',
+                },
+                ...step.actions,
+              ],
+            }
+          : step,
+      ),
+    }
+
+    render(<WorkflowInstanceDetailPage />)
+
+    const progress = screen.getByRole('region', { name: /workflow progress/i })
+    const actedStepHeading = within(progress).getByRole('heading', {
+      level: 3,
+      name: 'Line Manager',
+    })
+    const actedStep = actedStepHeading.closest('article')
+    if (!actedStep) throw new Error('Expected manager review step article')
+
+    expect(within(progress).queryByText('Step activated')).not.toBeInTheDocument()
+    expect(within(actedStep).getAllByText('Approved').length).toBeGreaterThan(0)
+    expect(within(actedStep).getByText('Looks correct')).toBeInTheDocument()
   })
 
   it('shows requester manager resolved assignee from embedded assigned user', () => {

@@ -16,7 +16,7 @@ import {
   WalletCards,
   X,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { io } from 'socket.io-client'
 
@@ -81,6 +81,8 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
     string[]
   >([])
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const notificationMenuRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const setAuthenticatedUser = useAuthStore((state) => state.login)
   const clearAuthenticatedUser = useAuthStore((state) => state.logout)
   const meQuery = useAuthControllerMe({
@@ -209,6 +211,24 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [mobileSidebarOpen])
+
+  useEffect(() => {
+    if (!notificationMenuOpen && !userMenuOpen) return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target
+
+      if (!(target instanceof Node)) return
+      if (notificationMenuRef.current?.contains(target)) return
+      if (userMenuRef.current?.contains(target)) return
+
+      setNotificationMenuOpen(false)
+      setUserMenuOpen(false)
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [notificationMenuOpen, userMenuOpen])
 
   if (!user && !meQuery.isError) {
     return (
@@ -343,7 +363,7 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
             <Menu className="h-5 w-5" />
           </Button>
           <div className="flex items-center justify-end gap-1 lg:gap-3">
-            <div className="relative">
+            <div ref={notificationMenuRef} className="relative">
               <button
                 type="button"
                 className="relative grid h-9 w-9 place-items-center rounded-md border border-transparent text-[var(--ink-3)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
@@ -386,7 +406,7 @@ export function PrivateLayout({ children }: { children?: ReactNode }) {
                 </div>
               ) : null}
             </div>
-            <div className="relative">
+            <div ref={userMenuRef} className="relative">
               <button
                 type="button"
                 className="flex items-center gap-2 rounded-md border border-transparent px-2 py-1.5 text-left hover:bg-[var(--surface-2)]"
