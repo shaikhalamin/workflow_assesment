@@ -9,14 +9,14 @@ The primary implemented flow is Sales billing approval:
 3. Approval moves through requester manager, Accounts Officer, and CFO.
 4. When all approval steps pass, the system marks the billing request approved, creates an invoice, links it back to the billing request, records audit logs, and sends simulated notifications.
 
-The product also includes expense approval to payment request and leave approval flows to demonstrate that the workflow engine is reusable, not hard-coded only for billing.
+## The product also includes expense approval to payment request and leave approval flows to demonstrate that the workflow engine is reusable, not hard-coded only for billing.
 
 ## Run With Docker Compose
 
 Run everything from the repository root:
 
 ```bash
-docker compose up -d --build
+docker compose up --build -d
 ```
 
 Default services:
