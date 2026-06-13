@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "properties": {
+    "invoices": {
+      "type": "object",
+      "properties": {
+        "issued": { "type": "number", "example": 7 },
+        "paid": { "type": "number", "example": 3 },
+        "cancelled": { "type": "number", "example": 1 }
+      },
+      "required": ["issued", "paid", "cancelled"],
+      "x-readme-ref-name": "FinanceInvoiceSummaryDto"
+    }
+  },
+  "required": ["invoices"],
+  "x-readme-ref-name": "FinanceDashboardResponseDto"
+}

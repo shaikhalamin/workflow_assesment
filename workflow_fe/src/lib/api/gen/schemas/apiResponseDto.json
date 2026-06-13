@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "nullable": true,
+      "description": "Endpoint response payload. Null when the request fails."
+    },
+    "error": {
+      "nullable": true,
+      "example": null,
+      "description": "Error details. Null when the request succeeds.",
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "example": "VALIDATION_FAILED",
+              "description": "Stable machine-readable error code."
+            },
+            "message": {
+              "type": "string",
+              "example": "title must not be empty",
+              "description": "Human-readable error message."
+            },
+            "statusCode": { "type": "number", "example": 400 },
+            "details": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": true,
+              "description": "Optional structured details (e.g. per-field validation errors)."
+            }
+          },
+          "required": ["code", "message", "statusCode"],
+          "x-readme-ref-name": "ApiErrorDto"
+        }
+      ]
+    }
+  },
+  "required": ["data", "error"],
+  "x-readme-ref-name": "ApiResponseDto"
+}

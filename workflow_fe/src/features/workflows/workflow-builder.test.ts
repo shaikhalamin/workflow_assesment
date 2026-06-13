@@ -1,0 +1,317 @@
+import { describe, expect, it } from 'vitest'
+
+import {
+  createDefaultWorkflowDraft,
+  describeWorkflowAssignee,
+  getConditionFieldExample,
+  getWorkflowBuilderStepState,
+  getWorkflowModule,
+  parseConditionValue,
+  roleOptions,
+  toWorkflowWizardPayload,
+  workflowBuilderSteps,
+  workflowModules,
+} from './workflow-builder-store'
+
+describe('workflow builder payload', () => {
+  it('defines named wizard steps with explicit progress state', () => {
+    expect(workflowBuilderSteps.map((step) => step.name)).toEqual([
+      'Setup',
+      'Rules',
+      'Approval chains by rule',
+      'Outcomes',
+      'Review',
+    ])
+    expect(workflowBuilderSteps[0]?.description).toContain(
+      'Basics, event, and trigger',
+    )
+
+    expect(getWorkflowBuilderStepState(3, 1)).toBe('complete')
+    expect(getWorkflowBuilderStepState(3, 3)).toBe('current')
+    expect(getWorkflowBuilderStepState(3, 5)).toBe('upcoming')
+  })
+
+  it('describes workflow assignees in production-readable language', () => {
+    expect(
+      describeWorkflowAssignee({
+        stepOrder: 1,
+        stepName: 'Finance review',
+        stepType: 'FINANCE_CHECK',
+        assigneeType: 'ROLE',
+        assigneeRoleSlug: 'finance-admin',
+        isRequired: true,
+        requiresComment: true,
+        canReject: true,
+        canReassign: false,
+      }),
+    ).toBe('Role: Finance Admin')
+
+    expect(
+      describeWorkflowAssignee(
+        {
+          stepOrder: 2,
+          stepName: 'CFO approval',
+          stepType: 'MANAGEMENT_APPROVAL',
+          assigneeType: 'USER',
+          assigneeUserId: 'user-1',
+          isRequired: true,
+          requiresComment: false,
+          canReject: true,
+          canReassign: false,
+        },
+        [{ id: 'user-1', name: 'Ayesha Rahman', email: 'ayesha@example.com' }],
+      ),
+    ).toBe('User: Ayesha Rahman <ayesha@example.com>')
+
+    expect(
+      describeWorkflowAssignee({
+        stepOrder: 3,
+        stepName: 'Budget owner approval',
+        stepType: 'APPROVAL',
+        assigneeType: 'CUSTOM_FIELD_USER',
+        assigneeFieldPath: 'customFields.budgetOwnerId',
+        isRequired: true,
+        requiresComment: false,
+        canReject: true,
+        canReassign: false,
+      }),
+    ).toBe('User from event field: customFields.budgetOwnerId')
+
+    expect(
+      describeWorkflowAssignee({
+        stepOrder: 4,
+        stepName: 'Missing user approval',
+        stepType: 'APPROVAL',
+        assigneeType: 'USER',
+        isRequired: true,
+        requiresComment: false,
+        canReject: true,
+        canReassign: false,
+      }),
+    ).toBe('Needs assignment')
+  })
+
+  it('starts new workflows with only manager approval in the default path', () => {
+    const draft = createDefaultWorkflowDraft()
+
+    expect(draft.rules[0]?.steps).toEqual([
+      {
+        stepOrder: 1,
+        stepName: 'Manager approval',
+        stepType: 'APPROVAL',
+        assigneeType: 'REQUESTER_MANAGER',
+        isRequired: true,
+        requiresComment: false,
+        canReject: true,
+        canReassign: false,
+        slaHours: 24,
+      },
+    ])
+  })
+
+  it('starts new workflows without payment request creation selected', () => {
+    const draft = createDefaultWorkflowDraft()
+
+    expect(draft.approvedActionsJson.createPaymentRequest).toBe(false)
+  })
+
+  it('only exposes backend role slugs for role assignment', () => {
+    expect(roleOptions).toContain('accounts-officer')
+    expect(roleOptions).not.toContain('accounts')
+    expect(roleOptions).not.toContain('management')
+  })
+
+  it('exposes backend-backed condition field examples for rule guidance', () => {
+    expect(workflowModules.map((module) => module.label)).toEqual([
+      'Expense',
+      'Leave',
+      'Billing',
+    ])
+    expect(getWorkflowModule('expenses')?.fields.map((field) => field.key)).toEqual([
+      'amount',
+      'currency',
+      'category',
+      'vendor',
+      'itemValue',
+      'price',
+      'quantity',
+      'departmentId',
+      'customFields.budgetOwnerId',
+    ])
+    expect(getWorkflowModule('leaves')?.eventName).toBe('leave.submitted')
+    expect(getWorkflowModule('leaves')?.entityType).toBe('LeaveRequest')
+    expect(getWorkflowModule('billing')?.fields.map((field) => field.key)).toEqual([
+      'amount',
+      'currency',
+      'billingCategory',
+      'customerName',
+      'departmentId',
+      'customFields.projectCode',
+      'customFields.accountOwnerId',
+    ])
+    expect(getWorkflowModule('billing')?.eventName).toBe('billing.submitted')
+    expect(getWorkflowModule('billing')?.entityType).toBe('BillingRequest')
+    expect(getConditionFieldExample('amount')).toEqual({
+      value: 5000,
+      label: 'Example: amount greater than or equal to 5000',
+    })
+    expect(getConditionFieldExample('leaveDays')).toEqual({
+      value: 2,
+      label: 'Example: leaveDays greater than or equal to 2',
+    })
+    expect(getConditionFieldExample('customFields.budgetOwnerId')).toEqual({
+      value: '71cb34da-1809-4c72-b132-2b9860be8936',
+      label: 'Example: customFields.budgetOwnerId equals 71cb34da-1809-4c72-b132-2b9860be8936',
+    })
+  })
+
+  it('maps an expense workflow draft to the backend wizard payload', () => {
+    const draft = createDefaultWorkflowDraft()
+    draft.template.name = 'Expense approval workflow'
+    draft.template.moduleName = 'expenses'
+    draft.template.eventName = 'expense.submitted'
+    draft.template.entityType = 'Expense'
+    draft.approvedActionsJson.createPaymentRequest = true
+    draft.triggerMode = 'conditions'
+    draft.triggerConditions.conditions = [
+      { field: 'departmentId', operator: 'eq', value: 'sales' },
+    ]
+    draft.rules = [
+      {
+        name: 'High value expense',
+        priority: 1,
+        isFallback: false,
+        isActive: true,
+        conditionJson: {
+          mode: 'all',
+          conditions: [{ field: 'amount', operator: 'gte', value: 10000 }],
+        },
+        steps: [
+          {
+            stepOrder: 1,
+            stepName: 'Finance review',
+            stepType: 'FINANCE_CHECK',
+            assigneeType: 'ROLE',
+            assigneeRoleSlug: 'finance-admin',
+            isRequired: true,
+            requiresComment: true,
+            canReject: true,
+            canReassign: false,
+            slaHours: 24,
+          },
+        ],
+      },
+    ]
+
+    expect(toWorkflowWizardPayload(draft)).toEqual({
+      template: {
+        name: 'Expense approval workflow',
+        description: '',
+        moduleName: 'expenses',
+        eventName: 'expense.submitted',
+        entityType: 'Expense',
+        status: 'DRAFT',
+        priority: 1,
+        effectiveFrom: undefined,
+        effectiveTo: undefined,
+        allowResubmission: true,
+        triggerConditionJson: {
+          mode: 'all',
+          conditions: [{ field: 'departmentId', operator: 'eq', value: 'sales' }],
+        },
+      },
+      rules: [
+        {
+          name: 'High value expense',
+          priority: 1,
+          isFallback: false,
+          isActive: true,
+          conditionJson: {
+            mode: 'all',
+            conditions: [{ field: 'amount', operator: 'gte', value: 10000 }],
+          },
+          steps: [
+            {
+              stepOrder: 1,
+              stepName: 'Finance review',
+              stepType: 'FINANCE_CHECK',
+              assigneeType: 'ROLE',
+              assigneeRoleSlug: 'finance-admin',
+              assigneeUserId: undefined,
+              assigneeFieldPath: undefined,
+              isRequired: true,
+              requiresComment: true,
+              canReject: true,
+              canReassign: false,
+              slaHours: 24,
+            },
+          ],
+        },
+      ],
+      approvedActionsJson: {
+        createPaymentRequest: true,
+        notifyRequester: true,
+        setStatus: 'APPROVED',
+      },
+      rejectedActionsJson: {
+        allowResubmission: true,
+        requireReason: true,
+        setStatus: 'REJECTED',
+      },
+    })
+  })
+
+  it('omits payment request actions from leave workflow payloads', () => {
+    const draft = createDefaultWorkflowDraft()
+    draft.template.moduleName = 'leaves'
+    draft.template.eventName = 'leave.submitted'
+    draft.template.entityType = 'LeaveRequest'
+
+    expect(toWorkflowWizardPayload(draft)).toEqual(
+      expect.objectContaining({
+        approvedActionsJson: {
+          notifyRequester: true,
+          setStatus: 'APPROVED',
+        },
+      }),
+    )
+  })
+
+  it('maps a billing workflow draft to backend invoice outcome actions', () => {
+    const draft = createDefaultWorkflowDraft()
+    draft.template.name = 'Billing approval workflow'
+    draft.template.moduleName = 'billing'
+    draft.template.eventName = 'billing.submitted'
+    draft.template.entityType = 'BillingRequest'
+    draft.approvedActionsJson.createPaymentRequest = true
+    draft.approvedActionsJson.createInvoice = true
+
+    expect(toWorkflowWizardPayload(draft)).toEqual(
+      expect.objectContaining({
+        template: expect.objectContaining({
+          moduleName: 'billing',
+          eventName: 'billing.submitted',
+          entityType: 'BillingRequest',
+        }),
+        approvedActionsJson: {
+          actions: [
+            { type: 'MARK_BILLING_APPROVED' },
+            { type: 'CREATE_INVOICE' },
+          ],
+        },
+      }),
+    )
+  })
+
+  it('parses range and list condition values for backend rule operators', () => {
+    expect(parseConditionValue('2000,5000', 'amount', 'between')).toEqual([
+      2000,
+      5000,
+    ])
+    expect(parseConditionValue('travel, meal', 'category', 'in')).toEqual([
+      'travel',
+      'meal',
+    ])
+    expect(parseConditionValue('10000', 'amount', 'lt')).toBe(10000)
+  })
+})

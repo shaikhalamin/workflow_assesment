@@ -1,0 +1,64 @@
+{
+  "type": "object",
+  "properties": {
+    "data": {
+      "description": "Current page items.",
+      "type": "array",
+      "items": { "type": "array" }
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "page": { "type": "number", "example": 1 },
+        "limit": { "type": "number", "example": 20 },
+        "total": { "type": "number", "example": 142 },
+        "totalPages": { "type": "number", "example": 8 },
+        "hasNext": { "type": "boolean", "example": true },
+        "hasPrev": { "type": "boolean", "example": false }
+      },
+      "required": [
+        "page",
+        "limit",
+        "total",
+        "totalPages",
+        "hasNext",
+        "hasPrev"
+      ],
+      "x-readme-ref-name": "PaginationMetaDto"
+    },
+    "error": {
+      "nullable": true,
+      "example": null,
+      "description": "Error details. Null when the request succeeds.",
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "example": "VALIDATION_FAILED",
+              "description": "Stable machine-readable error code."
+            },
+            "message": {
+              "type": "string",
+              "example": "title must not be empty",
+              "description": "Human-readable error message."
+            },
+            "statusCode": { "type": "number", "example": 400 },
+            "details": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": true,
+              "description": "Optional structured details (e.g. per-field validation errors)."
+            }
+          },
+          "required": ["code", "message", "statusCode"],
+          "x-readme-ref-name": "ApiErrorDto"
+        }
+      ]
+    }
+  },
+  "required": ["data", "meta", "error"],
+  "x-readme-ref-name": "PaginatedResponseDto"
+}

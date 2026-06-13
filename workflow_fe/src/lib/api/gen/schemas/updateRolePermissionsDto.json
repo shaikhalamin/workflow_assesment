@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "permissionSlugs": {
+      "example": ["expenses.read", "expenses.write"],
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["permissionSlugs"],
+  "x-readme-ref-name": "UpdateRolePermissionsDto"
+}

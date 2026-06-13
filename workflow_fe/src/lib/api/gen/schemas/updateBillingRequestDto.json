@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "example": "Enterprise internet installation"
+    },
+    "description": {
+      "type": "string",
+      "example": "One-time setup fee for corporate customer"
+    },
+    "customerName": { "type": "string", "example": "ACME Bangladesh Ltd." },
+    "customerEmail": { "type": "string", "example": "billing@acme.example" },
+    "customerAddress": { "type": "string", "example": "Gulshan Avenue, Dhaka" },
+    "amount": { "type": "number", "minimum": 0, "example": 125000 },
+    "currency": { "type": "string", "default": "BDT", "example": "BDT" },
+    "billingCategory": { "type": "string", "example": "Installation" },
+    "departmentId": {
+      "type": "string",
+      "example": "61f1d2de-5733-4830-a97c-cb1899482850"
+    },
+    "customFieldsJson": {
+      "type": "object",
+      "example": {
+        "projectCode": "PRJ-2026-001",
+        "accountOwnerId": "71cb34da-1809-4c72-b132-2b9860be8936"
+      }
+    }
+  },
+  "x-readme-ref-name": "UpdateBillingRequestDto"
+}

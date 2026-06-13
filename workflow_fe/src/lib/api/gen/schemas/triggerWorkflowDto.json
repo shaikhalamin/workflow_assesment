@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "properties": {
+    "moduleName": { "type": "string", "example": "expenses" },
+    "eventName": { "type": "string", "example": "expense.submitted" },
+    "entityType": { "type": "string", "example": "Expense" },
+    "entityId": { "type": "string", "example": "expense-2026-0001" },
+    "requesterId": {
+      "type": "string",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+    },
+    "departmentId": {
+      "type": "string",
+      "example": "61f1d2de-5733-4830-a97c-cb1899482850"
+    },
+    "metadata": {
+      "type": "object",
+      "example": { "amount": 55000, "currency": "BDT" }
+    }
+  },
+  "required": [
+    "moduleName",
+    "eventName",
+    "entityType",
+    "entityId",
+    "requesterId"
+  ],
+  "x-readme-ref-name": "TriggerWorkflowDto"
+}

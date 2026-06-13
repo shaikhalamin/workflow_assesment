@@ -1,0 +1,61 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "4f6c0138-5f7b-4e4f-a0f9-7ee2efc79c77"
+    },
+    "actorUserId": {
+      "type": "string",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936",
+      "nullable": true
+    },
+    "action": { "type": "string", "example": "EXPENSE_SUBMITTED" },
+    "entityType": { "type": "string", "example": "Expense" },
+    "entityId": { "type": "string", "example": "expense-2026-0001" },
+    "workflowInstanceId": {
+      "type": "string",
+      "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2",
+      "nullable": true
+    },
+    "workflowStepId": {
+      "type": "string",
+      "example": "e7c883f6-90e7-465e-8abc-4c7f8e5e7d4a",
+      "nullable": true
+    },
+    "oldStatus": { "type": "string", "example": "DRAFT", "nullable": true },
+    "newStatus": { "type": "string", "example": "SUBMITTED", "nullable": true },
+    "comment": {
+      "type": "string",
+      "example": "Submitted for approval",
+      "nullable": true
+    },
+    "reason": {
+      "type": "string",
+      "example": "Policy threshold met",
+      "nullable": true
+    },
+    "metadataJson": {
+      "type": "object",
+      "example": { "amount": 55000 },
+      "nullable": true
+    },
+    "createdAt": { "type": "string", "example": "2026-06-10T10:15:00.000Z" }
+  },
+  "required": [
+    "id",
+    "actorUserId",
+    "action",
+    "entityType",
+    "entityId",
+    "workflowInstanceId",
+    "workflowStepId",
+    "oldStatus",
+    "newStatus",
+    "comment",
+    "reason",
+    "metadataJson",
+    "createdAt"
+  ],
+  "x-readme-ref-name": "AuditLogResponseDto"
+}

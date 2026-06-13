@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "cfc26df2-d379-4fbb-9c61-b901d72f1651"
+    },
+    "workflowTemplateId": {
+      "type": "string",
+      "example": "24fa2355-a172-4910-9314-032b967f54ba"
+    },
+    "conditionJson": {
+      "type": "object",
+      "example": {
+        "mode": "all",
+        "conditions": [{ "field": "amount", "operator": "gte", "value": 50000 }]
+      }
+    },
+    "createdAt": { "type": "string", "example": "2026-06-10T09:30:00.000Z" },
+    "updatedAt": { "type": "string", "example": "2026-06-10T10:15:00.000Z" }
+  },
+  "required": [
+    "id",
+    "workflowTemplateId",
+    "conditionJson",
+    "createdAt",
+    "updatedAt"
+  ],
+  "x-readme-ref-name": "WorkflowTriggerConditionResponseDto"
+}

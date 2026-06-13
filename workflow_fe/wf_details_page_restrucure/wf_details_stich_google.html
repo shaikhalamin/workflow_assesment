@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ExpenseFlow - Expense Primary WF</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#003c27",
+                        "surface-container": "#e5eeff",
+                        "on-primary-fixed": "#001c37",
+                        "surface-bright": "#f8f9ff",
+                        "surface-container-high": "#dce9ff",
+                        "primary-container": "#0f4c81",
+                        "on-tertiary-fixed": "#002113",
+                        "on-error-container": "#93000a",
+                        "surface": "#f8f9ff",
+                        "secondary": "#0058be",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-secondary-container": "#fefcff",
+                        "inverse-surface": "#213145",
+                        "on-background": "#0b1c30",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed": "#001a42",
+                        "surface-container-highest": "#d3e4fe",
+                        "secondary-container": "#2170e4",
+                        "tertiary-container": "#005539",
+                        "secondary-fixed": "#d8e2ff",
+                        "on-primary-fixed-variant": "#07497d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#42474f",
+                        "outline": "#727780",
+                        "on-surface": "#0b1c30",
+                        "surface-tint": "#2d6197",
+                        "surface-dim": "#cbdbf5",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#004395",
+                        "on-secondary": "#ffffff",
+                        "background": "#f8f9ff",
+                        "primary": "#00355f",
+                        "on-primary-container": "#8ebdf9",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "on-primary": "#ffffff",
+                        "primary-fixed": "#d2e4ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary-fixed-dim": "#a0c9ff",
+                        "tertiary-fixed": "#6ffbbe",
+                        "inverse-primary": "#a0c9ff",
+                        "surface-variant": "#d3e4fe",
+                        "outline-variant": "#c2c7d1",
+                        "on-tertiary-container": "#3dd197",
+                        "surface-container-low": "#eff4ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "unit": "4px",
+                        "max-width": "1440px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "mono-data": ["JetBrains Mono"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "800" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "mono-data": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "headline-sm": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "display-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #0b1c30; }
+        .font-headline-md, .font-headline-sm, .font-label-caps, .font-display-lg { font-family: 'Hanken Grotesk', sans-serif; }
+        .font-mono-data { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Custom workflow line styling */
+        .workflow-line-vertical {
+            position: absolute;
+            left: 23px; /* Center of the 48x48 icon circle (24px) - half of line width (1px) */
+            top: 48px;
+            bottom: -24px;
+            width: 2px;
+            background-color: #E2E8F0;
+            z-index: 0;
+        }
+        .step-container:last-child .workflow-line-vertical {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex">
+<!-- SideNavBar -->
+<nav class="bg-surface-container-lowest dark:bg-inverse-surface text-primary dark:text-primary-fixed-dim font-body-md text-body-md h-screen w-64 fixed left-0 top-0 border-r border-outline-variant dark:border-outline flat no shadows transition-colors duration-200 flex flex-col h-full py-spacing-margin-desktop z-20">
+<!-- Header -->
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary text-on-primary flex items-center justify-center font-bold">
+                EF
+            </div>
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed-dim">ExpenseFlow</div>
+<div class="text-xs text-on-surface-variant">Enterprise Edition</div>
+</div>
+</div>
+<!-- CTA -->
+<div class="px-6 mb-6">
+<button class="w-full bg-primary text-on-primary rounded py-2 px-4 font-semibold text-sm hover:bg-on-primary-fixed transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">add</span>
+                Create New WF
+            </button>
+</div>
+<!-- Main Navigation -->
+<div class="flex-1 overflow-y-auto px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-high dark:text-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded bg-secondary-container text-on-secondary-container dark:bg-secondary dark:text-on-secondary font-semibold transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+                Workflows
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-high dark:text-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">rule</span>
+                Approvals
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-high dark:text-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-high dark:text-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-high dark:text-surface-variant transition-colors" href="#">
+<span class="material-symbols-outlined">history</span>
+                Logs
+            </a>
+</div>
+<!-- Footer Navigation -->
+<div class="mt-auto px-4 border-t border-outline-variant pt-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-high dark:text-surface-variant transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-sm">help</span>
+                Help
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container-high dark:text-surface-variant transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-sm">contact_support</span>
+                Support
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="ml-64 w-[calc(100%-256px)] min-h-screen flex flex-col relative">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-on-background text-primary dark:text-primary-fixed-dim font-body-md text-body-md fixed top-0 right-0 w-[calc(100%-256px)] h-16 border-b border-outline-variant dark:border-outline flat no shadows scale-95 active:scale-90 flex justify-between items-center px-spacing-margin-desktop z-10 transition-transform origin-top">
+<div class="flex items-center gap-6 h-full">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">
+                    Expense Primary WF
+                </div>
+<nav class="hidden md:flex items-center gap-6 h-full ml-4">
+<a class="text-primary font-bold border-b-2 border-primary h-full flex items-center pt-1" href="#">Workflows</a>
+<a class="text-on-surface-variant hover:text-primary h-full flex items-center pt-1 transition-colors" href="#">Execution History</a>
+<a class="text-on-surface-variant hover:text-primary h-full flex items-center pt-1 transition-colors" href="#">Settings</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center gap-2">
+<button class="px-4 py-1.5 border border-outline rounded text-sm font-medium text-on-surface hover:bg-surface-container-high transition-colors">
+                        Edit Logic
+                    </button>
+<button class="px-4 py-1.5 bg-primary text-on-primary rounded text-sm font-medium hover:bg-on-primary-fixed transition-colors">
+                        Execute Now
+                    </button>
+</div>
+<div class="flex items-center gap-2 border-l border-outline-variant pl-4">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+<img alt="Administrator Avatar" class="w-8 h-8 rounded-full ml-2 border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvbG_rEhB9mg9kQrI-tnq3jeH-yTuYvTkxe1yNwSMVYmK0dnNR85xqC4uF1Vz0XVtQLCSukinLuD7S8hcN9MfVZGfInEzZy5Pe7yjrCiRf-Hkzb6ocGOwnigzWD75_w4dbwWXAxQkleL9QcFNHtcgbp8J70YVG_NHDfjVflUi99HdbV0dq1BtgKPFhWYu7TPf0qrYfFkDRsjX-Hs1ffGjfBRF9PHeVrc5y3JTm1yo9fqYqGhsobJYX1WctggXq-DxKOukX4rkQt72J"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 pt-24 px-spacing-margin-desktop pb-32 overflow-x-hidden max-w-max-width mx-auto w-full">
+<!-- Page Header & Badges -->
+<div class="mb-8">
+<div class="flex items-center gap-3 mb-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-tertiary-container/10 text-tertiary-container border border-tertiary-container/20">
+                        DRAFT
+                    </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-on-surface-variant bg-surface-container-high border border-outline-variant">
+                        expenses
+                    </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-on-surface-variant bg-surface-container-high border border-outline-variant font-mono-data">
+                        expense.submitted
+                    </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-on-surface-variant bg-surface-container-high border border-outline-variant">
+                        Priority 1
+                    </span>
+</div>
+<h1 class="font-display-lg text-display-lg text-primary mb-1">Expense Primary WF</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Read-only workflow execution summary.</p>
+</div>
+<!-- Stats Overview Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-4">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">ENTITY TYPE</div>
+<div class="font-body-md text-body-md font-semibold">Expense</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-4">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">EFFECTIVE DATES</div>
+<div class="font-body-md text-body-md font-semibold truncate" title="Jun 10, 2026, 6:00 AM to Feb 19, 2027, 6:00 AM">Jun 10, 2026, 6:00 AM to Feb 19, 2027, 6:00 AM</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-4">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">RULES / STEPS</div>
+<div class="font-body-md text-body-md font-semibold">2 Rules <span class="text-outline-variant mx-1">•</span> 4 Steps</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-4">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">RESUBMISSION</div>
+<div class="font-body-md text-body-md font-semibold text-secondary-container">Allowed</div>
+</div>
+</div>
+<!-- Workflow Visualizer Container -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded p-6 mb-10">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-6 pb-2 border-b border-outline-variant">WORKFLOW LOGIC</div>
+<!-- Trigger -->
+<div class="flex items-center gap-4 mb-8">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary">bolt</span>
+</div>
+<div class="bg-surface-bright border border-outline-variant rounded p-4 flex-1">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-1">TRIGGER</div>
+<div class="font-mono-data text-mono-data text-primary font-medium">expense.submitted</div>
+</div>
+</div>
+<div class="pl-6 border-l-2 border-outline-variant/30 ml-6 pb-2 mb-8 relative">
+<div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-outline-variant/30"></div>
+<div class="font-body-sm text-body-sm text-on-surface-variant italic mb-6">Evaluates approval rules by priority</div>
+<!-- Priority 1 Path -->
+<div class="mb-10 relative">
+<div class="flex items-center gap-3 mb-4">
+<span class="inline-flex items-center justify-center w-6 h-6 rounded bg-primary text-on-primary font-bold text-xs shrink-0">1</span>
+<h3 class="font-headline-sm text-headline-sm text-primary">Amount Over 2000</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-secondary-container bg-surface-container-high border border-outline-variant ml-auto">
+                                ACTIVE
+                            </span>
+</div>
+<div class="font-mono-data text-xs text-on-surface-variant mb-6 bg-surface-container-low p-2 rounded border border-outline-variant/50 inline-block">
+                            Condition: amount &gt;= 2000
+                        </div>
+<!-- P1 Steps -->
+<div class="space-y-4 pl-4 border-l-2 border-secondary-container/20 relative">
+<!-- Step 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded flex relative overflow-hidden group">
+<div class="w-1 bg-secondary-container shrink-0"></div>
+<div class="p-4 flex-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] text-on-surface-variant bg-surface-container-high px-1.5 rounded">STEP 1</span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Manager approval</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Role: Requester's manager</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low">Required</span>
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low">Can reject</span>
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span> SLA 24h
+                                        </span>
+</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded flex relative overflow-hidden">
+<div class="w-1 bg-secondary-container shrink-0"></div>
+<div class="p-4 flex-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] text-on-surface-variant bg-surface-container-high px-1.5 rounded">STEP 2</span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Approval step</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Role: Finance Admin</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low">Required</span>
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low">Can reject</span>
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span> SLA 24h
+                                        </span>
+</div>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded flex relative overflow-hidden">
+<div class="w-1 bg-secondary-container shrink-0"></div>
+<div class="p-4 flex-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] text-on-surface-variant bg-surface-container-high px-1.5 rounded">STEP 3</span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Approval step</span>
+</div>
+<div class="font-mono-data text-[11px] text-on-surface-variant truncate max-w-[200px]" title="User ID: 325c3f07-708b-49a9-bc77-7814a91d292a">User ID: 325c3f07...1d292a</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low">Required</span>
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low">Can reject</span>
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span> SLA 24h
+                                        </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Priority 2 Path -->
+<div class="relative">
+<div class="flex items-center gap-3 mb-4">
+<span class="inline-flex items-center justify-center w-6 h-6 rounded bg-surface-container-highest border border-outline-variant text-on-surface-variant font-bold text-xs shrink-0">2</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Category travel</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-secondary-container bg-surface-container-high border border-outline-variant ml-auto">
+                                ACTIVE
+                            </span>
+</div>
+<div class="font-mono-data text-xs text-on-surface-variant mb-6 bg-surface-container-low p-2 rounded border border-outline-variant/50 inline-block">
+                            Condition: category equals travel
+                        </div>
+<!-- P2 Steps -->
+<div class="space-y-4 pl-4 border-l-2 border-outline-variant/20 relative">
+<!-- Step 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded flex relative overflow-hidden">
+<div class="w-1 bg-outline-variant shrink-0"></div>
+<div class="p-4 flex-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-[10px] text-on-surface-variant bg-surface-container-high px-1.5 rounded">STEP 1</span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Manager approval</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mb-1">Finance check</div>
+<div class="font-mono-data text-[11px] text-on-surface-variant truncate max-w-[200px]" title="User ID: 69ce175a-b398-45b8-a562-16684f7f2351">User ID: 69ce175a...7f2351</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low">Required</span>
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low">Can reject</span>
+<span class="px-2 py-1 border border-outline-variant rounded text-xs text-on-surface-variant bg-surface-container-low flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span> SLA 24h
+                                        </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Outcomes -->
+<div class="border-t border-outline-variant pt-6 mt-6">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-4">OUTCOMES</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-bright border border-outline-variant rounded p-4 border-l-4 border-l-tertiary-container">
+<h4 class="font-body-sm text-body-sm font-semibold mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">check_circle</span>
+                                Approved outcome
+                            </h4>
+<ul class="space-y-2 text-sm text-on-surface-variant list-disc pl-5">
+<li>Set status to APPROVED</li>
+<li>Notify requester</li>
+<li>Create payment request</li>
+</ul>
+</div>
+<div class="bg-surface-bright border border-outline-variant rounded p-4 border-l-4 border-l-error">
+<h4 class="font-body-sm text-body-sm font-semibold mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-error text-[18px]">cancel</span>
+                                Rejected outcome
+                            </h4>
+<ul class="space-y-2 text-sm text-on-surface-variant list-disc pl-5">
+<li>Set status to REJECTED</li>
+<li>Require rejection reason</li>
+<li>Allow resubmission</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<!-- Technical Metadata Footer -->
+<div class="flex flex-wrap items-center justify-between gap-4 text-xs text-on-surface-variant pt-4 border-t border-outline-variant">
+<div class="flex items-center gap-4">
+<div>
+<span class="font-label-caps opacity-70 block mb-0.5">TEMPLATE ID</span>
+<span class="font-mono-data">5b1f4566-786f-4870-aa38-77c1866097be</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div>
+<span class="font-label-caps opacity-70 block mb-0.5">CREATED</span>
+<span class="font-mono-data">Jun 10, 2026, 11:30 PM</span>
+</div>
+<div>
+<span class="font-label-caps opacity-70 block mb-0.5">LAST UPDATED</span>
+<span class="font-mono-data">Jun 10, 2026, 11:30 PM</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low dark:bg-on-background text-on-surface-variant dark:text-surface-variant font-body-sm text-body-sm w-[calc(100%-256px)] ml-64 fixed bottom-0 border-t border-outline-variant dark:border-outline flat no shadows flex justify-between items-center px-spacing-margin-desktop py-4 z-10">
+<div>
+                © 2024 Enterprise Logic Systems. Technical Metadata: Rev 4.2.1-stable
+            </div>
+<div class="flex items-center gap-4">
+<a class="text-on-surface-variant hover:text-primary transition-colors opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors opacity-80 hover:opacity-100" href="#">System Status</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors opacity-80 hover:opacity-100" href="#">API Documentation</a>
+</div>
+</footer>
+</div>
+</body></html>

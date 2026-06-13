@@ -1,0 +1,6 @@
+{
+  "type": "object",
+  "properties": { "success": { "type": "boolean", "example": true } },
+  "required": ["success"],
+  "x-readme-ref-name": "SuccessResponseDto"
+}

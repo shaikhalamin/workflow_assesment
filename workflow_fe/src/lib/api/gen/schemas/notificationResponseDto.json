@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "8b83330a-391d-4e25-9ec4-1f42623f91e4"
+    },
+    "title": { "type": "string", "example": "Workflow task assigned" },
+    "message": { "type": "string", "example": "Expense needs approval" },
+    "type": {
+      "type": "string",
+      "enum": [
+        "WORKFLOW_TASK_ASSIGNED",
+        "WORKFLOW_APPROVED",
+        "WORKFLOW_REJECTED",
+        "PAYMENT_REQUEST_CREATED",
+        "PAYMENT_PAID",
+        "BILLING_REQUEST_APPROVED",
+        "BILLING_REQUEST_REJECTED",
+        "INVOICE_CREATED",
+        "SYSTEM"
+      ],
+      "example": "WORKFLOW_TASK_ASSIGNED"
+    },
+    "entityType": { "type": "string", "example": "Expense" },
+    "entityId": { "type": "string", "example": "expense-2026-0001" },
+    "workflowInstanceId": {
+      "type": "string",
+      "example": "6a93b372-bf1f-4b9c-9e31-85554de8147e",
+      "nullable": true
+    },
+    "isRead": { "type": "boolean", "example": false },
+    "readAt": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2026-06-13T10:05:00.000Z",
+      "nullable": true
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2026-06-13T10:00:00.000Z"
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "message",
+    "type",
+    "entityType",
+    "entityId",
+    "workflowInstanceId",
+    "isRead",
+    "readAt",
+    "createdAt"
+  ],
+  "x-readme-ref-name": "NotificationResponseDto"
+}

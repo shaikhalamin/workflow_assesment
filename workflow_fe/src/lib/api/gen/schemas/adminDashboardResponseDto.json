@@ -1,0 +1,88 @@
+{
+  "type": "object",
+  "properties": {
+    "workflows": {
+      "type": "object",
+      "properties": {
+        "active": { "type": "number", "example": 8 },
+        "approved": { "type": "number", "example": 42 },
+        "rejected": { "type": "number", "example": 3 },
+        "failed": { "type": "number", "example": 1 }
+      },
+      "required": ["active", "approved", "rejected", "failed"],
+      "x-readme-ref-name": "AdminWorkflowSummaryDto"
+    },
+    "billing": {
+      "type": "object",
+      "properties": {
+        "draft": { "type": "number", "example": 2 },
+        "submitted": { "type": "number", "example": 4 },
+        "underReview": { "type": "number", "example": 3 },
+        "approved": { "type": "number", "example": 6 },
+        "rejected": { "type": "number", "example": 1 },
+        "invoiced": { "type": "number", "example": 5 },
+        "cancelled": { "type": "number", "example": 1 }
+      },
+      "required": [
+        "draft",
+        "submitted",
+        "underReview",
+        "approved",
+        "rejected",
+        "invoiced",
+        "cancelled"
+      ],
+      "x-readme-ref-name": "BillingSummaryDto"
+    },
+    "invoices": {
+      "type": "object",
+      "properties": {
+        "issued": { "type": "number", "example": 7 },
+        "paid": { "type": "number", "example": 3 },
+        "cancelled": { "type": "number", "example": 1 }
+      },
+      "required": ["issued", "paid", "cancelled"],
+      "x-readme-ref-name": "AdminInvoiceSummaryDto"
+    },
+    "payments": {
+      "type": "object",
+      "properties": {
+        "pending": { "type": "number", "example": 9 },
+        "paid": { "type": "number", "example": 4 },
+        "cancelled": { "type": "number", "example": 1 }
+      },
+      "required": ["pending", "paid", "cancelled"],
+      "x-readme-ref-name": "AdminPaymentSummaryDto"
+    },
+    "recentWorkflowChanges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "expense-2026-0001" },
+          "type": { "type": "string", "example": "Expense" },
+          "title": {
+            "type": "string",
+            "example": "Laptop charger reimbursement"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-10T09:30:00.000Z"
+          }
+        },
+        "required": ["id", "type", "title", "createdAt"],
+        "x-readme-ref-name": "DashboardRecentItemDto"
+      }
+    },
+    "failedTriggers": { "type": "number", "example": 1 }
+  },
+  "required": [
+    "workflows",
+    "billing",
+    "invoices",
+    "payments",
+    "recentWorkflowChanges",
+    "failedTriggers"
+  ],
+  "x-readme-ref-name": "AdminDashboardResponseDto"
+}

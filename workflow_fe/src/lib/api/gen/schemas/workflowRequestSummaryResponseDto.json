@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "properties": {
+    "title": { "type": "string", "example": "Laptop charger reimbursement" },
+    "type": { "type": "string", "example": "Expense" },
+    "requesterId": {
+      "type": "string",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+    },
+    "requester": {
+      "nullable": true,
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+            },
+            "name": { "type": "string", "example": "Finance Approver" },
+            "email": { "type": "string", "example": "finance@example.com" },
+            "designation": {
+              "type": "string",
+              "example": "Finance Approver",
+              "nullable": true
+            }
+          },
+          "required": ["id", "name", "email", "designation"],
+          "x-readme-ref-name": "WorkflowUserResponseDto"
+        }
+      ]
+    },
+    "amount": { "type": "number", "example": 4500, "nullable": true },
+    "currency": { "type": "string", "example": "BDT", "nullable": true },
+    "leaveDays": { "type": "number", "example": 2, "nullable": true },
+    "createdAt": { "type": "string", "example": "2026-06-10T09:30:00.000Z" }
+  },
+  "required": [
+    "title",
+    "type",
+    "requesterId",
+    "requester",
+    "amount",
+    "currency",
+    "leaveDays",
+    "createdAt"
+  ],
+  "x-readme-ref-name": "WorkflowRequestSummaryResponseDto"
+}

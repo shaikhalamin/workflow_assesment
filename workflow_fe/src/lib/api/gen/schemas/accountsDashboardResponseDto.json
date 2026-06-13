@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "properties": {
+    "accountsReviewTasks": { "type": "number", "example": 6 },
+    "pendingPayments": { "type": "number", "example": 9 },
+    "paidAmountThisMonth": { "type": "number", "example": 120000 },
+    "issuedInvoices": { "type": "number", "example": 8 }
+  },
+  "required": [
+    "accountsReviewTasks",
+    "pendingPayments",
+    "paidAmountThisMonth",
+    "issuedInvoices"
+  ],
+  "x-readme-ref-name": "AccountsDashboardResponseDto"
+}

@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "leaveType": { "type": "string", "example": "ANNUAL" },
+    "leaveDays": { "type": "number", "minimum": 1, "example": 2 },
+    "startDate": { "type": "string", "example": "2026-06-10" },
+    "endDate": { "type": "string", "example": "2026-06-11" },
+    "reason": { "type": "string", "example": "Family event" },
+    "employeeGrade": { "type": "string", "example": "M2" },
+    "departmentId": {
+      "type": "string",
+      "example": "61f1d2de-5733-4830-a97c-cb1899482850"
+    },
+    "customFieldsJson": {
+      "type": "object",
+      "example": { "handoverTo": "team-lead" }
+    }
+  },
+  "required": ["leaveType", "leaveDays", "startDate", "endDate"],
+  "x-readme-ref-name": "CreateLeaveDto"
+}

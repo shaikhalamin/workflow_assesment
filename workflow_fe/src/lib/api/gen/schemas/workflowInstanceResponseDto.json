@@ -1,0 +1,562 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2"
+    },
+    "workflowTemplateId": {
+      "type": "string",
+      "example": "24fa2355-a172-4910-9314-032b967f54ba"
+    },
+    "workflowApprovalRuleId": {
+      "type": "string",
+      "example": "43de63c7-c1e9-4527-aa1b-31d2d9030c93"
+    },
+    "moduleName": { "type": "string", "example": "expenses" },
+    "eventName": { "type": "string", "example": "expense.submitted" },
+    "entityType": { "type": "string", "example": "Expense" },
+    "entityId": { "type": "string", "example": "expense-2026-0001" },
+    "requesterId": {
+      "type": "string",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+    },
+    "requester": {
+      "nullable": true,
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+            },
+            "name": { "type": "string", "example": "Finance Approver" },
+            "email": { "type": "string", "example": "finance@example.com" },
+            "designation": {
+              "type": "string",
+              "example": "Finance Approver",
+              "nullable": true
+            }
+          },
+          "required": ["id", "name", "email", "designation"],
+          "x-readme-ref-name": "WorkflowUserResponseDto"
+        }
+      ]
+    },
+    "departmentId": {
+      "type": "string",
+      "example": "61f1d2de-5733-4830-a97c-cb1899482850",
+      "nullable": true
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "ACTIVE",
+        "APPROVED",
+        "REJECTED",
+        "CANCELLED",
+        "FAILED"
+      ],
+      "example": "ACTIVE"
+    },
+    "metadataJson": {
+      "type": "object",
+      "example": { "amount": 55000, "currency": "BDT" },
+      "nullable": true
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2026-06-10T10:15:00.000Z",
+      "nullable": true
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2026-06-10T12:15:00.000Z",
+      "nullable": true
+    },
+    "rejectedAt": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2026-06-10T12:15:00.000Z",
+      "nullable": true
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "e7c883f6-90e7-465e-8abc-4c7f8e5e7d4a"
+          },
+          "workflowInstanceId": {
+            "type": "string",
+            "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2"
+          },
+          "request": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Laptop charger reimbursement"
+                  },
+                  "type": { "type": "string", "example": "Expense" },
+                  "requesterId": {
+                    "type": "string",
+                    "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                  },
+                  "requester": {
+                    "nullable": true,
+                    "type": "object",
+                    "allOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Finance Approver"
+                          },
+                          "email": {
+                            "type": "string",
+                            "example": "finance@example.com"
+                          },
+                          "designation": {
+                            "type": "string",
+                            "example": "Finance Approver",
+                            "nullable": true
+                          }
+                        },
+                        "required": ["id", "name", "email", "designation"],
+                        "x-readme-ref-name": "WorkflowUserResponseDto"
+                      }
+                    ]
+                  },
+                  "amount": {
+                    "type": "number",
+                    "example": 4500,
+                    "nullable": true
+                  },
+                  "currency": {
+                    "type": "string",
+                    "example": "BDT",
+                    "nullable": true
+                  },
+                  "leaveDays": {
+                    "type": "number",
+                    "example": 2,
+                    "nullable": true
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "example": "2026-06-10T09:30:00.000Z"
+                  }
+                },
+                "required": [
+                  "title",
+                  "type",
+                  "requesterId",
+                  "requester",
+                  "amount",
+                  "currency",
+                  "leaveDays",
+                  "createdAt"
+                ],
+                "x-readme-ref-name": "WorkflowRequestSummaryResponseDto"
+              }
+            ]
+          },
+          "stepOrder": { "type": "number", "example": 1 },
+          "stepName": { "type": "string", "example": "Finance review" },
+          "stepType": {
+            "type": "string",
+            "enum": [
+              "REVIEW",
+              "APPROVAL",
+              "FINANCE_CHECK",
+              "HR_CHECK",
+              "MANAGEMENT_APPROVAL",
+              "FINAL_VERIFICATION"
+            ],
+            "example": "FINANCE_CHECK"
+          },
+          "assignedUserId": {
+            "type": "string",
+            "example": "71cb34da-1809-4c72-b132-2b9860be8936",
+            "nullable": true
+          },
+          "assignedUser": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                  },
+                  "name": { "type": "string", "example": "Finance Approver" },
+                  "email": {
+                    "type": "string",
+                    "example": "finance@example.com"
+                  },
+                  "designation": {
+                    "type": "string",
+                    "example": "Finance Approver",
+                    "nullable": true
+                  }
+                },
+                "required": ["id", "name", "email", "designation"],
+                "x-readme-ref-name": "WorkflowUserResponseDto"
+              }
+            ]
+          },
+          "assignedRoleSlug": {
+            "type": "string",
+            "example": "accounts",
+            "nullable": true
+          },
+          "assigneeType": {
+            "type": "string",
+            "enum": [
+              "ROLE",
+              "USER",
+              "REQUESTER_MANAGER",
+              "DEPARTMENT_HEAD",
+              "CUSTOM_FIELD_USER"
+            ],
+            "example": "ROLE"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["WAITING", "ACTIVE", "APPROVED", "REJECTED", "SKIPPED"],
+            "example": "ACTIVE"
+          },
+          "activatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-06-10T10:15:00.000Z",
+            "nullable": true
+          },
+          "actedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-06-10T12:15:00.000Z",
+            "nullable": true
+          },
+          "actionByUserId": {
+            "type": "string",
+            "example": "71cb34da-1809-4c72-b132-2b9860be8936",
+            "nullable": true
+          },
+          "actionByUser": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                  },
+                  "name": { "type": "string", "example": "Finance Approver" },
+                  "email": {
+                    "type": "string",
+                    "example": "finance@example.com"
+                  },
+                  "designation": {
+                    "type": "string",
+                    "example": "Finance Approver",
+                    "nullable": true
+                  }
+                },
+                "required": ["id", "name", "email", "designation"],
+                "x-readme-ref-name": "WorkflowUserResponseDto"
+              }
+            ]
+          },
+          "comment": {
+            "type": "string",
+            "example": "Approved after checking documents",
+            "nullable": true
+          },
+          "rejectionReason": {
+            "type": "string",
+            "example": "Receipt missing",
+            "nullable": true
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "example": "512f52a0-08df-4ba7-b108-4e46f06a057b"
+                },
+                "workflowInstanceId": {
+                  "type": "string",
+                  "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2"
+                },
+                "workflowStepId": {
+                  "type": "string",
+                  "example": "e7c883f6-90e7-465e-8abc-4c7f8e5e7d4a",
+                  "nullable": true
+                },
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "TRIGGERED",
+                    "STEP_ACTIVATED",
+                    "APPROVED",
+                    "REJECTED",
+                    "COMMENTED",
+                    "REASSIGNED",
+                    "CANCELLED",
+                    "FAILED"
+                  ],
+                  "example": "APPROVED"
+                },
+                "actorUserId": {
+                  "type": "string",
+                  "example": "71cb34da-1809-4c72-b132-2b9860be8936",
+                  "nullable": true
+                },
+                "actorUser": {
+                  "nullable": true,
+                  "type": "object",
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Finance Approver"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "finance@example.com"
+                        },
+                        "designation": {
+                          "type": "string",
+                          "example": "Finance Approver",
+                          "nullable": true
+                        }
+                      },
+                      "required": ["id", "name", "email", "designation"],
+                      "x-readme-ref-name": "WorkflowUserResponseDto"
+                    }
+                  ]
+                },
+                "comment": {
+                  "type": "string",
+                  "example": "Approved after checking documents",
+                  "nullable": true
+                },
+                "reason": {
+                  "type": "string",
+                  "example": "Budget verified",
+                  "nullable": true
+                },
+                "metadataJson": {
+                  "type": "object",
+                  "example": { "reviewedBy": "finance-admin" },
+                  "nullable": true
+                },
+                "createdAt": {
+                  "type": "string",
+                  "example": "2026-06-10T10:15:00.000Z"
+                }
+              },
+              "required": [
+                "id",
+                "workflowInstanceId",
+                "workflowStepId",
+                "action",
+                "actorUserId",
+                "actorUser",
+                "comment",
+                "reason",
+                "metadataJson",
+                "createdAt"
+              ],
+              "x-readme-ref-name": "WorkflowActionResponseDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-10T09:30:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-06-10T10:15:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "workflowInstanceId",
+          "request",
+          "stepOrder",
+          "stepName",
+          "stepType",
+          "assignedUserId",
+          "assignedUser",
+          "assignedRoleSlug",
+          "assigneeType",
+          "status",
+          "activatedAt",
+          "actedAt",
+          "actionByUserId",
+          "actionByUser",
+          "comment",
+          "rejectionReason",
+          "actions",
+          "createdAt",
+          "updatedAt"
+        ],
+        "x-readme-ref-name": "WorkflowStepResponseDto"
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "512f52a0-08df-4ba7-b108-4e46f06a057b"
+          },
+          "workflowInstanceId": {
+            "type": "string",
+            "example": "9f527490-d2a2-44aa-994c-ffb91adf9df2"
+          },
+          "workflowStepId": {
+            "type": "string",
+            "example": "e7c883f6-90e7-465e-8abc-4c7f8e5e7d4a",
+            "nullable": true
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "TRIGGERED",
+              "STEP_ACTIVATED",
+              "APPROVED",
+              "REJECTED",
+              "COMMENTED",
+              "REASSIGNED",
+              "CANCELLED",
+              "FAILED"
+            ],
+            "example": "APPROVED"
+          },
+          "actorUserId": {
+            "type": "string",
+            "example": "71cb34da-1809-4c72-b132-2b9860be8936",
+            "nullable": true
+          },
+          "actorUser": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+                  },
+                  "name": { "type": "string", "example": "Finance Approver" },
+                  "email": {
+                    "type": "string",
+                    "example": "finance@example.com"
+                  },
+                  "designation": {
+                    "type": "string",
+                    "example": "Finance Approver",
+                    "nullable": true
+                  }
+                },
+                "required": ["id", "name", "email", "designation"],
+                "x-readme-ref-name": "WorkflowUserResponseDto"
+              }
+            ]
+          },
+          "comment": {
+            "type": "string",
+            "example": "Approved after checking documents",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "example": "Budget verified",
+            "nullable": true
+          },
+          "metadataJson": {
+            "type": "object",
+            "example": { "reviewedBy": "finance-admin" },
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-06-10T10:15:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "workflowInstanceId",
+          "workflowStepId",
+          "action",
+          "actorUserId",
+          "actorUser",
+          "comment",
+          "reason",
+          "metadataJson",
+          "createdAt"
+        ],
+        "x-readme-ref-name": "WorkflowActionResponseDto"
+      }
+    },
+    "createdAt": { "type": "string", "example": "2026-06-10T09:30:00.000Z" },
+    "updatedAt": { "type": "string", "example": "2026-06-10T10:15:00.000Z" }
+  },
+  "required": [
+    "id",
+    "workflowTemplateId",
+    "workflowApprovalRuleId",
+    "moduleName",
+    "eventName",
+    "entityType",
+    "entityId",
+    "requesterId",
+    "requester",
+    "departmentId",
+    "status",
+    "metadataJson",
+    "startedAt",
+    "completedAt",
+    "rejectedAt",
+    "steps",
+    "actions",
+    "createdAt",
+    "updatedAt"
+  ],
+  "x-readme-ref-name": "WorkflowInstanceResponseDto"
+}

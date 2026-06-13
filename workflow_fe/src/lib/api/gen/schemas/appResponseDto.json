@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "message": {
+      "type": "string",
+      "example": "Hello World! Changed again !!!!"
+    }
+  },
+  "required": ["message"],
+  "x-readme-ref-name": "AppResponseDto"
+}

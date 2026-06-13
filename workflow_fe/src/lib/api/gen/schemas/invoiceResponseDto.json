@@ -1,0 +1,113 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "d1813f59-2289-4a01-9ddd-a93c6cf4fd14"
+    },
+    "billingRequestId": {
+      "type": "string",
+      "example": "3dd466df-e730-4c87-8581-f57ec57d50f5"
+    },
+    "invoiceNumber": { "type": "string", "example": "INV-20260610-0001" },
+    "requesterId": {
+      "type": "string",
+      "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+    },
+    "requester": {
+      "nullable": true,
+      "type": "object",
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "71cb34da-1809-4c72-b132-2b9860be8936"
+            },
+            "name": { "type": "string", "example": "Finance Approver" },
+            "email": { "type": "string", "example": "finance@example.com" },
+            "designation": {
+              "type": "string",
+              "example": "Finance Approver",
+              "nullable": true
+            }
+          },
+          "required": ["id", "name", "email", "designation"],
+          "x-readme-ref-name": "WorkflowUserResponseDto"
+        }
+      ]
+    },
+    "departmentId": {
+      "type": "string",
+      "example": "61f1d2de-5733-4830-a97c-cb1899482850",
+      "nullable": true
+    },
+    "customerName": { "type": "string", "example": "ACME Bangladesh Ltd." },
+    "customerEmail": {
+      "type": "string",
+      "example": "billing@acme.example",
+      "nullable": true
+    },
+    "customerAddress": {
+      "type": "string",
+      "example": "Gulshan Avenue, Dhaka",
+      "nullable": true
+    },
+    "title": {
+      "type": "string",
+      "example": "Enterprise internet installation"
+    },
+    "description": {
+      "type": "string",
+      "example": "One-time setup fee for corporate customer",
+      "nullable": true
+    },
+    "amount": { "type": "string", "example": "125000.00" },
+    "currency": { "type": "string", "example": "BDT" },
+    "dueDate": { "type": "string", "example": "2026-07-10" },
+    "status": {
+      "type": "string",
+      "enum": ["ISSUED", "CANCELLED", "PAID"],
+      "example": "ISSUED"
+    },
+    "issuedAt": { "type": "string", "example": "2026-06-10T10:15:00.000Z" },
+    "cancelledAt": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2026-06-11T10:15:00.000Z",
+      "nullable": true
+    },
+    "paidAt": {
+      "type": "string",
+      "format": "date-time",
+      "example": "2026-06-11T10:15:00.000Z",
+      "nullable": true
+    },
+    "createdAt": { "type": "string", "example": "2026-06-10T09:30:00.000Z" },
+    "updatedAt": { "type": "string", "example": "2026-06-10T10:15:00.000Z" }
+  },
+  "required": [
+    "id",
+    "billingRequestId",
+    "invoiceNumber",
+    "requesterId",
+    "requester",
+    "departmentId",
+    "customerName",
+    "customerEmail",
+    "customerAddress",
+    "title",
+    "description",
+    "amount",
+    "currency",
+    "dueDate",
+    "status",
+    "issuedAt",
+    "cancelledAt",
+    "paidAt",
+    "createdAt",
+    "updatedAt"
+  ],
+  "x-readme-ref-name": "InvoiceResponseDto"
+}
