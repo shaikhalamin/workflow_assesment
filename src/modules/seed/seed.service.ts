@@ -235,6 +235,7 @@ export class SeedService implements OnApplicationBootstrap {
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
+        'audit.read',
       ],
     },
     {
@@ -249,6 +250,7 @@ export class SeedService implements OnApplicationBootstrap {
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
+        'audit.read',
       ],
     },
     {
@@ -260,6 +262,7 @@ export class SeedService implements OnApplicationBootstrap {
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
+        'audit.read',
       ],
     },
     {
@@ -274,6 +277,7 @@ export class SeedService implements OnApplicationBootstrap {
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
+        'audit.read',
       ],
     },
     {
@@ -290,6 +294,7 @@ export class SeedService implements OnApplicationBootstrap {
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
+        'audit.read',
       ],
     },
     {
@@ -300,6 +305,7 @@ export class SeedService implements OnApplicationBootstrap {
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
+        'audit.read',
       ],
     },
     {
@@ -311,6 +317,7 @@ export class SeedService implements OnApplicationBootstrap {
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
+        'audit.read',
       ],
     },
     {
@@ -323,6 +330,7 @@ export class SeedService implements OnApplicationBootstrap {
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
+        'audit.read',
       ],
     },
     {
@@ -334,8 +342,9 @@ export class SeedService implements OnApplicationBootstrap {
         'dashboard.read',
         'workflow.runtime.read',
         'workflow.runtime.act',
+        'audit.read',
       ],
-    },
+    }, //
   ];
 
   static readonly userSeeds: UserSeed[] = [
