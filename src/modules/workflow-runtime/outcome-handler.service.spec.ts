@@ -130,6 +130,7 @@ describe('OutcomeHandlerService', () => {
       entityId: 'payment-1',
       workflowInstanceId: 'workflow-1',
       recipientRoleSlug: 'accounts-officer',
+      channels: { push: true, email: true },
     });
   });
 
@@ -362,6 +363,7 @@ describe('OutcomeHandlerService', () => {
       expect.objectContaining({
         entityId: 'invoice-1',
         workflowInstanceId: 'workflow-1',
+        channels: { push: true, email: true },
       }),
     );
   });
@@ -439,6 +441,24 @@ describe('OutcomeHandlerService', () => {
     expect(invoicesRepository.save).toHaveBeenCalledTimes(1);
     expect(billingRequest.status).toBe(BillingRequestStatus.INVOICED);
     expect(billingRequest.invoiceId).toBe('invoice-1');
+    expect(notificationsService.createBillingApproved).toHaveBeenCalledWith({
+      recipientUserId: 'requester-1',
+      entityId: 'billing-1',
+      workflowInstanceId: 'workflow-1',
+      channels: { push: true, email: true },
+    });
+    expect(notificationsService.createInvoiceCreated).toHaveBeenCalledWith({
+      recipientUserId: 'requester-1',
+      entityId: 'invoice-1',
+      workflowInstanceId: 'workflow-1',
+      channels: { push: true, email: true },
+    });
+    expect(notificationsService.createInvoiceCreated).toHaveBeenCalledWith({
+      recipientRoleSlug: 'accounts-officer',
+      entityId: 'invoice-1',
+      workflowInstanceId: 'workflow-1',
+      channels: { push: true, email: true },
+    });
   });
 
   it('does not approve or invoice a cancelled billing request', async () => {

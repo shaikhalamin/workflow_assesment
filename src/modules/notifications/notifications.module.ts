@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailerModule } from '../../mailer/mailer.module';
+import { Role } from '../rbac/entities/role.entity';
+import { UserRole } from '../rbac/entities/user-role.entity';
+import { User } from '../users/entities/user.entity';
 import { Notification } from './entities/notification.entity';
 import { NotificationPushProcessor } from './notification-push.processor';
 import { NotificationPushQueue } from './notification-push.queue';
@@ -10,7 +13,7 @@ import { NotificationsService } from './notifications.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Notification]),
+    TypeOrmModule.forFeature([Notification, Role, User, UserRole]),
     BullModule.registerQueue({ name: 'notification-push' }),
     MailerModule,
   ],

@@ -101,6 +101,7 @@ export class PaymentsService {
       recipientUserId: expense.requesterId,
       entityType: 'PaymentRequest',
       entityId: payment.id,
+      channels: { push: true, email: true },
     });
     return this.paymentsRepository.save(payment);
   }

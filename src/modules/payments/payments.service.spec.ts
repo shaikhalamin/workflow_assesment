@@ -127,4 +127,47 @@ describe('PaymentsService', () => {
       } as never),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
+
+  it('sends push and email channels when marking a payment paid', async () => {
+    const paymentRequest = payment();
+    const expense = {
+      id: 'expense-1',
+      requesterId: 'requester-1',
+      status: 'PAYMENT_PENDING',
+      paidAt: null,
+    };
+    const paymentsRepository = {
+      findOneBy: jest.fn().mockResolvedValue(paymentRequest),
+      save: jest.fn((value: PaymentRequest) => Promise.resolve(value)),
+    };
+    const expensesRepository = {
+      findOneBy: jest.fn().mockResolvedValue(expense),
+      save: jest.fn((value: typeof expense) => Promise.resolve(value)),
+    };
+    const auditLogsService = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
+    const notificationsService = {
+      createPaymentPaid: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new PaymentsService(
+      paymentsRepository as never,
+      expensesRepository as never,
+      auditLogsService as never,
+      notificationsService as never,
+    );
+
+    await service.markPaid(
+      'payment-1',
+      { userId: 'accounts-1', permissions: ['payments.write'] } as never,
+      { paymentReference: 'TXN-1' },
+    );
+
+    expect(notificationsService.createPaymentPaid).toHaveBeenCalledWith({
+      recipientUserId: 'requester-1',
+      entityType: 'PaymentRequest',
+      entityId: 'payment-1',
+      channels: { push: true, email: true },
+    });
+  });
 });

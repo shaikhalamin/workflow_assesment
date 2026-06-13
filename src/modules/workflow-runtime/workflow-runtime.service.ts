@@ -188,6 +188,7 @@ export class WorkflowRuntimeService {
           entityType: dto.entityType,
           entityId: dto.entityId,
           workflowInstanceId: instance.id,
+          channels: { push: true, email: true },
         },
         notificationsRepository,
       );
@@ -322,6 +323,7 @@ export class WorkflowRuntimeService {
         entityType: instance.entityType,
         entityId: instance.entityId,
         workflowInstanceId: instance.id,
+        channels: { push: true, email: true },
       });
     } else {
       instance.status = WorkflowInstanceStatus.APPROVED;
@@ -340,6 +342,7 @@ export class WorkflowRuntimeService {
         entityType: instance.entityType,
         entityId: instance.entityId,
         workflowInstanceId: instance.id,
+        channels: { push: true, email: true },
       });
     }
 
@@ -446,6 +449,7 @@ export class WorkflowRuntimeService {
       entityType: instance.entityType,
       entityId: instance.entityId,
       workflowInstanceId: instance.id,
+      channels: { push: true, email: true },
     });
     return this.toStepResponse(step);
   }

@@ -82,6 +82,7 @@ export class OutcomeHandlerService {
         entityId: payment.id,
         workflowInstanceId: instance.id,
         recipientRoleSlug: 'accounts-officer',
+        channels: { push: true, email: true },
       });
     }
   }
@@ -181,6 +182,7 @@ export class OutcomeHandlerService {
         recipientUserId: billingRequest.requesterId,
         entityId: billingRequest.id,
         workflowInstanceId: instance.id,
+        channels: { push: true, email: true },
       });
     }
 
@@ -247,11 +249,13 @@ export class OutcomeHandlerService {
       recipientUserId: billingRequest.requesterId,
       entityId: invoice.id,
       workflowInstanceId: instance.id,
+      channels: { push: true, email: true },
     });
     await this.notificationsService.createInvoiceCreated({
       recipientRoleSlug: 'accounts-officer',
       entityId: invoice.id,
       workflowInstanceId: instance.id,
+      channels: { push: true, email: true },
     });
     return invoice;
   }
@@ -282,6 +286,7 @@ export class OutcomeHandlerService {
       recipientUserId: billingRequest.requesterId,
       entityId: billingRequest.id,
       workflowInstanceId: instance.id,
+      channels: { push: true, email: true },
     });
   }
 

@@ -475,6 +475,177 @@ describe('WorkflowRuntimeService', () => {
     expect(outcomeHandler.handleApproved).toHaveBeenCalledWith(instance, {
       createPaymentRequest: false,
     });
+    expect(notificationsService.createWorkflowApproved).toHaveBeenCalledWith({
+      recipientUserId: 'requester-1',
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      workflowInstanceId: 'workflow-1',
+      channels: { push: true, email: true },
+    });
+  });
+
+  it('sends push and email channels when activating the next approval step', async () => {
+    const createdAt = new Date('2026-06-11T08:00:00.000Z');
+    const step = {
+      id: 'step-1',
+      workflowInstanceId: 'workflow-1',
+      assignedUserId: 'manager-1',
+      assignedRoleSlug: null,
+      status: WorkflowStepStatus.ACTIVE,
+      actedAt: null,
+      actionByUserId: null,
+      comment: null,
+      rejectionReason: null,
+      actions: [],
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const nextStep = {
+      id: 'step-2',
+      workflowInstanceId: 'workflow-1',
+      assignedUserId: null,
+      assignedRoleSlug: 'finance-manager',
+      status: WorkflowStepStatus.WAITING,
+      activatedAt: null,
+      actions: [],
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const instance = {
+      id: 'workflow-1',
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      status: WorkflowInstanceStatus.ACTIVE,
+    };
+    const instancesRepository = {
+      findOneByOrFail: jest.fn().mockResolvedValue(instance),
+    };
+    const stepsRepository = {
+      findOneBy: jest.fn().mockResolvedValue(step),
+      save: jest.fn((value: typeof step | typeof nextStep) =>
+        Promise.resolve(value),
+      ),
+      findOne: jest.fn().mockResolvedValue(nextStep),
+    };
+    const actionsRepository = {
+      create: jest.fn((value: unknown) => value),
+      save: jest.fn((value: unknown) => Promise.resolve(value)),
+    };
+    const auditLogsService = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
+    const notificationsService = {
+      createTaskAssigned: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new WorkflowRuntimeService(
+      {} as never,
+      instancesRepository as never,
+      stepsRepository as never,
+      actionsRepository as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      auditLogsService as never,
+      notificationsService as never,
+      {} as never,
+    );
+
+    await service.approveStep(
+      'step-1',
+      { userId: 'manager-1', roles: [] } as Express.User,
+      {},
+    );
+
+    expect(notificationsService.createTaskAssigned).toHaveBeenCalledWith({
+      assignedUserId: null,
+      assignedRoleSlug: 'finance-manager',
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      workflowInstanceId: 'workflow-1',
+      channels: { push: true, email: true },
+    });
+  });
+
+  it('sends push and email channels when a workflow is rejected', async () => {
+    const createdAt = new Date('2026-06-11T08:00:00.000Z');
+    const step = {
+      id: 'step-1',
+      workflowInstanceId: 'workflow-1',
+      stepOrder: 1,
+      stepName: 'Manager approval',
+      stepType: WorkflowStepType.APPROVAL,
+      assigneeType: WorkflowAssigneeType.USER,
+      assignedUserId: 'manager-1',
+      assignedRoleSlug: null,
+      status: WorkflowStepStatus.ACTIVE,
+      activatedAt: createdAt,
+      actedAt: null,
+      actionByUserId: null,
+      actionByUser: null,
+      comment: null,
+      rejectionReason: null,
+      actions: [],
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const instance = {
+      id: 'workflow-1',
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      requesterId: 'requester-1',
+      status: WorkflowInstanceStatus.ACTIVE,
+      rejectedAt: null,
+    };
+    const instancesRepository = {
+      findOneByOrFail: jest.fn().mockResolvedValue(instance),
+      save: jest.fn((value: typeof instance) => Promise.resolve(value)),
+    };
+    const stepsRepository = {
+      findOneBy: jest.fn().mockResolvedValue(step),
+      save: jest.fn((value: typeof step) => Promise.resolve(value)),
+      update: jest.fn().mockResolvedValue({ affected: 1 }),
+    };
+    const actionsRepository = {
+      create: jest.fn((value: unknown) => value),
+      save: jest.fn((value: unknown) => Promise.resolve(value)),
+    };
+    const outcomeHandler = {
+      handleRejected: jest.fn().mockResolvedValue(undefined),
+    };
+    const auditLogsService = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
+    const notificationsService = {
+      createWorkflowRejected: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new WorkflowRuntimeService(
+      {} as never,
+      instancesRepository as never,
+      stepsRepository as never,
+      actionsRepository as never,
+      {} as never,
+      {} as never,
+      outcomeHandler as never,
+      {} as never,
+      auditLogsService as never,
+      notificationsService as never,
+      {} as never,
+    );
+
+    await service.rejectStep(
+      'step-1',
+      { userId: 'manager-1', roles: [] } as Express.User,
+      { reason: 'Policy mismatch' },
+    );
+
+    expect(notificationsService.createWorkflowRejected).toHaveBeenCalledWith({
+      recipientUserId: 'requester-1',
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      workflowInstanceId: 'workflow-1',
+      channels: { push: true, email: true },
+    });
   });
 
   it('cancels an active workflow instance and skips unfinished steps for an entity', async () => {
@@ -664,5 +835,154 @@ describe('WorkflowRuntimeService', () => {
     expect(actionsRepository.save).not.toHaveBeenCalled();
     expect(auditLogsService.record).not.toHaveBeenCalled();
     expect(notificationsService.createTaskAssigned).not.toHaveBeenCalled();
+  });
+
+  it('sends push and email channels when the initial workflow task is assigned', async () => {
+    const createdAt = new Date('2026-06-11T08:00:00.000Z');
+    const stepConfig = {
+      id: 'step-config-1',
+      stepOrder: 1,
+      stepName: 'Manager approval',
+      stepType: WorkflowStepType.APPROVAL,
+      assigneeType: WorkflowAssigneeType.USER,
+      assigneeUserId: 'manager-1',
+      assigneeRoleSlug: null,
+      assigneeFieldPath: null,
+    };
+    const template = {
+      id: 'template-1',
+      moduleName: 'expenses',
+      eventName: 'expense.submitted',
+      entityType: 'Expense',
+      status: WorkflowTemplateStatus.PUBLISHED,
+      triggerCondition: null,
+      rules: [
+        {
+          id: 'rule-1',
+          priority: 1,
+          isFallback: false,
+          isActive: true,
+          conditionJson: null,
+          steps: [stepConfig],
+        },
+      ],
+    };
+    const instance = {
+      id: 'workflow-1',
+      workflowTemplateId: 'template-1',
+      workflowApprovalRuleId: 'rule-1',
+      moduleName: 'expenses',
+      eventName: 'expense.submitted',
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      requesterId: 'requester-1',
+      departmentId: null,
+      status: WorkflowInstanceStatus.ACTIVE,
+      metadataJson: { amount: 2500 },
+      startedAt: createdAt,
+    };
+    const step = {
+      id: 'step-1',
+      workflowInstanceId: 'workflow-1',
+      stepOrder: 1,
+      stepName: 'Manager approval',
+      stepType: WorkflowStepType.APPROVAL,
+      assigneeType: WorkflowAssigneeType.USER,
+      assignedUserId: 'manager-1',
+      assignedRoleSlug: null,
+      status: WorkflowStepStatus.WAITING,
+      activatedAt: null,
+      actedAt: null,
+      actionByUserId: null,
+      actionByUser: null,
+      comment: null,
+      rejectionReason: null,
+      actions: [],
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const templatesRepository = {
+      find: jest.fn().mockResolvedValue([template]),
+    };
+    const instancesRepository = {
+      create: jest.fn().mockReturnValue(instance),
+      save: jest.fn().mockResolvedValue(instance),
+    };
+    const stepsRepository = {
+      create: jest.fn().mockReturnValue(step),
+      save: jest.fn((value: typeof step) => Promise.resolve(value)),
+    };
+    const actionsRepository = {
+      create: jest.fn((value: unknown) => value),
+      save: jest.fn((value: unknown) => Promise.resolve(value)),
+    };
+    const auditLogsRepository = {};
+    const notificationsRepository = {};
+    const manager = {
+      getRepository: jest.fn((entity: { name: string }) => {
+        if (entity.name === 'WorkflowTemplate') return templatesRepository;
+        if (entity.name === 'WorkflowInstance') return instancesRepository;
+        if (entity.name === 'WorkflowStep') return stepsRepository;
+        if (entity.name === 'WorkflowAction') return actionsRepository;
+        if (entity.name === 'AuditLog') return auditLogsRepository;
+        if (entity.name === 'Notification') return notificationsRepository;
+        return {};
+      }),
+    };
+    const dataSource = {
+      transaction: jest.fn((callback: (value: typeof manager) => unknown) =>
+        callback(manager),
+      ),
+    };
+    const ruleEngine = {
+      matches: jest.fn().mockReturnValue(true),
+    };
+    const assigneeResolver = {
+      resolve: jest.fn().mockResolvedValue({
+        assignedUserId: 'manager-1',
+        assignedRoleSlug: null,
+      }),
+    };
+    const auditLogsService = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
+    const notificationsService = {
+      createTaskAssigned: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new WorkflowRuntimeService(
+      templatesRepository as never,
+      instancesRepository as never,
+      stepsRepository as never,
+      actionsRepository as never,
+      ruleEngine as never,
+      assigneeResolver as never,
+      {} as never,
+      {} as never,
+      auditLogsService as never,
+      notificationsService as never,
+      dataSource as never,
+    );
+
+    await service.trigger({
+      moduleName: 'expenses',
+      eventName: 'expense.submitted',
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      requesterId: 'requester-1',
+      departmentId: null,
+      metadata: { amount: 2500 },
+    });
+
+    expect(notificationsService.createTaskAssigned).toHaveBeenCalledWith(
+      {
+        assignedUserId: 'manager-1',
+        assignedRoleSlug: null,
+        entityType: 'Expense',
+        entityId: 'expense-1',
+        workflowInstanceId: 'workflow-1',
+        channels: { push: true, email: true },
+      },
+      notificationsRepository,
+    );
   });
 });

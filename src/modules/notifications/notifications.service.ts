@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { EmailPayload } from '../../mailer/mailer.service';
 import { MailerService } from '../../mailer/mailer.service';
+import { UserRole } from '../rbac/entities/user-role.entity';
+import { User } from '../users/entities/user.entity';
 import { Notification, NotificationType } from './entities/notification.entity';
 import { NotificationPushQueue } from './notification-push.queue';
 
 export type NotificationChannels = {
   push?: boolean;
-  email?: EmailPayload;
+  email?: true | EmailPayload;
 };
 
 type WithNotificationChannels = {
@@ -34,6 +36,10 @@ export class NotificationsService {
     private readonly notificationsRepository: Repository<Notification>,
     private readonly notificationPushQueue: NotificationPushQueue,
     private readonly mailerService: MailerService,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+    @InjectRepository(UserRole)
+    private readonly userRolesRepository: Repository<UserRole>,
   ) {}
 
   async create(
@@ -60,11 +66,57 @@ export class NotificationsService {
       await this.notificationPushQueue.enqueue(notification);
     }
 
-    if (input.channels?.email) {
+    if (input.channels?.email === true) {
+      const email = await this.defaultNotificationEmail(input, notification);
+      if (email) await this.mailerService.enqueue(email);
+    } else if (input.channels?.email) {
       await this.mailerService.enqueue(input.channels.email);
     }
 
     return notification;
+  }
+
+  private async defaultNotificationEmail(
+    input: NotificationInput,
+    notification: Notification,
+  ): Promise<EmailPayload | null> {
+    const recipientEmail = await this.findRecipientEmail(notification);
+    if (!recipientEmail) return null;
+
+    return {
+      template: 'notification',
+      to: recipientEmail,
+      subject: input.title,
+      props: {
+        recipientEmail,
+        title: input.title,
+        message: input.message,
+      },
+    };
+  }
+
+  private async findRecipientEmail(
+    notification: Notification,
+  ): Promise<string | null> {
+    if (notification.recipientUserId) {
+      const user = await this.usersRepository.findOne({
+        where: { id: notification.recipientUserId, isActive: true },
+        select: { id: true, email: true },
+      });
+      return user?.email ?? null;
+    }
+
+    if (!notification.recipientRoleSlug) return null;
+
+    const userRole = await this.userRolesRepository.findOne({
+      where: {
+        role: { slug: notification.recipientRoleSlug },
+        user: { isActive: true },
+      },
+      relations: { role: true, user: true },
+      order: { createdAt: 'ASC' },
+    });
+    return userRole?.user.email ?? null;
   }
 
   createTaskAssigned(
