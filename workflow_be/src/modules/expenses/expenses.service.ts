@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { paginateQb } from '../../common/http/paginate';
 import { Paginated } from '../../common/http/paginated';
@@ -81,7 +81,23 @@ export class ExpensesService {
       qb.andWhere('expense.status = :status', { status: query.status });
     }
     if (!this.canReadAllExpenses(actor)) {
-      qb.andWhere('expense.requesterId = :userId', { userId: actor.userId });
+      const assignedExpenseIds =
+        await this.workflowRuntimeService.assignedEntityIdsForActor(
+          'Expense',
+          actor,
+        );
+      qb.andWhere(
+        new Brackets((where) => {
+          where.where('expense.requesterId = :userId', {
+            userId: actor.userId,
+          });
+          if (assignedExpenseIds.length) {
+            where.orWhere('expense.id IN (:...assignedExpenseIds)', {
+              assignedExpenseIds,
+            });
+          }
+        }),
+      );
     }
     const paginated = await paginateQb(qb, {
       page,
@@ -263,7 +279,7 @@ export class ExpensesService {
       : await this.expensesRepository.findOneBy({ id });
     if (!expense) throw new NotFoundException('Expense not found');
 
-    if (!this.canSeeExpense(expense, actor)) {
+    if (!(await this.canSeeExpense(expense, actor))) {
       throw new BadRequestException('Expense is not visible to this user');
     }
     return expense;
@@ -283,14 +299,21 @@ export class ExpensesService {
     await this.expensesRepository.save(expense);
   }
 
-  private canSeeExpense(expense: Expense, actor: Express.User): boolean {
+  private async canSeeExpense(
+    expense: Expense,
+    actor: Express.User,
+  ): Promise<boolean> {
     if (
       this.canReadAllExpenses(actor) ||
       expense.requesterId === actor.userId
     ) {
       return true;
     }
-    return false;
+    return this.workflowRuntimeService.userHasEntityAssignment({
+      entityType: 'Expense',
+      entityId: expense.id,
+      actor,
+    });
   }
 
   private canReadAllExpenses(actor: Express.User): boolean {

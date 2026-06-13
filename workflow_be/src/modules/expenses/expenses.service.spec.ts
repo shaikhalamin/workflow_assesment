@@ -176,6 +176,127 @@ describe('ExpensesService', () => {
     expect(response.canResubmit).toBe(true);
   });
 
+  it('allows a directly assigned approver to read expense details', async () => {
+    const createdAt = new Date('2026-06-10T08:00:00.000Z');
+    const expense = {
+      id: 'expense-1',
+      requesterId: 'requester-1',
+      requester: null,
+      createdById: 'requester-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      title: 'Laptop reimbursement',
+      description: null,
+      amount: '4500',
+      currency: 'BDT',
+      category: 'Software',
+      vendor: null,
+      itemValue: null,
+      price: null,
+      quantity: null,
+      status: ExpenseStatus.UNDER_REVIEW,
+      workflowInstanceId: 'workflow-1',
+      rejectionReason: null,
+      customFieldsJson: null,
+      submittedAt: createdAt,
+      approvedAt: null,
+      rejectedAt: null,
+      paidAt: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const repo = {
+      findOne: jest.fn().mockResolvedValue(expense),
+    };
+    const runtime = {
+      userHasEntityAssignment: jest.fn().mockResolvedValue(true),
+    };
+    const service = new ExpensesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
+    const actor = {
+      userId: 'approver-1',
+      roles: ['custom-expense-approver'],
+      permissions: ['expenses.read', 'workflow.runtime.act'],
+    } as never;
+
+    await expect(service.findOne('expense-1', actor)).resolves.toEqual(
+      expect.objectContaining({ id: 'expense-1' }),
+    );
+    expect(runtime.userHasEntityAssignment).toHaveBeenCalledWith({
+      entityType: 'Expense',
+      entityId: 'expense-1',
+      actor,
+    });
+  });
+
+  it('includes workflow-assigned expenses in list visibility', async () => {
+    const createdAt = new Date('2026-06-10T08:00:00.000Z');
+    const expense = {
+      id: 'expense-1',
+      requesterId: 'requester-1',
+      requester: null,
+      createdById: 'requester-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      title: 'Laptop reimbursement',
+      description: null,
+      amount: '4500',
+      currency: 'BDT',
+      category: 'Software',
+      vendor: null,
+      itemValue: null,
+      price: null,
+      quantity: null,
+      status: ExpenseStatus.UNDER_REVIEW,
+      workflowInstanceId: 'workflow-1',
+      rejectionReason: null,
+      customFieldsJson: null,
+      submittedAt: createdAt,
+      approvedAt: null,
+      rejectedAt: null,
+      paidAt: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const getManyAndCount = jest.fn().mockResolvedValue([[expense], 1]);
+    const queryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount,
+    };
+    const repo = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    };
+    const runtime = {
+      assignedEntityIdsForActor: jest.fn().mockResolvedValue(['expense-1']),
+    };
+    const service = new ExpensesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
+    const actor = {
+      userId: 'approver-1',
+      roles: ['custom-expense-approver'],
+      permissions: ['expenses.read', 'workflow.runtime.act'],
+    } as never;
+
+    await service.list({ page: 1, limit: 10 }, actor);
+
+    expect(runtime.assignedEntityIdsForActor).toHaveBeenCalledWith(
+      'Expense',
+      actor,
+    );
+    expect(queryBuilder.andWhere).toHaveBeenCalled();
+  });
+
   it('submits a draft expense and triggers workflow metadata', async () => {
     const expense = {
       id: 'expense-1',
@@ -417,11 +538,12 @@ describe('ExpensesService', () => {
     const service = new ExpensesService(
       {
         findOneBy: jest.fn().mockResolvedValue({
+          id: 'expense-1',
           requesterId: 'owner-1',
           status: ExpenseStatus.REJECTED,
         }),
       } as never,
-      {} as never,
+      { userHasEntityAssignment: jest.fn().mockResolvedValue(false) } as never,
       {} as never,
     );
 

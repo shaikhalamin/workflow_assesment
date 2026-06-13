@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { paginateQb } from '../../common/http/paginate';
 import { Paginated } from '../../common/http/paginated';
 import { SuccessResponseDto } from '../../common/http/success-response.dto';
@@ -79,7 +79,21 @@ export class LeavesService {
     if (query.status)
       qb.andWhere('leave.status = :status', { status: query.status });
     if (!this.canReadAllLeaves(actor)) {
-      qb.andWhere('leave.requesterId = :userId', { userId: actor.userId });
+      const assignedLeaveIds =
+        await this.workflowRuntimeService.assignedEntityIdsForActor(
+          'LeaveRequest',
+          actor,
+        );
+      qb.andWhere(
+        new Brackets((where) => {
+          where.where('leave.requesterId = :userId', { userId: actor.userId });
+          if (assignedLeaveIds.length) {
+            where.orWhere('leave.id IN (:...assignedLeaveIds)', {
+              assignedLeaveIds,
+            });
+          }
+        }),
+      );
     }
     const paginated = await paginateQb(qb, {
       page,
@@ -258,7 +272,7 @@ export class LeavesService {
       : await this.leavesRepository.findOneBy({ id });
     if (!leave) throw new NotFoundException('Leave request not found');
 
-    if (!this.canSeeLeave(leave, actor)) {
+    if (!(await this.canSeeLeave(leave, actor))) {
       throw new BadRequestException(
         'Leave request is not visible to this user',
       );
@@ -280,11 +294,18 @@ export class LeavesService {
     await this.leavesRepository.save(leave);
   }
 
-  private canSeeLeave(leave: LeaveRequest, actor: Express.User): boolean {
+  private async canSeeLeave(
+    leave: LeaveRequest,
+    actor: Express.User,
+  ): Promise<boolean> {
     if (this.canReadAllLeaves(actor) || leave.requesterId === actor.userId) {
       return true;
     }
-    return false;
+    return this.workflowRuntimeService.userHasEntityAssignment({
+      entityType: 'LeaveRequest',
+      entityId: leave.id,
+      actor,
+    });
   }
 
   private canReadAllLeaves(actor: Express.User): boolean {

@@ -200,6 +200,61 @@ describe('BillingService', () => {
     ).resolves.toEqual(expect.objectContaining({ id: 'billing-1' }));
   });
 
+  it('allows a directly assigned approver to read billing request details', async () => {
+    const createdAt = new Date('2026-06-10T08:00:00.000Z');
+    const billingRequest = {
+      id: 'billing-1',
+      requesterId: 'requester-1',
+      requester: null,
+      createdById: 'requester-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      customerName: 'ACME Bangladesh Ltd.',
+      customerEmail: 'billing@acme.example',
+      customerAddress: 'Dhaka',
+      title: 'Enterprise installation',
+      description: null,
+      amount: '125000',
+      currency: 'BDT',
+      billingCategory: 'Installation',
+      status: BillingRequestStatus.UNDER_REVIEW,
+      workflowInstanceId: 'workflow-1',
+      invoiceId: null,
+      rejectionReason: null,
+      customFieldsJson: null,
+      submittedAt: createdAt,
+      approvedAt: null,
+      rejectedAt: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const billingRequestsRepository = {
+      findOne: jest.fn().mockResolvedValue(billingRequest),
+    };
+    const runtime = {
+      userHasEntityAssignment: jest.fn().mockResolvedValue(true),
+    };
+    const service = new BillingService(
+      billingRequestsRepository as never,
+      runtime as never,
+      {} as never,
+    );
+    const actor = {
+      userId: 'cfo-1',
+      roles: ['cfo'],
+      permissions: ['billing.read', 'workflow.runtime.act'],
+    } as never;
+
+    await expect(service.findOne('billing-1', actor)).resolves.toEqual(
+      expect.objectContaining({ id: 'billing-1' }),
+    );
+    expect(runtime.userHasEntityAssignment).toHaveBeenCalledWith({
+      entityType: 'BillingRequest',
+      entityId: 'billing-1',
+      actor,
+    });
+  });
+
   it('returns the billing request creator on list and detail responses', async () => {
     const createdAt = new Date('2026-06-10T08:00:00.000Z');
     const creator = {
@@ -250,7 +305,10 @@ describe('BillingService', () => {
     };
     const service = new BillingService(
       billingRequestsRepository as never,
-      { allowsResubmission: jest.fn<Promise<boolean>, [string]>() } as never,
+      {
+        allowsResubmission: jest.fn<Promise<boolean>, [string]>(),
+        assignedEntityIdsForActor: jest.fn().mockResolvedValue([]),
+      } as never,
       {} as never,
     );
 
@@ -283,6 +341,70 @@ describe('BillingService', () => {
         createdBy: creator,
       }),
     );
+  });
+
+  it('includes workflow-assigned billing requests in list visibility', async () => {
+    const createdAt = new Date('2026-06-10T08:00:00.000Z');
+    const billingRequest = {
+      id: 'billing-1',
+      requesterId: 'requester-1',
+      requester: null,
+      createdById: 'requester-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      customerName: 'ACME Bangladesh Ltd.',
+      customerEmail: 'billing@acme.example',
+      customerAddress: 'Dhaka',
+      title: 'Enterprise installation',
+      description: null,
+      amount: '125000',
+      currency: 'BDT',
+      billingCategory: 'Installation',
+      status: BillingRequestStatus.UNDER_REVIEW,
+      workflowInstanceId: 'workflow-1',
+      invoiceId: null,
+      rejectionReason: null,
+      customFieldsJson: null,
+      submittedAt: createdAt,
+      approvedAt: null,
+      rejectedAt: null,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const getManyAndCount = jest.fn().mockResolvedValue([[billingRequest], 1]);
+    const queryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount,
+    };
+    const billingRequestsRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    };
+    const runtime = {
+      assignedEntityIdsForActor: jest.fn().mockResolvedValue(['billing-1']),
+    };
+    const service = new BillingService(
+      billingRequestsRepository as never,
+      runtime as never,
+      {} as never,
+    );
+    const actor = {
+      userId: 'cfo-1',
+      roles: ['cfo'],
+      permissions: ['billing.read', 'workflow.runtime.act'],
+    } as never;
+
+    await service.list({ page: 1, limit: 10 }, actor);
+
+    expect(runtime.assignedEntityIdsForActor).toHaveBeenCalledWith(
+      'BillingRequest',
+      actor,
+    );
+    expect(queryBuilder.andWhere).toHaveBeenCalled();
   });
 
   it('cancels the active workflow when an under-review billing request is cancelled', async () => {

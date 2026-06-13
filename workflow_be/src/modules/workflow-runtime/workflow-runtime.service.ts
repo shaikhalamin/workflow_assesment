@@ -57,6 +57,10 @@ type WorkflowStepSummary = {
   status: WorkflowStepStatus;
 };
 
+type AssignedEntityRow = {
+  entityId: string;
+};
+
 export type TriggerWorkflowResult =
   | { status: 'skipped' }
   | {
@@ -105,15 +109,14 @@ export class WorkflowRuntimeService {
           triggerCondition: true,
           rules: { steps: true },
         },
-        order: { priority: 'DESC', rules: { priority: 'DESC' } },
+        order: {
+          priority: 'DESC',
+          createdAt: 'DESC',
+          rules: { priority: 'DESC' },
+        },
       });
 
-      const template = templates.find((candidate) =>
-        this.ruleEngine.matches(
-          metadata,
-          candidate.triggerCondition?.conditionJson ?? null,
-        ),
-      );
+      const template = this.selectTemplate(templates, metadata);
       if (!template) return { status: 'skipped' };
 
       const selectedRule = this.selectRule(template.rules ?? [], metadata);
@@ -208,6 +211,51 @@ export class WorkflowRuntimeService {
     });
 
     return instance?.workflowTemplate.allowResubmission ?? false;
+  }
+
+  async assignedEntityIdsForActor(
+    entityType: string,
+    actor: Express.User,
+  ): Promise<string[]> {
+    const rows = await this.instancesRepository
+      .createQueryBuilder('instance')
+      .innerJoin(WorkflowStep, 'step', 'step.workflowInstanceId = instance.id')
+      .select('DISTINCT instance.entityId', 'entityId')
+      .where('instance.entityType = :entityType', { entityType })
+      .andWhere(
+        '(step.assignedUserId = :userId OR step.assignedRoleSlug IN (:...roles))',
+        {
+          userId: actor.userId,
+          roles: actor.roles.length ? actor.roles : ['__none__'],
+        },
+      )
+      .getRawMany<AssignedEntityRow>();
+
+    return rows.map((row) => row.entityId);
+  }
+
+  async userHasEntityAssignment(input: {
+    entityType: string;
+    entityId: string;
+    actor: Express.User;
+  }): Promise<boolean> {
+    const count = await this.stepsRepository
+      .createQueryBuilder('step')
+      .innerJoin('step.workflowInstance', 'instance')
+      .where('instance.entityType = :entityType', {
+        entityType: input.entityType,
+      })
+      .andWhere('instance.entityId = :entityId', { entityId: input.entityId })
+      .andWhere(
+        '(step.assignedUserId = :userId OR step.assignedRoleSlug IN (:...roles))',
+        {
+          userId: input.actor.userId,
+          roles: input.actor.roles.length ? input.actor.roles : ['__none__'],
+        },
+      )
+      .getCount();
+
+    return count > 0;
   }
 
   list(query: PaginationQueryDto) {
@@ -506,6 +554,30 @@ export class WorkflowRuntimeService {
         .sort((a, b) => b.priority - a.priority)[0] ??
       null
     );
+  }
+
+  private selectTemplate(
+    templates: WorkflowTemplate[],
+    metadata: Record<string, unknown>,
+  ): WorkflowTemplate | null {
+    const matchingTemplates = templates.filter((candidate) =>
+      this.ruleEngine.matches(
+        metadata,
+        candidate.triggerCondition?.conditionJson ?? null,
+      ),
+    );
+
+    return (
+      [...matchingTemplates].sort(
+        (a, b) =>
+          b.priority - a.priority ||
+          this.triggerSpecificity(b) - this.triggerSpecificity(a),
+      )[0] ?? null
+    );
+  }
+
+  private triggerSpecificity(template: WorkflowTemplate): number {
+    return template.triggerCondition?.conditionJson.conditions.length ?? 0;
   }
 
   private async createSteps(

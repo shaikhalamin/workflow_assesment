@@ -208,6 +208,119 @@ describe('LeavesService', () => {
     expect(response.canResubmit).toBe(true);
   });
 
+  it('allows a directly assigned approver to read leave request details', async () => {
+    const leave = {
+      id: 'leave-1',
+      requesterId: 'requester-1',
+      requester: null,
+      createdById: 'requester-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      leaveType: 'ANNUAL',
+      leaveDays: 3,
+      startDate: '2026-06-10',
+      endDate: '2026-06-12',
+      reason: 'Family event',
+      employeeGrade: 'G5',
+      status: LeaveRequestStatus.UNDER_REVIEW,
+      workflowInstanceId: 'workflow-1',
+      rejectionReason: null,
+      approvedPeriodJson: null,
+      customFieldsJson: null,
+      submittedAt: new Date('2026-06-10T09:30:00.000Z'),
+      approvedAt: null,
+      rejectedAt: null,
+      createdAt: new Date('2026-06-10T09:30:00.000Z'),
+      updatedAt: new Date('2026-06-10T09:30:00.000Z'),
+    };
+    const repo = {
+      findOne: jest.fn().mockResolvedValue(leave),
+    };
+    const runtime = {
+      userHasEntityAssignment: jest.fn().mockResolvedValue(true),
+    };
+    const service = new LeavesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
+    const actor = {
+      userId: 'approver-1',
+      roles: ['custom-leave-approver'],
+      permissions: ['leaves.read', 'workflow.runtime.act'],
+    } as never;
+
+    await expect(service.findOne('leave-1', actor)).resolves.toEqual(
+      expect.objectContaining({ id: 'leave-1' }),
+    );
+    expect(runtime.userHasEntityAssignment).toHaveBeenCalledWith({
+      entityType: 'LeaveRequest',
+      entityId: 'leave-1',
+      actor,
+    });
+  });
+
+  it('includes workflow-assigned leave requests in list visibility', async () => {
+    const leave = {
+      id: 'leave-1',
+      requesterId: 'requester-1',
+      requester: null,
+      createdById: 'requester-1',
+      createdBy: null,
+      departmentId: 'dept-1',
+      leaveType: 'ANNUAL',
+      leaveDays: 3,
+      startDate: '2026-06-10',
+      endDate: '2026-06-12',
+      reason: 'Family event',
+      employeeGrade: 'G5',
+      status: LeaveRequestStatus.UNDER_REVIEW,
+      workflowInstanceId: 'workflow-1',
+      rejectionReason: null,
+      approvedPeriodJson: null,
+      customFieldsJson: null,
+      submittedAt: new Date('2026-06-10T09:30:00.000Z'),
+      approvedAt: null,
+      rejectedAt: null,
+      createdAt: new Date('2026-06-10T09:30:00.000Z'),
+      updatedAt: new Date('2026-06-10T09:30:00.000Z'),
+    };
+    const getManyAndCount = jest.fn().mockResolvedValue([[leave], 1]);
+    const queryBuilder = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount,
+    };
+    const repo = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    };
+    const runtime = {
+      assignedEntityIdsForActor: jest.fn().mockResolvedValue(['leave-1']),
+    };
+    const service = new LeavesService(
+      repo as never,
+      runtime as never,
+      {} as never,
+    );
+    const actor = {
+      userId: 'approver-1',
+      roles: ['custom-leave-approver'],
+      permissions: ['leaves.read', 'workflow.runtime.act'],
+    } as never;
+
+    await service.list({ page: 1, limit: 10 }, actor);
+
+    expect(runtime.assignedEntityIdsForActor).toHaveBeenCalledWith(
+      'LeaveRequest',
+      actor,
+    );
+    expect(queryBuilder.andWhere).toHaveBeenCalled();
+  });
+
   it('submits a draft leave request and triggers workflow metadata', async () => {
     const leave = {
       id: 'leave-1',
@@ -529,11 +642,12 @@ describe('LeavesService', () => {
     const service = new LeavesService(
       {
         findOneBy: jest.fn().mockResolvedValue({
+          id: 'leave-1',
           requesterId: 'owner-1',
           status: LeaveRequestStatus.REJECTED,
         }),
       } as never,
-      {} as never,
+      { userHasEntityAssignment: jest.fn().mockResolvedValue(false) } as never,
       {} as never,
     );
 

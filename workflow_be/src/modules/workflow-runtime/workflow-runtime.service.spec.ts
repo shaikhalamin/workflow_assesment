@@ -11,6 +11,194 @@ import {
 import { WorkflowRuntimeService } from './workflow-runtime.service';
 
 describe('WorkflowRuntimeService', () => {
+  it('chooses the more specific matching template when matching templates share priority', async () => {
+    const createdAt = new Date('2026-06-11T08:00:00.000Z');
+    const catchAllStepConfig = {
+      id: 'step-config-catch-all',
+      stepOrder: 1,
+      stepName: 'HR manager approval',
+      stepType: WorkflowStepType.APPROVAL,
+      assigneeType: WorkflowAssigneeType.USER,
+      assigneeUserId: 'hr-manager-1',
+      assigneeRoleSlug: null,
+      assigneeFieldPath: null,
+    };
+    const specificStepConfig = {
+      id: 'step-config-specific',
+      stepOrder: 1,
+      stepName: 'CFO approval',
+      stepType: WorkflowStepType.APPROVAL,
+      assigneeType: WorkflowAssigneeType.USER,
+      assigneeUserId: 'cfo-1',
+      assigneeRoleSlug: null,
+      assigneeFieldPath: null,
+    };
+    const catchAllTemplate = {
+      id: 'template-catch-all',
+      moduleName: 'leaves',
+      eventName: 'leave.submitted',
+      entityType: 'LeaveRequest',
+      status: WorkflowTemplateStatus.PUBLISHED,
+      priority: 1,
+      triggerCondition: {
+        conditionJson: { mode: 'all', conditions: [] },
+      },
+      rules: [
+        {
+          id: 'rule-catch-all',
+          priority: 1,
+          isFallback: false,
+          isActive: true,
+          conditionJson: null,
+          steps: [catchAllStepConfig],
+        },
+      ],
+    };
+    const specificTemplate = {
+      id: 'template-specific',
+      moduleName: 'leaves',
+      eventName: 'leave.submitted',
+      entityType: 'LeaveRequest',
+      status: WorkflowTemplateStatus.PUBLISHED,
+      priority: 1,
+      triggerCondition: {
+        conditionJson: {
+          mode: 'all',
+          conditions: [{ field: 'leaveDays', operator: 'gte', value: 3 }],
+        },
+      },
+      rules: [
+        {
+          id: 'rule-specific',
+          priority: 1,
+          isFallback: false,
+          isActive: true,
+          conditionJson: null,
+          steps: [specificStepConfig],
+        },
+      ],
+    };
+    const instance = {
+      id: 'workflow-1',
+      workflowTemplateId: 'template-specific',
+      workflowApprovalRuleId: 'rule-specific',
+      moduleName: 'leaves',
+      eventName: 'leave.submitted',
+      entityType: 'LeaveRequest',
+      entityId: 'leave-1',
+      requesterId: 'requester-1',
+      departmentId: null,
+      status: WorkflowInstanceStatus.ACTIVE,
+      metadataJson: { leaveDays: 5 },
+      startedAt: createdAt,
+    };
+    const step = {
+      id: 'step-1',
+      workflowInstanceId: 'workflow-1',
+      stepOrder: 1,
+      stepName: 'CFO approval',
+      stepType: WorkflowStepType.APPROVAL,
+      assigneeType: WorkflowAssigneeType.USER,
+      assignedUserId: 'cfo-1',
+      assignedRoleSlug: null,
+      status: WorkflowStepStatus.WAITING,
+      activatedAt: null,
+      actedAt: null,
+      actionByUserId: null,
+      actionByUser: null,
+      comment: null,
+      rejectionReason: null,
+      actions: [],
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const templatesRepository = {
+      find: jest.fn().mockResolvedValue([catchAllTemplate, specificTemplate]),
+    };
+    const instancesRepository = {
+      create: jest.fn().mockReturnValue(instance),
+      save: jest.fn().mockResolvedValue(instance),
+    };
+    const stepsRepository = {
+      create: jest.fn().mockReturnValue(step),
+      save: jest.fn((value: typeof step) => Promise.resolve(value)),
+    };
+    const actionsRepository = {
+      create: jest.fn((value: unknown) => value),
+      save: jest.fn((value: unknown) => Promise.resolve(value)),
+    };
+    const auditLogsRepository = {};
+    const notificationsRepository = {};
+    const manager = {
+      getRepository: jest.fn((entity: { name: string }) => {
+        if (entity.name === 'WorkflowTemplate') return templatesRepository;
+        if (entity.name === 'WorkflowInstance') return instancesRepository;
+        if (entity.name === 'WorkflowStep') return stepsRepository;
+        if (entity.name === 'WorkflowAction') return actionsRepository;
+        if (entity.name === 'AuditLog') return auditLogsRepository;
+        if (entity.name === 'Notification') return notificationsRepository;
+        return {};
+      }),
+    };
+    const dataSource = {
+      transaction: jest.fn((callback: (value: typeof manager) => unknown) =>
+        callback(manager),
+      ),
+    };
+    const ruleEngine = {
+      matches: jest.fn().mockReturnValue(true),
+    };
+    const assigneeResolver = {
+      resolve: jest.fn().mockResolvedValue({
+        assignedUserId: 'cfo-1',
+        assignedRoleSlug: null,
+      }),
+    };
+    const auditLogsService = {
+      record: jest.fn().mockResolvedValue(undefined),
+    };
+    const notificationsService = {
+      createTaskAssigned: jest.fn().mockResolvedValue(undefined),
+    };
+    const service = new WorkflowRuntimeService(
+      templatesRepository as never,
+      instancesRepository as never,
+      stepsRepository as never,
+      actionsRepository as never,
+      ruleEngine as never,
+      assigneeResolver as never,
+      {} as never,
+      {} as never,
+      auditLogsService as never,
+      notificationsService as never,
+      dataSource as never,
+    );
+
+    await service.trigger({
+      moduleName: 'leaves',
+      eventName: 'leave.submitted',
+      entityType: 'LeaveRequest',
+      entityId: 'leave-1',
+      requesterId: 'requester-1',
+      departmentId: null,
+      metadata: { leaveDays: 5 },
+    });
+
+    expect(instancesRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowTemplateId: 'template-specific',
+        workflowApprovalRuleId: 'rule-specific',
+      }),
+    );
+    expect(assigneeResolver.resolve).toHaveBeenCalledWith(
+      specificStepConfig,
+      expect.objectContaining({
+        requesterId: 'requester-1',
+        metadata: { leaveDays: 5 },
+      }),
+    );
+  });
+
   it('returns pending approval tasks with request summary details', async () => {
     const createdAt = new Date('2026-06-11T08:00:00.000Z');
     const requester = {

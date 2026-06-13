@@ -539,6 +539,14 @@ describe('SeedService', () => {
         assigneeUserId: 'hr-manager-user-id',
       }),
     );
+    expect(workflowApprovalStepConfigsRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stepOrder: 4,
+        stepName: 'CFO approval',
+        assigneeType: WorkflowAssigneeType.USER,
+        assigneeUserId: 'cfo-user-id',
+      }),
+    );
     expect(workflowApprovalRulesRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Invoice bill over 2500 BDT',

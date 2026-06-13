@@ -824,6 +824,9 @@ export class SeedService implements OnApplicationBootstrap {
     const hrManager = await this.usersRepository.findOneBy({
       email: 'hr.manager@example.com',
     });
+    const cfo = await this.usersRepository.findOneBy({
+      email: 'cfo@example.com',
+    });
     const rule = await this.ensureRule(template.id, {
       name: 'Leave rule over 2 days',
       priority: 1,
@@ -852,6 +855,13 @@ export class SeedService implements OnApplicationBootstrap {
       stepType: WorkflowStepType.APPROVAL,
       assigneeType: WorkflowAssigneeType.USER,
       assigneeUserId: hrManager?.id ?? null,
+    });
+    await this.ensureStep(rule.id, {
+      stepOrder: 4,
+      stepName: 'CFO approval',
+      stepType: WorkflowStepType.APPROVAL,
+      assigneeType: WorkflowAssigneeType.USER,
+      assigneeUserId: cfo?.id ?? null,
     });
   }
 

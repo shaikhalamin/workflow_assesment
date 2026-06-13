@@ -85,6 +85,11 @@ export class BillingService {
     }
 
     if (!this.isAdmin(actor) && !this.isManager(actor)) {
+      const assignedBillingRequestIds =
+        await this.workflowRuntimeService.assignedEntityIdsForActor(
+          'BillingRequest',
+          actor,
+        );
       qb.andWhere(
         new Brackets((where) => {
           where.where('billingRequest.requesterId = :userId', {
@@ -94,6 +99,12 @@ export class BillingService {
             where.orWhere('billingRequest.status = :reviewStatus', {
               reviewStatus: BillingRequestStatus.UNDER_REVIEW,
             });
+          }
+          if (assignedBillingRequestIds.length) {
+            where.orWhere(
+              'billingRequest.id IN (:...assignedBillingRequestIds)',
+              { assignedBillingRequestIds },
+            );
           }
         }),
       );
@@ -326,7 +337,7 @@ export class BillingService {
       : await this.billingRequestsRepository.findOneBy({ id });
     if (!billingRequest)
       throw new NotFoundException('Billing request not found');
-    if (this.canSeeBillingRequest(billingRequest, actor)) {
+    if (await this.canSeeBillingRequest(billingRequest, actor)) {
       return billingRequest;
     }
     throw new BadRequestException(
@@ -347,17 +358,24 @@ export class BillingService {
     await this.billingRequestsRepository.save(billingRequest);
   }
 
-  private canSeeBillingRequest(
+  private async canSeeBillingRequest(
     billingRequest: BillingRequest,
     actor: Express.User,
-  ): boolean {
+  ): Promise<boolean> {
     if (this.isAdmin(actor) || billingRequest.requesterId === actor.userId) {
       return true;
     }
     if (this.isAccountsOrFinance(actor)) {
       return billingRequest.status === BillingRequestStatus.UNDER_REVIEW;
     }
-    return this.isManager(actor);
+    if (this.isManager(actor)) {
+      return true;
+    }
+    return this.workflowRuntimeService.userHasEntityAssignment({
+      entityType: 'BillingRequest',
+      entityId: billingRequest.id,
+      actor,
+    });
   }
 
   private mapUpdate(dto: UpdateBillingRequestDto): Partial<BillingRequest> {
