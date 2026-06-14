@@ -507,7 +507,10 @@ describe('WorkflowInstanceDetailPage', () => {
     })
     expect(rejectStep).toHaveBeenCalledWith({
       id: 'step-2',
-      data: { reason: 'Approved from detail' },
+      data: {
+        comment: 'Approved from detail',
+        reason: 'Approved from detail',
+      },
     })
   })
 

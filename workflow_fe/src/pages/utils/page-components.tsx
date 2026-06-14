@@ -698,7 +698,7 @@ function WorkflowDecisionPanel({
           type="button"
           variant="destructive"
           disabled={approve.isPending || reject.isPending}
-          onClick={() => reject.mutate({ id: step.id, data: { reason: comment } })}
+          onClick={() => reject.mutate({ id: step.id, data: { comment, reason: comment } })}
         >
           <XCircle className="h-4 w-4" /> Reject
         </Button>

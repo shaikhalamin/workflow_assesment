@@ -4,6 +4,6 @@
   "private": true,
   "packageManager": "pnpm@10.15.0",
   "scripts": {
-    "clear:all": "docker compose run --rm --build backend pnpm ts-node -r tsconfig-paths/register scripts/clear-all-data.ts"
+    "clear:all": "docker exec -i workflow-backend pnpm ts-node -r tsconfig-paths/register scripts/clear-all-data.ts"
   }
 }

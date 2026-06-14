@@ -119,7 +119,7 @@ function TaskTable({
             <Button size="sm" type="button" onClick={() => approve.mutate({ id: String(row.original.id), data: { comment } })}>
               <CheckCircle2 className="h-4 w-4" /> Approve
             </Button>
-            <Button size="sm" variant="destructive" type="button" onClick={() => reject.mutate({ id: String(row.original.id), data: { reason: comment } })}>
+            <Button size="sm" variant="destructive" type="button" onClick={() => reject.mutate({ id: String(row.original.id), data: { comment, reason: comment } })}>
               <XCircle className="h-4 w-4" /> Reject
             </Button>
           </div>
