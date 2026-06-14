@@ -1,0 +1,9 @@
+{
+  "name": "workflow_assesment",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.15.0",
+  "scripts": {
+    "clear:all": "docker compose run --rm --build backend pnpm ts-node -r tsconfig-paths/register scripts/clear-all-data.ts"
+  }
+}
