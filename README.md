@@ -15,6 +15,20 @@ The main implemented flow is sales billing approval. The app also includes expen
 - Audit logs, workflow history, dashboard summaries, and in-app notifications.
 - Seed data for quick review.
 
+## Design Note
+
+The project is split into a NestJS backend, a React frontend, PostgreSQL for persistent data, and Redis/BullMQ for background workflow-related work. The backend owns the domain rules, permissions, workflow runtime, audit logging, and generated business outcomes. The frontend stays focused on operational screens such as dashboards, request lists, approval tasks, workflow details, invoices, payments, permissions, and audit logs.
+
+The workflow engine is template-driven instead of hard-coded to one request type. Billing, expense, and leave requests each trigger workflows through configured rules and ordered approval steps. This adds some setup complexity, but it keeps the approval logic reusable and makes the billing flow a real example rather than a one-off implementation.
+
+Key assumptions:
+
+- The app is designed for assessment and local review, not production deployment.
+- Seed data should make the main flows testable immediately after startup.
+- Role and permission checks belong on the backend, with the frontend using them to guide navigation and available actions.
+- Email delivery can be simulated in logs; in-app notifications and audit history are enough for review.
+- Docker Compose is the expected way to run the full stack locally.
+
 ## Run The App
 
 From the repository root:
