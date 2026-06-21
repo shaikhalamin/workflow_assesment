@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config'
 import { createLogger, type LogErrorOptions } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import { fileURLToPath, URL } from 'node:url'
 
 const logger = createLogger()
@@ -25,7 +25,7 @@ logger.error = (message: string, options?: LogErrorOptions) => {
 export default defineConfig({
   customLogger: logger,
   plugins: [
-    TanStackRouterVite({
+    tanstackRouter({
       routesDirectory: 'src/routes',
       generatedRouteTree: 'src/routeTree.gen.ts',
       autoCodeSplitting: true,

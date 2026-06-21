@@ -589,7 +589,10 @@ export function describeConditionGroup(group: DetailConditionGroup | undefined) 
   return `${prefix}: ${group.conditions.map(describeCondition).join(', ')}`
 }
 
-export function describeStepAssignee(step: WorkflowApprovalStepConfigResponseDto) {
+export function describeStepAssignee(
+  step: WorkflowApprovalStepConfigResponseDto,
+  users: UserResponseDto[] = [],
+) {
   if (step.assigneeType === 'ROLE') {
     const role = step.assigneeRoleSlug
     return role ? `Role: ${formatRoleLabel(role)}` : 'Needs assignment'
@@ -597,7 +600,8 @@ export function describeStepAssignee(step: WorkflowApprovalStepConfigResponseDto
 
   if (step.assigneeType === 'USER') {
     const userId = step.assigneeUserId
-    return userId ? `User ID: ${userId}` : 'Needs assignment'
+    const userReference = describeUserReference(users, userId)
+    return userReference ? `User: ${userReference}` : 'Needs assignment'
   }
 
   if (step.assigneeType === 'REQUESTER_MANAGER') {

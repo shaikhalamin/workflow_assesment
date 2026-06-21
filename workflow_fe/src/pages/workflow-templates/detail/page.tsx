@@ -6,14 +6,16 @@ PlayCircle
 
 import { Badge } from '@/components/ui/badge'
 import type {
+UserResponseDto,
 WorkflowApprovalRuleResponseDto,
 WorkflowApprovalStepConfigResponseDto,
 WorkflowTemplateResponseDto
 } from '@/lib/api/gen'
-import { useWorkflowTemplateControllerFindOne } from '@/lib/api/gen'
+import { useUsersControllerGetUsers,useWorkflowTemplateControllerFindOne } from '@/lib/api/gen'
 import {
 formatDate,
 formatValue,
+rowsFrom,
 unwrapData
 } from '@/lib/format'
 import {
@@ -39,7 +41,9 @@ type OutcomeActionValue
 export function WorkflowTemplateDetailPage() {
   const { templateId } = useParams({ strict: false }) as { templateId: string }
   const query = useWorkflowTemplateControllerFindOne({ id: templateId })
+  const usersQuery = useUsersControllerGetUsers({ params: { page: 1, limit: 100 } })
   const template = unwrapData(query.data)
+  const users = rowsFrom(usersQuery.data)
 
   return (
     <>
@@ -58,15 +62,17 @@ export function WorkflowTemplateDetailPage() {
         }
       />
       <ErrorNotice error={query.error} />
-      {template ? <WorkflowTemplateDetail template={template} /> : null}
+      {template ? <WorkflowTemplateDetail template={template} users={users} /> : null}
     </>
   )
 }
 
 function WorkflowTemplateDetail({
   template,
+  users,
 }: {
   template: WorkflowTemplateResponseDto
+  users: UserResponseDto[]
 }) {
   const sortedRules = [...template.rules].sort(
     (first, second) => first.priority - second.priority,
@@ -155,7 +161,7 @@ function WorkflowTemplateDetail({
           <div className="mt-4 space-y-5">
             {sortedRules.length > 0 ? (
               sortedRules.map((rule) => (
-                <WorkflowRuleCard key={rule.id} rule={rule} />
+                <WorkflowRuleCard key={rule.id} rule={rule} users={users} />
               ))
             ) : (
               <EmptyState message="No approval rules configured." />
@@ -236,7 +242,13 @@ function WorkflowTriggerSummary({
   )
 }
 
-function WorkflowRuleCard({ rule }: { rule: WorkflowApprovalRuleResponseDto }) {
+function WorkflowRuleCard({
+  rule,
+  users,
+}: {
+  rule: WorkflowApprovalRuleResponseDto
+  users: UserResponseDto[]
+}) {
   const sortedSteps = [...rule.steps].sort(
     (first, second) => first.stepOrder - second.stepOrder,
   )
@@ -267,15 +279,17 @@ function WorkflowRuleCard({ rule }: { rule: WorkflowApprovalRuleResponseDto }) {
           </span>
         </div>
       </div>
-      <ApprovalStepTimeline steps={sortedSteps} />
+      <ApprovalStepTimeline steps={sortedSteps} users={users} />
     </article>
   )
 }
 
 function ApprovalStepTimeline({
   steps,
+  users,
 }: {
   steps: WorkflowApprovalStepConfigResponseDto[]
+  users: UserResponseDto[]
 }) {
   if (steps.length === 0) {
     return <EmptyState message="No approval steps configured." />
@@ -312,7 +326,7 @@ function ApprovalStepTimeline({
                       {stepTypeLabels[step.stepType] ?? step.stepType}
                     </p>
                     <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-                      {describeStepAssignee(step)}
+                      {describeStepAssignee(step, users)}
                     </p>
                   </div>
                   {slaHours ? (

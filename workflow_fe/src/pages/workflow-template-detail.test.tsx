@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { WorkflowTemplateDetailPage } from './index'
 
 let templateResponse: unknown | undefined
+let usersResponse: unknown[] = []
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -59,7 +60,7 @@ vi.mock('@/lib/api/gen', () => ({
   useLeavesControllerSubmit: () => ({ mutate: vi.fn() }),
   usePaymentsControllerList: () => ({ data: { data: [] }, error: null }),
   usePaymentsControllerMarkPaid: () => ({ mutate: vi.fn() }),
-  useUsersControllerGetUsers: () => ({ data: { data: [] }, isLoading: false }),
+  useUsersControllerGetUsers: () => ({ data: { data: usersResponse }, isLoading: false }),
   useWorkflowEventSchemaControllerCreate: () => ({
     error: null,
     mutate: vi.fn(),
@@ -212,6 +213,10 @@ const baseTemplate = {
 }
 
 describe('WorkflowTemplateDetailPage', () => {
+  beforeEach(() => {
+    usersResponse = []
+  })
+
   it('links back to the workflow templates list', () => {
     templateResponse = baseTemplate
 
@@ -306,6 +311,49 @@ describe('WorkflowTemplateDetailPage', () => {
     expect(screen.getByText('Comment required')).toBeInTheDocument()
     expect(screen.queryByText('Attachment required')).not.toBeInTheDocument()
     expect(screen.getByText('Reassign allowed')).toBeInTheDocument()
+  })
+
+  it('shows user approval steps with the approver name and email', () => {
+    usersResponse = [
+      {
+        id: 'cfo-user-id',
+        name: 'Chief Finance Officer',
+        email: 'cfo@example.com',
+        employeeCode: null,
+        employeeGrade: null,
+        designation: 'CFO',
+        departmentId: null,
+        managerId: null,
+        isActive: true,
+        lastLoginAt: null,
+        createdAt: '2026-06-01T09:00:00.000Z',
+        updatedAt: '2026-06-01T09:00:00.000Z',
+      },
+    ]
+    templateResponse = {
+      ...baseTemplate,
+      rules: [
+        {
+          ...baseTemplate.rules[1],
+          steps: [
+            {
+              ...baseTemplate.rules[1].steps[0],
+              assigneeType: 'USER',
+              assigneeRoleSlug: null,
+              assigneeUserId: 'cfo-user-id',
+              stepName: 'CFO approval',
+            },
+          ],
+        },
+      ],
+    }
+
+    render(<WorkflowTemplateDetailPage />)
+
+    expect(
+      screen.getByText('User: Chief Finance Officer (cfo@example.com)'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('User ID: cfo-user-id')).not.toBeInTheDocument()
   })
 
   it('renders approved and rejected outcomes as business actions', () => {
